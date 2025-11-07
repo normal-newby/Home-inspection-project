@@ -1,0 +1,50 @@
+form{
+    align-items: left;
+    text-align: left;
+    padding: 20px;
+}
+.bookingFieldSet {
+    margin-bottom: 10px;
+    text-align: left;
+    background-color: rgba(166, 202, 198, 0.577);
+    padding: 10px;
+    border-top-width: 2px;
+    border-top-color: black
+}
+.legends{
+    border: 1px solid black;
+    border-radius: 5px;
+    padding: 5px;
+    background-color: white;
+}
+.submitButton {
+    background-color: #ADD8E6;
+    border: 1px solid black;
+    border-radius: 5px;
+    padding: 10px;
+    margin-top: 10px;
+    align-self: left;
+}
+.submitButton:hover {
+    background-color: rgb(115, 126, 129);
+    cursor: pointer;
+}
+.resetButton {
+    background-color: lightcoral;
+    border: 1px solid black;
+    border-radius: 5px;
+    padding: 10px;
+    margin-top: 10px;
+    margin-left: 20px;
+}
+.resetButton:hover {
+    background-color: rgb(115, 126, 129);
+    cursor: pointer;
+}
+.note{
+    font-size: 14px;
+    font-style: italic;
+    text-align: left;
+    margin: 20px;
+    font-family: sans-serif;
+}

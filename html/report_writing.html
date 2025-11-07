@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>My Web Page</title>
+        <link rel="stylesheet" href="../css/styles.css">
+        <link rel="stylesheet" href="../css/inspectionWriting.css">
+    </head>
+    <body>
+        <div class="container">
+            <div class = "navbar">
+                <div class = "navbarBox">
+                    <p><a href="index.html">Home</a></p>
+                </div>
+                <div class = "navbarBox">
+                    <p><a href="scheduler.html">Scheduler</a></p>
+                </div>
+                <div class = "navbarBox">
+                    <p><a href="booking.html">Book inspection</a></p>
+                </div>
+                <div class = "navbarBox">
+                    <p><a href="profile.html">Profile</a></p>
+                </div>
+            </div>
+            <div class = "body_content">
+                <button class = "component_button" data-target = "roofing">Roofing</button>
+                <button class = "component_button" data-target = "exterior">Exterior</button>
+                <button class = "component_button" data-target = "structure">Structure</button>
+                <button class = "component_button" data-target = "electrical">Electrical</button>
+                <button class = "component_button" data-target = "heating">Heating</button>
+                <button class = "component_button" data-target = "cooling">Cooling</button>
+                <button class = "component_button" data-target = "insulation">Insulation</button>
+                <button class = "component_button" data-target = "plumbing">Plumbing</button>
+                <button class = "component_button" data-target = "interior">Interior</button>
+                <br>
+                <button class = "component_button component_button_lower" data-target="description">Description</button>
+                <button class = "component_button component_button_lower" data-target="limitations">Limitations</button>
+                <button class = "component_button component_button_lower" data-target="recommendations">Recommendations</button>
+
+                <br>
+
+                <select id="selector"></select>
+                <button id="selector_button">Add component</button>
+
+                <div id = "roofing" class = "component_section">
+                    <div class = "description"></div>
+                    <div class = "limitations" hidden></div>
+                    <div class = "recommendations" hidden></div>
+                </div>
+                <div id = "exterior" class = "component_section" hidden>
+                    <div class = "description"></div>
+                    <div class = "limitations" hidden></div>
+                    <div class = "recommendations" hidden></div>
+                </div>
+                <div id = "structure" class = "component_section" hidden>
+                    <div class = "description"></div>
+                    <div class = "limitations" hidden></div>
+                    <div class = "recommendations" hidden></div>
+                </div>
+                <div id = "electrical" class = "component_section" hidden>
+                    <div class = "description"></div>
+                    <div class = "limitations" hidden></div>
+                    <div class = "recommendations" hidden></div>
+                </div>
+                <div id = "heating" class = "component_section" hidden>
+                    <div class = "description"></div>
+                    <div class = "limitations" hidden></div>
+                    <div class = "recommendations" hidden></div>
+                </div>
+                <div id = "cooling" class = "component_section" hidden>
+                    <div class = "description"></div>
+                    <div class = "limitations" hidden></div>
+                    <div class = "recommendations" hidden></div>
+                </div>
+                <div id = "insulation" class = "component_section" hidden>
+                    <div class = "description"></div>
+                    <div class = "limitations" hidden></div>
+                    <div class = "recommendations" hidden></div>
+                </div>
+                <div id = "plumbing" class = "component_section" hidden>
+                    <div class = "description"></div>
+                    <div class = "limitations" hidden></div>
+                    <div class = "recommendations" hidden></div>
+                </div>
+                <div id = "interior" class = "component_section" hidden>
+                    <div class = "description"></div>
+                    <div class = "limitations" hidden></div>
+                    <div class = "recommendations" hidden></div>
+                </div> 
+            </div>
+        </div>
+        <script type = "module" src = "../js/reportWriting/selector.js"></script>
+    </body>
+</html>
