@@ -1,0 +1,46 @@
+.bookings-container{
+    width: 90%;
+    min-height: 100px;
+    margin-top: 10px;
+    margin-right: auto;
+    margin-left: auto;
+    border: 1px solid black;
+}
+.booking {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 16px;
+    border-bottom: 1px solid black;
+}
+
+.booking:last-child{
+    border-bottom: none;
+}
+
+.booking-left {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+}
+
+.booking-name {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.booking-address, .booking-postal {
+    font-size: 14px;
+    color: #555;
+}
+
+.booking-link {
+    text-decoration: none;
+    font-weight: 500;
+    color: #2563eb;
+}
+
+.booking-link:hover {
+    text-decoration: underline;
+}

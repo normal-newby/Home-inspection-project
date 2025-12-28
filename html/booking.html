@@ -25,19 +25,19 @@
         </div>
         <h1>Book an Inspection</h1>
         <hr>
-        <form action="/submit_booking" method="post">
+        <form action="/submit_booking" method="post" id="booking-form">
             <fieldset class = "bookingFieldSet">
                 <legend class = "legends">Inspection Address</legend>
                 <label for="inspection_address">Inspection Address:*</label>
-                <input type="text" id="inspection_address" name="inspection_address" placeholder="69 lord seaton" required>
+                <input type="text" id="inspection_address" name="inspectionAddress" placeholder="69 lord seaton" required>
                 <label for="Suite">Suite</label>
-                <input type="text" id="Suite" name="Suite" placeholder="420">
+                <input type="text" id="Suite" name="suite" placeholder="420">
                 <label for="City">City*</label>
-                <input type="text" id="City" name="City" placeholder="Toronto" required>
+                <input type="text" id="City" name="city" placeholder="Toronto" required>
                 <label for="Zip">Zip/Postal</label>
-                <input type="text" id="Zip" name="Zip" placeholder="M1M1M1">
+                <input type="text" id="Zip" name="postalCode" placeholder="M1M1M1">
                 <label for="Province">Province/State</label>
-                <select id="Province" name="Province">
+                <select id="Province" name="province">
                     <option value="" disabled selected>Select your option</option>
                     <option value="ON">Ontario</option>
                     <option value="QC">Quebec</option>
@@ -57,55 +57,53 @@
             <fieldset class="bookingFieldSet">
                 <legend class="legends">Client Info</legend>
                 <label for="first_name">First Name:*</label>
-                <input type="text" id="first_name" name="first_name" placeholder="John" required>
+                <input type="text" id="first_name" name="clientFirstName" placeholder="John" required>
                 <label for="last_name">Last Name:*</label>
-                <input type="text" id="last_name" name="last_name" placeholder="Doe" required>
+                <input type="text" id="last_name" name="clientLastName" placeholder="Doe" required>
                 <label for="email">Email:</label>
                 <input type="email" id="email" name="email" placeholder="djliu@hotmail.com">
                 <label for="phone">Phone Number:</label>
                 <input type="tel" id="phone" name="phone" placeholder="416-420-6969">
-                <label for="inspection_adress">The inspection address is also the client's address</label>"
-                <input type="checkbox" id="same_address" name="same_address">
             </fieldset>
             <fieldset class="bookingFieldSet">
                 <legend class="legends">Reference*</legend>
 
-                <input type="radio" id="none_reference" name="referred_by" value="None" checked>
+                <input type="radio" id="none_reference" name="referredBy" value="None" checked>
                 <label for="none_reference">None</label>
 
-                <input type="radio" id="buyer_agent_reference" name="referred_by" value="Buyer Agent" required>
+                <input type="radio" id="buyer_agent_reference" name="referredBy" value="Buyer Agent" required>
                 <label for="buyer_agent_reference">Buyer Agent</label>
 
-                <input type="radio" id="seller_agent_reference" name="referred_by" value="Seller Agent" required> 
+                <input type="radio" id="seller_agent_reference" name="referredBy" value="Seller Agent" required> 
                 <label for="seller_agent_reference">Seller Agent</label>
 
-                <input type="radio" id="friend_reference" name="referred_by" value="Friend" required>
+                <input type="radio" id="friend_reference" name="referredBy" value="Friend" required>
                 <label for="friend_reference">Friend</label>
 
-                <input type="radio" id="family_reference" name="referred_by" value="Family" required>
+                <input type="radio" id="family_reference" name="referredBy" value="Family" required>
                 <label for="family_reference">Family</label>
 
-                <input type="radio" id="lender_reference" name="referred_by" value="Lender" required>
+                <input type="radio" id="lender_reference" name="referredBy" value="Lender" required>
                 <label for="lender_reference">Lender</label>
 
-                <input type="radio" id="other_reference" name="referred_by" value="Other" required>
+                <input type="radio" id="other_reference" name="referredBy" value="Other" required>
                 <label for="other_reference">Other</label>
             </fieldset>
             <fieldset class="bookingFieldSet">
                 <legend class="legends">Booked by</legend>
-                <input type="radio" id="none_booked" name="booked_by" value="None" checked>
+                <input type="radio" id="none_booked" name="bookedBy" value="None" checked>
                 <label for="none_booked">None</label>
 
-                <input type="radio" id="seller_agent_booked" name="booked_by" value="Seller Agent" required>
+                <input type="radio" id="seller_agent_booked" name="bookedBy" value="Seller Agent" required>
                 <label for="seller_agent_booked">Seller Agent</label>
 
-                <input type="radio" id="buyer_agent_booked" name="booked_by" value="Buyer Agent" required>
+                <input type="radio" id="buyer_agent_booked" name="bookedBy" value="Buyer Agent" required>
                 <label for="buyer_agent_booked">Buyer Agent</label>
 
-                <input type="radio" id="client_booked" name="booked_by" value="Client" required>
+                <input type="radio" id="client_booked" name="bookedBy" value="Client" required>
                 <label for="client_booked">Client</label>
 
-                <input type="radio" id="other_booked" name="booked_by" value="Other" required>
+                <input type="radio" id="other_booked" name="bookedBy" value="Other" required>
                 <label for="other_booked">Other</label>
             </fieldset>
             <button type="submit" class="submitButton">Submit</button>
@@ -113,5 +111,6 @@
         </form>
         <p class="note">An asterisk (*) indicates a required field</p>
     </div>
+    <script src="../js/booking/booking.js"></script>
 </body>
 </html>
