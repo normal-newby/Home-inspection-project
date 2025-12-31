@@ -35,12 +35,12 @@
     color: #555;
 }
 
-.booking-link {
+.link {
     text-decoration: none;
     font-weight: 500;
     color: #2563eb;
 }
 
-.booking-link:hover {
+.link:hover {
     text-decoration: underline;
 }

@@ -1,5 +1,7 @@
 package ca.inspection.home.inspection.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,6 +21,7 @@ public class InspectionImage {
     private UUID id;
 
     @ManyToOne
+    @JsonBackReference
     @JoinColumn(name = "inspection_report_id", nullable = false)
     private InspectionReport inspectionReport;
 
@@ -26,5 +29,6 @@ public class InspectionImage {
     private String description;
 
     @OneToMany(mappedBy = "inspectionImage", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<InspectionField> fields = new ArrayList<>();
 }

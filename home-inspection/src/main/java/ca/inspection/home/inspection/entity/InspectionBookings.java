@@ -1,5 +1,6 @@
 package ca.inspection.home.inspection.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -35,5 +36,6 @@ public class InspectionBookings {
     private String bookedBy;
 
     @OneToOne(mappedBy = "inspectionBooking")
+    @JsonManagedReference
     private InspectionReport inspectionReport;
 }

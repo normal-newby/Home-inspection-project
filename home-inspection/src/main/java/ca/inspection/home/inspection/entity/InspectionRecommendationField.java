@@ -1,5 +1,6 @@
 package ca.inspection.home.inspection.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,6 +18,7 @@ public class InspectionRecommendationField {
     private UUID id;
 
     @OneToOne
+    @JsonBackReference
     @JoinColumn(name = "inspection_field_id")
     private InspectionField inspectionField;
 

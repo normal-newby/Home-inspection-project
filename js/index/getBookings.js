@@ -24,7 +24,10 @@ function loadBookings(){
                 </div>
 
                 <div class="booking-right">
-                    <a href="booking-details.html?id=${booking.id}" class="booking-link">
+                    <a href="report_writing.html?id=${booking.id}" class="link">
+                        Write Report →
+                    </a>
+                    <a href="booking-details.html?id=${booking.id}" class="link">
                         View Details →
                     </a>
                 </div>
