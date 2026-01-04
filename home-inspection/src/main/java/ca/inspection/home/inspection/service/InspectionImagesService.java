@@ -1,7 +1,9 @@
 package ca.inspection.home.inspection.service;
 
+import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectionImage;
 import ca.inspection.home.inspection.entity.InspectionReport;
+import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
 import ca.inspection.home.inspection.repository.InspectionImagesRepository;
 import ca.inspection.home.inspection.repository.InspectionReportsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,9 @@ public class InspectionImagesService {
     @Autowired
     private InspectionReportsRepository inspectionReportsRepository;
 
+    @Autowired
+    InspectionBookingsRepository inspectionBookingsRepository;
+
     private static final Path DIRECTORY = Paths.get("D:\\Projects\\Home inspection project\\images");
 
     public void saveImages(
@@ -32,8 +37,9 @@ public class InspectionImagesService {
     ) throws IOException {
 
         //Find the report it belongs to
-        InspectionReport inspectionReport = inspectionReportsRepository.findById(inspectionReportId)
+        InspectionBookings inspectionBookings = inspectionBookingsRepository.findById(inspectionReportId)
                 .orElseThrow();
+        InspectionReport inspectionReport = inspectionBookings.getInspectionReport();
 
         //make sure path exists
         Files.createDirectories(DIRECTORY);
@@ -41,7 +47,7 @@ public class InspectionImagesService {
         //iterate through each image upload and saves to file and database
         for (int i = 0; i < files.size(); i++){
             MultipartFile file = files.get(i);
-            String description = descriptions.get(i);
+            String description = i < descriptions.size() ? descriptions.get(i) : "N/A";
 
             //creates filename
             String fileName = UUID.randomUUID().toString();

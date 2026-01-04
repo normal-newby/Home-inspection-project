@@ -1,5 +1,5 @@
 const params = new URLSearchParams(window.location.search);
-const bookingId = params.get("id");
+export const bookingId = params.get("id");
 
 fetch(`http://localhost:8080/api/reports/${bookingId}`)
 .then(result => result.json())
