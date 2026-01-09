@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import java.util.UUID;
 
 @Entity
+@Table(name = "inspection_field_value")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -23,10 +24,9 @@ public class InspectionField {
     @JoinColumn(name = "inspection_report_id", nullable = false)
     private InspectionReport inspectionReport;
 
-    private String fieldName; //e.g. Sloped roofing material
+    private InspectionFieldDefinition inspectionFieldDefinition;
+
     private String fieldValue; //e.g. Asphalt shingles, shingles, even more shingles
-    private String fieldPlace; //e.g. roofing, exterior
-    private String fieldType; //e.g. description, limitations, recommendations
 
     @ManyToOne
     @JoinColumn(name = "inspection_image_id")
