@@ -1,13 +1,12 @@
 package ca.inspection.home.inspection.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -23,4 +22,8 @@ public class InspectionFieldDefinition {
     private String fieldName; //shingles
     private String fieldPlace; //heating
     private String fieldType; //limitations and stuff
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "inspectionFieldDefinition", cascade = CascadeType.ALL)
+    private List<InspectionFieldDefinitionValue> possibleValues;
 }
