@@ -39,4 +39,4 @@ function loadBookings(){
     .catch(error => console.log(error));
 }
 
-loadBookings();
+window.onload = () => loadBookings();

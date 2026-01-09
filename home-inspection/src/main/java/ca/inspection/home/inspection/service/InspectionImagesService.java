@@ -6,7 +6,15 @@ import ca.inspection.home.inspection.entity.InspectionReport;
 import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
 import ca.inspection.home.inspection.repository.InspectionImagesRepository;
 import ca.inspection.home.inspection.repository.InspectionReportsRepository;
+import jakarta.transaction.Transactional;
+import jdk.jfr.ContentType;
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,39 +38,67 @@ public class InspectionImagesService {
 
     private static final Path DIRECTORY = Paths.get("D:\\Projects\\Home inspection project\\images");
 
+    @Transactional
     public void saveImages(
             List<MultipartFile> files,
             UUID inspectionReportId,
             List<String> descriptions
     ) throws IOException {
+        try {
+            //Find the report it belongs to
+            InspectionBookings inspectionBookings = inspectionBookingsRepository.findById(inspectionReportId)
+                    .orElseThrow();
+            InspectionReport inspectionReport = inspectionBookings.getInspectionReport();
 
-        //Find the report it belongs to
-        InspectionBookings inspectionBookings = inspectionBookingsRepository.findById(inspectionReportId)
+            //make sure path exists
+            Files.createDirectories(DIRECTORY);
+
+            //iterate through each image upload and saves to file and database
+            for (int i = 0; i < files.size(); i++) {
+                MultipartFile file = files.get(i);
+                String description = i < descriptions.size() ? descriptions.get(i) : "N/A";
+
+                //creates filename
+                String fileName = UUID.randomUUID().toString() + ".jpg";
+                Path path = DIRECTORY.resolve(fileName);
+
+                //saves to folder
+                file.transferTo(path.toFile());
+
+                //saves to db
+                InspectionImage inspectionImage = new InspectionImage();
+                inspectionImage.setInspectionReport(inspectionReport);
+                inspectionImage.setImage_url(fileName);
+                inspectionImage.setDescription(description);
+
+                inspectionImagesRepository.save(inspectionImage);
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    public List<InspectionImage> getImages(UUID id){
+        InspectionBookings inspectionBookings = inspectionBookingsRepository.findById(id)
                 .orElseThrow();
         InspectionReport inspectionReport = inspectionBookings.getInspectionReport();
+        return inspectionReport.getImages();
+    }
 
-        //make sure path exists
-        Files.createDirectories(DIRECTORY);
+    public ResponseEntity<Resource> getImageFile(UUID id){
+        try {
+            InspectionImage image = inspectionImagesRepository.getById(id);
 
-        //iterate through each image upload and saves to file and database
-        for (int i = 0; i < files.size(); i++){
-            MultipartFile file = files.get(i);
-            String description = i < descriptions.size() ? descriptions.get(i) : "N/A";
+            Path filePath = Paths.get("D:\\Projects\\Home inspection project\\images")
+                    .resolve(image.getImage_url());
+            Resource resource = new UrlResource(filePath.toUri());
 
-            //creates filename
-            String fileName = UUID.randomUUID().toString();
-            Path path = DIRECTORY.resolve(fileName);
-
-            //saves to folder
-            file.transferTo(path.toFile());
-
-            //saves to db
-            InspectionImage inspectionImage = new InspectionImage();
-            inspectionImage.setInspectionReport(inspectionReport);
-            inspectionImage.setImageURL(fileName);
-            inspectionImage.setDescription(description);
-
-            inspectionImagesRepository.save(inspectionImage);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType("image/jpeg"))
+                    .body(resource);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

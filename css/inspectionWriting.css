@@ -65,3 +65,15 @@
     margin-left: 5px;
     display: inline-block;
 }
+
+.images-section {
+    border: 1px solid black;
+    width: 100%;
+    min-height: 150px;
+    margin-top: 10px;
+}
+
+.images-section > img {
+    width: 100px;
+    height: 100px;
+}

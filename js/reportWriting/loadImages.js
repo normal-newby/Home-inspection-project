@@ -1,8 +1,11 @@
 import { bookingId } from "./getReport.js";
 
-const loadImagesButton = document.getElementById("load-images-button");
+const saveImagesButton = document.getElementById("save-images-button");
+const imagesSection = document.querySelector(".images-section");
 
-loadImagesButton.addEventListener("click", () => {
+saveImagesButton.addEventListener("click", (e) => {
+    e.preventDefault();
+
     console.log("hi");
     const input = document.getElementById("image-input");
     const files = input.files;
@@ -23,7 +26,26 @@ loadImagesButton.addEventListener("click", () => {
         method: "POST",
         body: formData
     })
+    .then(response => console.log(response))
     .catch(error => {
         console.log(error);
     });
+});
+
+function loadImages(){
+    console.log("hi");
+    imagesSection.innerHTML = "";
+    fetch(`http://localhost:8080/api/images/${bookingId}/get`)
+    .then(result => result.json())
+    .then(images => {
+        images.forEach(image => {
+            const img = document.createElement("img");
+            img.src = `http://localhost:8080/api/images/file/${image.id}`
+            imagesSection.appendChild(img);
+        });
+    });
+}
+
+window.addEventListener("load", () => {
+    loadImages();
 });

@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
+@Table(name = "inspection_image")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -25,7 +26,7 @@ public class InspectionImage {
     @JoinColumn(name = "inspection_report_id", nullable = false)
     private InspectionReport inspectionReport;
 
-    private String imageURL;
+    private String image_url;
     private String description;
 
     @OneToMany(mappedBy = "inspectionImage", cascade = CascadeType.ALL, orphanRemoval = true)
