@@ -7,8 +7,6 @@ import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
 import ca.inspection.home.inspection.repository.InspectionImagesRepository;
 import ca.inspection.home.inspection.repository.InspectionReportsRepository;
 import jakarta.transaction.Transactional;
-import jdk.jfr.ContentType;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -68,7 +66,7 @@ public class InspectionImagesService {
                 //saves to db
                 InspectionImage inspectionImage = new InspectionImage();
                 inspectionImage.setInspectionReport(inspectionReport);
-                inspectionImage.setImage_url(fileName);
+                inspectionImage.setImageUrl(fileName);
                 inspectionImage.setDescription(description);
 
                 inspectionImagesRepository.save(inspectionImage);
@@ -91,13 +89,32 @@ public class InspectionImagesService {
             InspectionImage image = inspectionImagesRepository.getById(id);
 
             Path filePath = Paths.get("D:\\Projects\\Home inspection project\\images")
-                    .resolve(image.getImage_url());
+                    .resolve(image.getImageUrl());
             Resource resource = new UrlResource(filePath.toUri());
 
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType("image/jpeg"))
                     .body(resource);
         } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    public ResponseEntity<Void> deleteImage(UUID id){
+        try {
+            InspectionImage image = inspectionImagesRepository.getById(id);
+
+            //delete from database
+            inspectionImagesRepository.delete(image);
+
+            //delete from disk
+            Path path = DIRECTORY.resolve(image.getImageUrl());
+            Files.deleteIfExists(path);
+
+            return ResponseEntity.ok().build();
+
+        } catch (Exception e){
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

@@ -42,4 +42,9 @@ public class InspectionImagesController {
     public ResponseEntity<Resource> getImageFile(@PathVariable UUID filename){
         return inspectionImagesService.getImageFile(filename);
     }
+
+    @DeleteMapping("/images/{id}/delete")
+    public ResponseEntity<Void> deleteImage(@PathVariable UUID id) {
+        return inspectionImagesService.deleteImage(id);
+    }
 }

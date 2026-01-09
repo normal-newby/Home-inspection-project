@@ -6,6 +6,7 @@
         <title>My Web Page</title>
         <link rel="stylesheet" href="../css/styles.css">
         <link rel="stylesheet" href="../css/inspectionWriting.css">
+        <link rel="stylesheet" href="../css/images.css">
     </head>
     <body>
         <div class="container">
@@ -46,7 +47,21 @@
                 <select id="selector"></select>
                 <button id="selector_button">Add component</button>
 
-                <div class="images-section"></div>
+                <div class="images-section">
+                    <button class="nav-btn prev">←</button>
+
+                    <div class="images-viewport">
+                        <div class="images-track"></div>
+                    </div>
+
+                    <button class="nav-btn next">→</button>
+                </div>
+
+                <div class="show-image-box" hidden>
+                    <button class="close-button">X</button>
+                    <div class="image-container"></div>
+                    <button class="delete-image-button">delete image</button>
+                </div>
 
                 <div id = "roofing" class = "component_section">
                     <div class = "description"></div>

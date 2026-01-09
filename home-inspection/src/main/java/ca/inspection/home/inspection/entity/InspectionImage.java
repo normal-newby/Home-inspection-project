@@ -26,7 +26,8 @@ public class InspectionImage {
     @JoinColumn(name = "inspection_report_id", nullable = false)
     private InspectionReport inspectionReport;
 
-    private String image_url;
+    @Column(name = "image_url")
+    private String ImageUrl;
     private String description;
 
     @OneToMany(mappedBy = "inspectionImage", cascade = CascadeType.ALL, orphanRemoval = true)
