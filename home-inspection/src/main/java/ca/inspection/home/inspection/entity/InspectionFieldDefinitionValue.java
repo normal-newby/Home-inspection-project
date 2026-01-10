@@ -19,7 +19,7 @@ public class InspectionFieldDefinitionValue {
     private UUID id;
 
     @JsonBackReference
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inspection_field_definition_id", nullable = false)
     private InspectionFieldDefinition inspectionFieldDefinition;
 

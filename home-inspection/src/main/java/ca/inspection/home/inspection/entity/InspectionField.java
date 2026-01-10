@@ -24,9 +24,10 @@ public class InspectionField {
     @JoinColumn(name = "inspection_report_id", nullable = false)
     private InspectionReport inspectionReport;
 
+    @ManyToOne
+    @JsonBackReference
+    @JoinColumn(name = "inspection_field_definition_id", nullable = false)
     private InspectionFieldDefinition inspectionFieldDefinition;
-
-    private String fieldValue; //e.g. Asphalt shingles, shingles, even more shingles
 
     @ManyToOne
     @JoinColumn(name = "inspection_image_id")

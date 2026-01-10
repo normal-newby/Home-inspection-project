@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,6 +25,6 @@ public class InspectionFieldDefinition {
     private String fieldType; //limitations and stuff
 
     @JsonManagedReference
-    @OneToMany(mappedBy = "inspectionFieldDefinition", cascade = CascadeType.ALL)
-    private List<InspectionFieldDefinitionValue> possibleValues;
+    @OneToMany(mappedBy = "inspectionFieldDefinition", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InspectionFieldDefinitionValue> possibleValues = new ArrayList<>();
 }
