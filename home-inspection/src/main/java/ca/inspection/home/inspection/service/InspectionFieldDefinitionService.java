@@ -16,7 +16,7 @@ public class InspectionFieldDefinitionService {
         try {
             place = place.toLowerCase();
             type = type.toLowerCase();
-            return inspectionFieldDefinitionRepository.findAllByFieldPlaceAndFieldType(place, type);
+            return inspectionFieldDefinitionRepository.findAllWithValues(place, type);
         } catch (Exception e){
             e.printStackTrace();
             return null;
