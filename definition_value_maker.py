@@ -4,7 +4,8 @@ import uuid
 connector = sqlite3.connect("database.db")
 cursor = connector.cursor()
 
-num = int(input("How many inspection fields are we making? "))
+if __name__ == "__main__":
+    num = int(input("How many inspection fields are we making? "))
 places = [
     "roofing",
     "exterior",
@@ -18,21 +19,21 @@ places = [
 ]
 types = ["description", "limitations", "recommendations"]
 
-inspectionPlace = inspectionType = fieldID= None
+fieldID= None
 
 def choosePlace():
-    global inspectionPlace
     print("Choose the place (1-9) ")
     for i, val in enumerate(places):
         print(f"{i+1}: {val}")
     inspectionPlace = places[int(input()) - 1]
+    return inspectionPlace
 
 def chooseType():
-    global inspectionType
     print("Choose the type (1-3) ")
     for i, val in enumerate(types):
         print(f"{i+1}: {val}")
     inspectionType = types[int(input()) - 1]
+    return inspectionType
 
 def makeValues():
     numValues = int(input("How many values? "))
@@ -45,24 +46,24 @@ def makeValues():
         )
         
 
+if __name__ == "__main__":
+    for i in range(num):
+        inspectionPlace = choosePlace()
+        inspectionType = chooseType()
+        name = input("What is the name of this field? ")
 
-for i in range(num):
-    choosePlace()
-    chooseType()
-    name = input("What is the name of this field? ")
+        fieldID = str(uuid.uuid4())
+        
+        cursor.execute(
+            """
+            INSERT INTO inspection_field_definition (id, field_name, field_place, field_type)
+            VALUES (?, ?, ?, ?)
+            """, (fieldID, name, inspectionPlace, inspectionType)
+        )
 
-    fieldID = str(uuid.uuid4())
-    
-    cursor.execute(
-        """
-        INSERT INTO inspection_field_definition (id, field_name, field_place, field_type)
-        VALUES (?, ?, ?, ?)
-        """, (fieldID, name, inspectionPlace, inspectionType)
-    )
+        makeValues()
 
-    makeValues()
+    connector.commit()
+    connector.close()
 
-connector.commit()
-connector.close()
-
-print("Done")
+    print("Done")
