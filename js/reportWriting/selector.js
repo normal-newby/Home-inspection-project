@@ -1,3 +1,5 @@
+import { bookingId } from "./getReport.js";
+
 const params = new URLSearchParams(window.location.search);
 const place = params.get("place");
 const type = params.get("type");
@@ -56,3 +58,17 @@ function createButton(parent, value){
 }
 
 loadInspectionFieldDefinitions();
+
+buttons.forEach(button => {
+    button.addEventListener("click", () => {
+        const newPlace = button.getAttribute("data-target")
+        window.location.href = `report_writing.html?id=${bookingId}&place=${newPlace}&type=${type}`
+    });
+});
+
+lowerButtons.forEach(button => {
+    button.addEventListener("click", () => {
+        const newType = button.getAttribute("data-target")
+        window.location.href = `report_writing.html?id=${bookingId}&place=${place}&type=${newType}`
+    });
+});
