@@ -30,6 +30,10 @@ public class InspectionField {
     private InspectionFieldDefinition inspectionFieldDefinition;
 
     @ManyToOne
+    @JoinColumn(name = "inspection_field_definition_value_id")
+    private InspectionFieldDefinitionValue selectedValue;
+
+    @ManyToOne
     @JoinColumn(name = "inspection_image_id")
     @JsonBackReference
     private InspectionImage inspectionImage; //only used if fieldType is description, limitations

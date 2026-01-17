@@ -22,4 +22,17 @@ public interface InspectionFieldDefinitionRepository extends JpaRepository<Inspe
             @Param("place") String place,
             @Param("type") String type
     );
+
+    @Query("""
+            SELECT d FROM InspectionFieldDefinition d
+            LEFT JOIN FETCH d.possibleValues v
+            WHERE d.fieldPlace = :place
+            AND d.fieldType = :type
+            AND d.fieldName = :name
+            """)
+    InspectionFieldDefinition findWithValues(
+            @Param("place") String place,
+            @Param("type") String type,
+            @Param("name") String name
+    );
 }
