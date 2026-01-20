@@ -1,13 +1,7 @@
 package ca.inspection.home.inspection.service;
 
-import ca.inspection.home.inspection.entity.InspectionField;
-import ca.inspection.home.inspection.entity.InspectionFieldDefinition;
-import ca.inspection.home.inspection.entity.InspectionFieldDefinitionValue;
-import ca.inspection.home.inspection.entity.InspectionReport;
-import ca.inspection.home.inspection.repository.InspectionFieldDefinitionRepository;
-import ca.inspection.home.inspection.repository.InspectionFieldDefinitionValueRepository;
-import ca.inspection.home.inspection.repository.InspectionFieldRepository;
-import ca.inspection.home.inspection.repository.InspectionReportsRepository;
+import ca.inspection.home.inspection.entity.*;
+import ca.inspection.home.inspection.repository.*;
 import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +15,7 @@ public class InspectionFieldService {
     private InspectionFieldRepository inspectionFieldRepository;
 
     @Autowired
-    private InspectionReportsRepository inspectionReportsRepository;
+    private InspectionBookingsRepository inspectionBookingsRepository;
 
     @Autowired
     private InspectionFieldDefinitionRepository inspectionFieldDefinitionRepository;
@@ -36,16 +30,19 @@ public class InspectionFieldService {
                                                    String value){
         try {
             //report
-            InspectionReport report = inspectionReportsRepository.findById(id)
-                            .orElseThrow(() -> new RuntimeException("report not found"));
+            InspectionBookings booking = inspectionBookingsRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("booking not found"));
+            InspectionReport report = booking.getInspectionReport();
 
             //definition
             InspectionFieldDefinition definition = inspectionFieldDefinitionRepository
-                    .findWithValues(place.toLowerCase(), type.toLowerCase(), name.toLowerCase());
+                    .findWithValues(place, type, name);
 
             //create value
-            InspectionFieldDefinitionValue definitionValue = inspectionFieldDefinitionValueRepository
-                    .findByValue(value);
+            InspectionFieldDefinitionValue definitionValue = definition.getPossibleValues().stream()
+                    .filter(v -> v.getValue().equals(value))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("value not found"));
 
             //create field
             InspectionField inspectionField = new InspectionField();
@@ -53,9 +50,11 @@ public class InspectionFieldService {
             inspectionField.setInspectionFieldDefinition(definition);
             inspectionField.setSelectedValue(definitionValue);
 
+            System.out.println(definition.getId());
+
             InspectionField saved = inspectionFieldRepository.save(inspectionField);
 
-            return ResponseEntity.ok(saved);
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body(e.getMessage());

@@ -6,34 +6,38 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.UUID;
 
 @Entity
-@Table(name = "inspection_field_value")
+@Table(name = "inspection_field")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class InspectionField {
     @Id
     @GeneratedValue
+    @Column(name = "id", columnDefinition = "TEXT")
+    @JdbcTypeCode(SqlTypes.CHAR)
     private UUID id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JsonBackReference
     @JoinColumn(name = "inspection_report_id", nullable = false)
     private InspectionReport inspectionReport;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JsonBackReference
     @JoinColumn(name = "inspection_field_definition_id", nullable = false)
     private InspectionFieldDefinition inspectionFieldDefinition;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inspection_field_definition_value_id")
     private InspectionFieldDefinitionValue selectedValue;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inspection_image_id")
     @JsonBackReference
     private InspectionImage inspectionImage; //only used if fieldType is description, limitations

@@ -12,7 +12,7 @@ import java.util.UUID;
 @Repository
 public interface InspectionFieldDefinitionRepository extends JpaRepository<InspectionFieldDefinition, UUID> {
     @Query("""
-        SELECT DISTINCT d
+        SELECT d
         FROM InspectionFieldDefinition d
         LEFT JOIN FETCH d.possibleValues
         WHERE d.fieldPlace = :place
@@ -22,6 +22,7 @@ public interface InspectionFieldDefinitionRepository extends JpaRepository<Inspe
             @Param("place") String place,
             @Param("type") String type
     );
+    List<InspectionFieldDefinition> findByFieldPlaceAndFieldType(String place, String type);
 
     @Query("""
             SELECT d FROM InspectionFieldDefinition d

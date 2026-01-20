@@ -20,7 +20,7 @@ public class InspectionFieldController {
     @Autowired
     private InspectionFieldService inspectionFieldService;
 
-    @PostMapping("/field/{id}/{place}/{type}/{name}/{value}")
+    @PostMapping("/fields/{id}/{place}/{type}/{name}/{value}")
     public ResponseEntity<?> createNewInspectionField(@PathVariable UUID id,
                                                    @PathVariable String place,
                                                    @PathVariable String type,

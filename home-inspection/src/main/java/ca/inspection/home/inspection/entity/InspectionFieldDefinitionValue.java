@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.UUID;
 
@@ -16,6 +18,8 @@ import java.util.UUID;
 public class InspectionFieldDefinitionValue {
     @GeneratedValue
     @Id
+    @Column(name = "id", columnDefinition = "TEXT")
+    @JdbcTypeCode(SqlTypes.CHAR)
     private UUID id;
 
     @JsonBackReference

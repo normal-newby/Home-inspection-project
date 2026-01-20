@@ -40,7 +40,7 @@ function createField(field){
 
     //Create buttons
     field.possibleValues.forEach(value => {
-        createButton(values, value);
+        createButton(values, value, field.fieldName);
     });
 
     //Add everything to their parent container
@@ -50,14 +50,26 @@ function createField(field){
     contentFields.appendChild(fieldDiv);
 }
 
-function createButton(parent, value){
+function createButton(parent, value, fieldName){
     const button = document.createElement("button");
     button.classList.add("value-button");
     button.textContent = value.value;
+    button.addEventListener("click", () => saveNewInspectionField(value.value, fieldName));
     parent.appendChild(button);
 }
 
 loadInspectionFieldDefinitions();
+
+function saveNewInspectionField(value, fieldName){
+    fetch(`http://localhost:8080/api/fields/${bookingId}/${place}/${type}/${fieldName}/${value}`,
+        {method : "POST"}
+    )
+    .then(response => response.json())
+    .then(msg => {
+        console.log(msg);
+    })
+    .catch(error => console.log(error));
+}
 
 buttons.forEach(button => {
     button.addEventListener("click", () => {
