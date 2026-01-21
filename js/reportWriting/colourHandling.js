@@ -1,4 +1,4 @@
-import {lastClicked} from "./selector.js";
+import {lastClicked} from "./loadFields.js";
 
 const colours = {
     roofing: '#a68368ff',

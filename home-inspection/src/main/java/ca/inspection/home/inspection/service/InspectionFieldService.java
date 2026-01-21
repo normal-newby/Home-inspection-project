@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class InspectionFieldService {
@@ -58,6 +58,25 @@ public class InspectionFieldService {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    public List<InspectionField> getInspectionFields(UUID id,
+                                                                  String place,
+                                                                  String type,
+                                                                  String name){
+        try {
+            //report
+            InspectionBookings booking = inspectionBookingsRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("booking not found"));
+            UUID reportId = booking.getInspectionReport().getId();
+
+            //Get
+           return inspectionFieldRepository.getInspectionFields(reportId, place, type, name);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 }

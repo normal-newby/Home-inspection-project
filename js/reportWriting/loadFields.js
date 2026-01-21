@@ -38,6 +38,9 @@ function createField(field){
     const values = document.createElement("div");
     values.classList.add("values");
 
+    //Fetch user existing inputs
+    getAlreadyExistingFields(field.fieldName);
+
     //Create buttons
     field.possibleValues.forEach(value => {
         createButton(values, value, field.fieldName);
@@ -50,6 +53,15 @@ function createField(field){
     contentFields.appendChild(fieldDiv);
 }
 
+function getAlreadyExistingFields(name){ //fetches user past stored data
+    fetch(`http://localhost:8080/api/fields/${bookingId}/${place}/${type}/${name}`)
+    .then(result => result.json())
+    .then(fields => {
+        console.log(fields);
+    })
+    .catch(error => console.log(error));
+}
+
 function createButton(parent, value, fieldName){
     const button = document.createElement("button");
     button.classList.add("value-button");
@@ -57,8 +69,6 @@ function createButton(parent, value, fieldName){
     button.addEventListener("click", () => saveNewInspectionField(value.value, fieldName));
     parent.appendChild(button);
 }
-
-loadInspectionFieldDefinitions();
 
 function saveNewInspectionField(value, fieldName){
     fetch(`http://localhost:8080/api/fields/${bookingId}/${place}/${type}/${fieldName}/${value}`,
@@ -71,16 +81,20 @@ function saveNewInspectionField(value, fieldName){
     .catch(error => console.log(error));
 }
 
-buttons.forEach(button => {
+//Buttons
+
+buttons.forEach(button => { //place buttons
     button.addEventListener("click", () => {
         const newPlace = button.getAttribute("data-target")
         window.location.href = `report_writing.html?id=${bookingId}&place=${newPlace}&type=${type}`
     });
 });
 
-lowerButtons.forEach(button => {
+lowerButtons.forEach(button => { //type buttons
     button.addEventListener("click", () => {
         const newType = button.getAttribute("data-target")
         window.location.href = `report_writing.html?id=${bookingId}&place=${place}&type=${newType}`
     });
 });
+
+loadInspectionFieldDefinitions();
