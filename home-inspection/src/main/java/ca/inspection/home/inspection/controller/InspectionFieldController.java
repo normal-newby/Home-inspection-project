@@ -36,4 +36,9 @@ public class InspectionFieldController {
                                                                   @PathVariable String name){
         return inspectionFieldService.getInspectionFields(id, place, type, name);
     }
+
+    @DeleteMapping("/fields/{id}")
+    public void deleteInspectionField(@PathVariable UUID id){
+        inspectionFieldService.deleteInspectionField(id);
+    }
 }

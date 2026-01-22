@@ -23,6 +23,9 @@ public class InspectionFieldService {
     @Autowired
     private InspectionFieldDefinitionValueRepository inspectionFieldDefinitionValueRepository;
 
+    @Autowired
+    private InspectionBookingsService inspectionBookingsService;
+
     public ResponseEntity<?> createNewInspectionField(UUID id,
                                                    String place,
                                                    String type,
@@ -30,9 +33,7 @@ public class InspectionFieldService {
                                                    String value){
         try {
             //report
-            InspectionBookings booking = inspectionBookingsRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("booking not found"));
-            InspectionReport report = booking.getInspectionReport();
+            InspectionReport report = inspectionBookingsService.getReportFromBooking(id);
 
             //definition
             InspectionFieldDefinition definition = inspectionFieldDefinitionRepository
@@ -67,9 +68,7 @@ public class InspectionFieldService {
                                                                   String name){
         try {
             //report
-            InspectionBookings booking = inspectionBookingsRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("booking not found"));
-            UUID reportId = booking.getInspectionReport().getId();
+            UUID reportId = inspectionBookingsService.getReportFromBooking(id).getId();
 
             //Get
            return inspectionFieldRepository.getInspectionFields(reportId, place, type, name);
@@ -78,5 +77,12 @@ public class InspectionFieldService {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public void deleteInspectionField(UUID id){
+        InspectionField field = inspectionFieldRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("InspectionField not found"));
+
+        inspectionFieldRepository.delete(field);
     }
 }

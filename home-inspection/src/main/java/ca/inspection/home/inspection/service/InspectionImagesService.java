@@ -32,21 +32,19 @@ public class InspectionImagesService {
     private InspectionReportsRepository inspectionReportsRepository;
 
     @Autowired
-    InspectionBookingsRepository inspectionBookingsRepository;
+    InspectionBookingsService inspectionBookingsService;
 
     private static final Path DIRECTORY = Paths.get("D:\\Projects\\Home inspection project\\images");
 
     @Transactional
     public void saveImages(
             List<MultipartFile> files,
-            UUID inspectionReportId,
+            UUID bookingId,
             List<String> descriptions
     ) throws IOException {
         try {
             //Find the report it belongs to
-            InspectionBookings inspectionBookings = inspectionBookingsRepository.findById(inspectionReportId)
-                    .orElseThrow();
-            InspectionReport inspectionReport = inspectionBookings.getInspectionReport();
+            InspectionReport inspectionReport = inspectionBookingsService.getReportFromBooking(bookingId);
 
             //make sure path exists
             Files.createDirectories(DIRECTORY);
@@ -78,9 +76,7 @@ public class InspectionImagesService {
     }
 
     public List<InspectionImage> getImages(UUID id){
-        InspectionBookings inspectionBookings = inspectionBookingsRepository.findById(id)
-                .orElseThrow();
-        InspectionReport inspectionReport = inspectionBookings.getInspectionReport();
+        InspectionReport inspectionReport = inspectionBookingsService.getReportFromBooking(id);
         return inspectionReport.getImages();
     }
 

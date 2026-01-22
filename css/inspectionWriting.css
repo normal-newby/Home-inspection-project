@@ -86,6 +86,10 @@
   border-color: #111827;
 }
 
+.value-button.selected-button {
+  background-color: rgb(145, 173, 255);
+}
+
 .empty {
   font-size: 12px;
   color: #9ca3af;

@@ -1,6 +1,7 @@
 package ca.inspection.home.inspection.service;
 
 import ca.inspection.home.inspection.entity.InspectionBookings;
+import ca.inspection.home.inspection.entity.InspectionReport;
 import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,5 +26,11 @@ public class InspectionBookingsService {
     public InspectionBookings findById(UUID id){
         return inspectionBookingsRepository.findById(id)
                 .orElseThrow();
+    }
+
+    public InspectionReport getReportFromBooking(UUID bookingId){
+        InspectionBookings booking = inspectionBookingsRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("booking not found"));
+        return booking.getInspectionReport();
     }
 }
