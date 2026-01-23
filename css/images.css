@@ -125,3 +125,14 @@
     background: #ff1a1a;
     transform: translate(-50%, 1px);
 }
+
+/* Select images */
+.select-image-box {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 800px;
+    height: 500px;
+    border: 1px solid black;
+}

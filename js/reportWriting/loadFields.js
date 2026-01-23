@@ -1,18 +1,17 @@
 import { bookingId } from "./getReport.js";
+import { initImagesSlider } from "./loadImages.js";
 
 const params = new URLSearchParams(window.location.search);
 const place = params.get("place");
 const type = params.get("type");
 
-import { changeButtonColour, changeTableColour } from './colourHandling.js';
-const selector = document.getElementById('selector');
-const selectorButton = document.getElementById("selector_button");
 export const buttons = document.querySelectorAll('.component_button');
 export const lowerButtons = document.querySelectorAll('.component_button_lower');
 export let lastClicked = "roofing";
 export let lastClickedSub = "description";
 
 const contentFields = document.querySelector(".fields");
+const selectImageDiv = document.querySelector(".select-image-box");
 
 function loadInspectionFieldDefinitions(){
     fetch(`http://localhost:8080/api/fields/definition/${place}/${type}/get`)
@@ -89,6 +88,11 @@ function createExistingField(parent, field){
         e.preventDefault();
         deleteInspectionField(button.dataset.id)
     });
+    button.addEventListener("dblclick", (e) => {
+        e.preventDefault();
+        selectImageDiv.hidden = false;
+        initImagesSlider(bookingId, selectImageDiv);
+    });
     parent.appendChild(button);
 }
 
@@ -123,6 +127,12 @@ lowerButtons.forEach(button => { //type buttons
         const newType = button.getAttribute("data-target")
         window.location.href = `report_writing.html?id=${bookingId}&place=${place}&type=${newType}`
     });
+});
+
+document.addEventListener("click", (e) => {
+    if (!selectImageDiv.contains(e.target)) {
+        selectImageDiv.hidden = true;
+    }
 });
 
 loadInspectionFieldDefinitions();

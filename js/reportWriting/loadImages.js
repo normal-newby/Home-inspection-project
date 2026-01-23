@@ -1,6 +1,10 @@
 import { bookingId } from "./getReport.js";
 
 const saveImagesButton = document.getElementById("save-images-button");
+const bodyDiv = document.querySelector(".body_content");
+
+const showImagesDiv = document.querySelector(".show-image-box");
+const imageContainer = document.querySelector(".image-container");
 
 saveImagesButton.addEventListener("click", (e) => {
     e.preventDefault();
@@ -31,33 +35,61 @@ saveImagesButton.addEventListener("click", (e) => {
     });
 });
 
-const imagesSection = document.querySelector(".images-section");
-const imagesTrack = document.querySelector(".images-track");
-const nextButton = document.querySelector(".next");
-const prevButton = document.querySelector(".prev");
+export async function initImagesSlider(bookingId, container){
+    const imagesTrack = container.querySelector(".images-track");
+    const nextButton = container.querySelector(".next");
+    const prevButton = container.querySelector(".prev");
+    console.log("hi");
 
-const imageContainer = document.querySelector(".image-container");
+    let currentSlide = 0;
+    let totalSlides = 0;
 
-let currentSlide = 0;
-let totalSlides = 0;
+    function loopImages(images){ //appends images by 6s to a container
+        imagesTrack.innerHTML = "";
+        for (let i = 0; i < images.length; i += 6){
+            const slide = document.createElement("div");
+            slide.className = "image-slide";
+
+            images.slice(i, i+6).forEach(image => {
+                const img = document.createElement("img");
+                img.src = `http://localhost:8080/api/images/file/${image.id}`
+                slide.appendChild(img);
+            });
+
+            imagesTrack.appendChild(slide);
+        }
+        totalSlides = Math.ceil(images.length/6);
+    }
+
+    function updateSlider() {
+        imagesTrack.style.transform = `translateX(-${currentSlide * 100}%)`;
+    }
+
+    prevButton.addEventListener("click", () => {
+        if (!(currentSlide > 0)) return;
+        currentSlide--;
+        updateSlider();
+    });
+
+    nextButton.addEventListener("click", () => {
+        if (!(currentSlide < totalSlides-1)) return;
+        currentSlide++;
+        updateSlider();
+    });
+
+    const response = await fetch(`http://localhost:8080/api/images/${bookingId}/get`);
+    const images = await response.json();
+    loopImages(images);
+
+    return imagesTrack;
+}
+
 let currentImageId = null;
 
-function loopImages(images){ //appends images by 6s to a container
-    for (let i = 0; i < images.length; i += 6){
-        const slide = document.createElement("div");
-        slide.className = "image-slide";
-
-        images.slice(i, i+6).forEach(image => {
-            const img = document.createElement("img");
-            img.src = `http://localhost:8080/api/images/file/${image.id}`
-            img.addEventListener("dblclick", (e) => imageClickFunction(e));
-            slide.appendChild(img);
-        });
-
-        imagesTrack.appendChild(slide);
-    }
-    totalSlides = Math.ceil(images.length/6);
-}
+const track = await initImagesSlider(bookingId,bodyDiv)
+track.querySelectorAll("img").forEach(img => {
+    img.addEventListener("dblclick", (e) => imageClickFunction(e));
+});
 
 function imageClickFunction(e){
     showImagesDiv.hidden = false;
@@ -68,43 +100,10 @@ function imageClickFunction(e){
     currentImageId = img.src;
 }
 
-function loadImages(){
-    imagesTrack.innerHTML = "";
-    currentSlide = 0;
-
-    fetch(`http://localhost:8080/api/images/${bookingId}/get`)
-    .then(result => result.json())
-    .then(images => loopImages(images))
-    .catch(error => console.log(error));
-}
-
-function updateSlider() {
-    imagesTrack.style.transform = `translateX(-${currentSlide * 100}%)`;
-}
-
-prevButton.addEventListener("click", () => {
-    if (!(currentSlide > 0)) return;
-    currentSlide--;
-    updateSlider();
-});
-
-nextButton.addEventListener("click", () => {
-    if (!(currentSlide < totalSlides-1)) return;
-    currentSlide++;
-    updateSlider();
-});
-
-const showImagesDiv = document.querySelector(".show-image-box");
 const closeButton = document.querySelector(".close-button");
 
 closeButton.addEventListener("click", () => {
     showImagesDiv.hidden = true;
-});
-
-document.addEventListener("click", (e) => {
-    if (!showImagesDiv.contains(e.target)) {
-        showImagesDiv.hidden = true;
-    }
 });
 
 const deleteImageButton = document.querySelector(".delete-image-button");
@@ -121,11 +120,12 @@ deleteImageButton.addEventListener("click", (e) => {
         if (res.ok){
             console.log("Deleted");
             showImagesDiv.hidden = true;
-            loadImages();
         } else console.log("failed");
     });
 });
 
-window.addEventListener("load", () => {
-    loadImages();
+document.addEventListener("click", (e) => {
+    if (!showImagesDiv.contains(e.target)) {
+        showImagesDiv.hidden = true;
+    }
 });
