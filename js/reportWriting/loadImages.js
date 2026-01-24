@@ -53,6 +53,7 @@ export async function initImagesSlider(bookingId, container){
             images.slice(i, i+6).forEach(image => {
                 const img = document.createElement("img");
                 img.src = `http://localhost:8080/api/images/file/${image.id}`
+                img.dataset.imageId = image.id;
                 slide.appendChild(img);
             });
 

@@ -26,6 +26,9 @@ public class InspectionFieldService {
     @Autowired
     private InspectionBookingsService inspectionBookingsService;
 
+    @Autowired
+    private InspectionImagesRepository inspectionImagesRepository;
+
     public ResponseEntity<?> createNewInspectionField(UUID id,
                                                    String place,
                                                    String type,
@@ -84,5 +87,22 @@ public class InspectionFieldService {
                 .orElseThrow(() -> new RuntimeException("InspectionField not found"));
 
         inspectionFieldRepository.delete(field);
+    }
+
+    public ResponseEntity<?> addImageToField(UUID fieldId, UUID imageId){
+        try {
+            InspectionField field = inspectionFieldRepository.findById(fieldId)
+                    .orElseThrow(() -> new RuntimeException("InspectionField not found"));
+            InspectionImage image = inspectionImagesRepository.findById(imageId)
+                    .orElseThrow(() -> new RuntimeException("InspectionField not found"));
+            field.setInspectionImage(image);
+            image.getFields().add(field);
+            inspectionFieldRepository.save(field);
+
+            return ResponseEntity.ok().build();
+        } catch (Exception e){
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
     }
 }

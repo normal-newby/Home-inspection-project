@@ -39,7 +39,7 @@ public class InspectionField {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inspection_image_id")
-    @JsonBackReference
+    @JsonManagedReference
     private InspectionImage inspectionImage; //only used if fieldType is description, limitations
 
     @OneToOne(mappedBy = "inspectionField")

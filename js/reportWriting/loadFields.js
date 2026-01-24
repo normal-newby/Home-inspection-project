@@ -12,6 +12,9 @@ export let lastClickedSub = "description";
 
 const contentFields = document.querySelector(".fields");
 const selectImageDiv = document.querySelector(".select-image-box");
+const existingImageDiv = document.querySelector(".existing-image-div");
+const existingImageText = document.querySelector(".existing-image-text");
+const existingImageImage = document.querySelector(".existing-image-image");
 
 function loadInspectionFieldDefinitions(){
     fetch(`http://localhost:8080/api/fields/definition/${place}/${type}/get`)
@@ -90,10 +93,41 @@ function createExistingField(parent, field){
     });
     button.addEventListener("dblclick", (e) => {
         e.preventDefault();
+        console.log(field); 
+        showExistingImage(field.inspectionImage);
         selectImageDiv.hidden = false;
-        initImagesSlider(bookingId, selectImageDiv);
+        addExistingImages(bookingId, selectImageDiv, button.dataset.id);
     });
     parent.appendChild(button);
+}
+
+async function addExistingImages(bookingId, selectImageDiv, fieldId){
+    const track = await initImagesSlider(bookingId, selectImageDiv);
+    track.querySelectorAll("img").forEach(img => {
+        img.addEventListener("dblclick", (e) => {
+            e.preventDefault();
+            selectImageFunction(img.dataset.imageId, fieldId);
+        });
+    });
+}
+
+function selectImageFunction(imageId, fieldId){
+    fetch(`http://localhost:8080/api/fields/${fieldId}/${imageId}`,
+        { method: "PUT" }
+    )
+    .then(console.log("Image linked"))
+    .catch(error => console.log(error))
+}
+
+function showExistingImage(image){
+    existingImageText.innerHTML = "";
+    existingImageImage.src = "";
+    if (!image){
+        existingImageText.textContent = "No images selected";
+    } else {
+        existingImageText.textContent = "This is your selected image";
+        existingImageImage.src = `http://localhost:8080/api/images/file/${image.id}`
+    }
 }
 
 function saveNewInspectionField(value, fieldName){

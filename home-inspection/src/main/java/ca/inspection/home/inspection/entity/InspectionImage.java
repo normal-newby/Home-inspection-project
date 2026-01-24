@@ -34,6 +34,6 @@ public class InspectionImage {
     private String description;
 
     @OneToMany(mappedBy = "inspectionImage", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @JsonBackReference
     private List<InspectionField> fields = new ArrayList<>();
 }
