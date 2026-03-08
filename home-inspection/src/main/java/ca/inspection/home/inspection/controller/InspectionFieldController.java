@@ -1,6 +1,7 @@
 package ca.inspection.home.inspection.controller;
 
 import ca.inspection.home.inspection.entity.InspectionField;
+import ca.inspection.home.inspection.entity.ImageAnnotation;
 import ca.inspection.home.inspection.service.InspectionFieldService;
 import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,5 +46,20 @@ public class InspectionFieldController {
     @PutMapping("/fields/{fieldId}/{imageId}")
     public ResponseEntity<?> addImageToField(@PathVariable UUID fieldId, @PathVariable UUID imageId){
         return inspectionFieldService.addImageToField(fieldId, imageId);
+    }
+
+    @PostMapping("/fields/{fieldId}/annotations")
+    public ResponseEntity<?> addAnnotation(@PathVariable UUID fieldId, @RequestBody ImageAnnotation annotation){
+        return inspectionFieldService.addAnnotation(fieldId, annotation);
+    }
+
+    @GetMapping("/fields/{fieldId}/annotations")
+    public List<ImageAnnotation> getAnnotations(@PathVariable UUID fieldId){
+        return inspectionFieldService.getAnnotations(fieldId);
+    }
+
+    @DeleteMapping("/annotations/{annotationId}")
+    public ResponseEntity<?> deleteAnnotation(@PathVariable UUID annotationId){
+        return inspectionFieldService.deleteAnnotation(annotationId);
     }
 }

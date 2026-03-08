@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.util.List;
+import java.util.ArrayList;
 import java.util.UUID;
 
 @Entity
@@ -45,4 +47,8 @@ public class InspectionField {
     @OneToOne(mappedBy = "inspectionField")
     @JsonManagedReference
     private InspectionRecommendationField inspectionRecommendationField; //only used if fieldType is recommendations
+
+    @OneToMany(mappedBy = "inspectionField", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<ImageAnnotation> annotations = new ArrayList<>();
 }

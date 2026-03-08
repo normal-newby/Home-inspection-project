@@ -29,6 +29,9 @@ public class InspectionFieldService {
     @Autowired
     private InspectionImagesRepository inspectionImagesRepository;
 
+    @Autowired
+    private ImageAnnotationRepository imageAnnotationRepository;
+
     public ResponseEntity<?> createNewInspectionField(UUID id,
                                                    String place,
                                                    String type,
@@ -99,6 +102,35 @@ public class InspectionFieldService {
             image.getFields().add(field);
             inspectionFieldRepository.save(field);
 
+            return ResponseEntity.ok().build();
+        } catch (Exception e){
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    public ResponseEntity<?> addAnnotation(UUID fieldId, ImageAnnotation annotation){
+        try {
+            InspectionField field = inspectionFieldRepository.findById(fieldId)
+                    .orElseThrow(() -> new RuntimeException("InspectionField not found"));
+            annotation.setInspectionField(field);
+            imageAnnotationRepository.save(annotation);
+            return ResponseEntity.ok().build();
+        } catch (Exception e){
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    public List<ImageAnnotation> getAnnotations(UUID fieldId){
+        return imageAnnotationRepository.findByInspectionFieldId(fieldId);
+    }
+
+    public ResponseEntity<?> deleteAnnotation(UUID annotationId){
+        try {
+            ImageAnnotation annotation = imageAnnotationRepository.findById(annotationId)
+                    .orElseThrow(() -> new RuntimeException("Annotation not found"));
+            imageAnnotationRepository.delete(annotation);
             return ResponseEntity.ok().build();
         } catch (Exception e){
             e.printStackTrace();

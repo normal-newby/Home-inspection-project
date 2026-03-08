@@ -43,9 +43,6 @@
                 
                 <input type="file" id="image-input" accept="image/*" multiple>
                 <button id="save-images-button" type="button">Save images</button>
-                
-                <select id="selector"></select>
-                <button id="selector_button">Add component</button>
 
                 <div class="images-section">
                     <button class="nav-btn prev">←</button>
@@ -71,6 +68,12 @@
                     <div class="existing-image-div">
                         <p class="existing-image-text"></p>
                         <img class="existing-image-image">
+                        <div class="annotation-tools" hidden>
+                            <button id="rect-tool">Rectangle</button>
+                            <button id="text-tool">Text</button>
+                            <button id="save-annotations">Save Annotations</button>
+                            <input type="color" id="color-picker" value="#ff0000">
+                        </div>
                     </div>
                     <div class="images-section">
                         <button class="nav-btn prev">←</button>

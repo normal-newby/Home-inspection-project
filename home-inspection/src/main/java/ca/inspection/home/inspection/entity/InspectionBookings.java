@@ -39,7 +39,7 @@ public class InspectionBookings {
     private String referredBy;
     private String bookedBy;
 
-    @OneToOne(mappedBy = "inspectionBooking")
-    @JsonManagedReference
+    @OneToOne(mappedBy = "inspectionBooking", cascade = CascadeType.ALL, optional = true)
+    @JsonManagedReference("reportBooking")
     private InspectionReport inspectionReport;
 }

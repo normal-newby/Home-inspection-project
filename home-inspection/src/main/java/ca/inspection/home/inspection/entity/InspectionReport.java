@@ -26,7 +26,7 @@ public class InspectionReport {
     private UUID id;
 
     @OneToOne
-    @JsonBackReference
+    @JsonBackReference("reportBooking")
     @JoinColumn(name = "inspection_booking_id", nullable = false, unique = true)
     private InspectionBookings inspectionBooking;
 

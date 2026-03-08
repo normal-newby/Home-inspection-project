@@ -1,5 +1,6 @@
 import { bookingId } from "./getReport.js";
 import { initImagesSlider } from "./loadImages.js";
+import { addAnnotationCanvas } from "./imageAnnotation.js";
 
 const params = new URLSearchParams(window.location.search);
 const place = params.get("place");
@@ -21,7 +22,7 @@ function loadInspectionFieldDefinitions(){
     .then(response => response.json())
     .then(fields => {
         contentFields.innerHTML=""; //clear previous
-        fields.forEach(field => createField(field))
+        fields.forEach(field => createField(field));
     });
 }
 
@@ -53,12 +54,12 @@ async function renderFields(valuesDiv, field){
     const existingFields = await getAlreadyExistingFields(field.fieldName);
 
     existingFields.forEach(existingField => {
-        createExistingField(valuesDiv, existingField);
+        createExistingField(valuesDiv, existingField); // For already inputted fields
     });
 
     //Create buttons
     field.possibleValues.forEach(value => {
-        createButton(valuesDiv, value, field.fieldName);
+        createButton(valuesDiv, value, field.fieldName); // For possible values to choose from
     });
 }
 
@@ -73,7 +74,7 @@ async function getAlreadyExistingFields(name){ //fetches user past stored data
     }
 }
 
-function createButton(parent, value, fieldName){
+function createButton(parent, value, fieldName){ //Creates buttons for possible values in each field
     const button = document.createElement("button");
     button.classList.add("value-button");
     button.textContent = value.value;
@@ -81,23 +82,23 @@ function createButton(parent, value, fieldName){
     parent.appendChild(button);
 }
 
-function createExistingField(parent, field){
+function createExistingField(parent, field){ // Creates buttons for already inputted values, with the possibility to delete or change image
     const button = document.createElement("button");
     button.classList.add("value-button");
     button.classList.add("selected-button");
     button.textContent = field.selectedValue.value;
     button.dataset.id = field.id;
-    button.addEventListener("contextmenu", (e) => {
+    button.addEventListener("contextmenu", (e) => { // Right click to delete
         e.preventDefault();
         deleteInspectionField(button.dataset.id)
     });
-    button.addEventListener("dblclick", (e) => {
+    button.addEventListener("dblclick", (e) => { // Double click to change image
         e.preventDefault();
         console.log(field); 
-        showExistingImage(field.inspectionImage);
+        showExistingImage(field.inspectionImage, button.dataset.id);
         selectImageDiv.hidden = false;
-        addExistingImages(bookingId, selectImageDiv, button.dataset.id);
-    });
+        addExistingImages(bookingId, selectImageDiv, button.dataset.id); // Add images to select from
+    }); 
     parent.appendChild(button);
 }
 
@@ -106,7 +107,7 @@ async function addExistingImages(bookingId, selectImageDiv, fieldId){
     track.querySelectorAll("img").forEach(img => {
         img.addEventListener("dblclick", (e) => {
             e.preventDefault();
-            selectImageFunction(img.dataset.imageId, fieldId);
+            selectImageFunction(img.dataset.imageId, fieldId); // If image is double clicked, link it to the field
         });
     });
 }
@@ -119,14 +120,24 @@ function selectImageFunction(imageId, fieldId){
     .catch(error => console.log(error))
 }
 
-function showExistingImage(image){
+function showExistingImage(image, fieldId){
     existingImageText.innerHTML = "";
     existingImageImage.src = "";
+    // Clear previous canvas
+    const existingCanvas = existingImageDiv.querySelector("canvas");
+    if (existingCanvas) existingCanvas.remove();
+    const tools = existingImageDiv.querySelector(".annotation-tools");
+    tools.hidden = true;
+
     if (!image){
         existingImageText.textContent = "No images selected";
     } else {
         existingImageText.textContent = "This is your selected image";
-        existingImageImage.src = `http://localhost:8080/api/images/file/${image.id}`
+        existingImageImage.src = `http://localhost:8080/api/images/file/${image.id}`;
+        existingImageImage.onload = () => {
+            addAnnotationCanvas(existingImageDiv, existingImageImage, fieldId);
+            tools.hidden = false;
+        };
     }
 }
 
