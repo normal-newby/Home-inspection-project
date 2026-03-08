@@ -48,7 +48,7 @@ public class InspectionFieldController {
         return inspectionFieldService.addImageToField(fieldId, imageId);
     }
 
-    @PostMapping("/fields/{fieldId}/annotations")
+    @PostMapping("/fields/{fieldId}/annotations/save")
     public ResponseEntity<?> addAnnotation(@PathVariable UUID fieldId, @RequestBody ImageAnnotation annotation){
         return inspectionFieldService.addAnnotation(fieldId, annotation);
     }

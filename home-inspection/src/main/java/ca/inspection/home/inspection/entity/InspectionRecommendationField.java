@@ -21,7 +21,7 @@ public class InspectionRecommendationField {
     private UUID id;
 
     @OneToOne
-    @JsonBackReference
+    @JsonBackReference("inspectionField-recommendation")
     @JoinColumn(name = "inspection_field_id")
     private InspectionField inspectionField;
 

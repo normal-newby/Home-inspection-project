@@ -26,7 +26,7 @@ public class InspectionField {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JsonBackReference
+    @JsonBackReference("inspectionReport-fields")
     @JoinColumn(name = "inspection_report_id", nullable = false)
     private InspectionReport inspectionReport;
 
@@ -41,14 +41,14 @@ public class InspectionField {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inspection_image_id")
-    @JsonManagedReference
+    @JsonManagedReference("inspectionImage-fields")
     private InspectionImage inspectionImage; //only used if fieldType is description, limitations
 
     @OneToOne(mappedBy = "inspectionField")
-    @JsonManagedReference
+    @JsonManagedReference("inspectionField-recommendation")
     private InspectionRecommendationField inspectionRecommendationField; //only used if fieldType is recommendations
 
     @OneToMany(mappedBy = "inspectionField", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @JsonManagedReference("inspectionField-annotations")
     private List<ImageAnnotation> annotations = new ArrayList<>();
 }

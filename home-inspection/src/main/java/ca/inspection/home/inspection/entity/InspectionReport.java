@@ -35,6 +35,6 @@ public class InspectionReport {
     private List<InspectionImage> images = new ArrayList<>();
 
     @OneToMany(mappedBy = "inspectionReport", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @JsonManagedReference("inspectionReport-fields")
     private List<InspectionField> fields = new ArrayList<>();
 }

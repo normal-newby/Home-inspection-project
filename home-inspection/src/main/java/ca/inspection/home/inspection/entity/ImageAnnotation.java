@@ -21,7 +21,7 @@ public class ImageAnnotation {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inspection_field_id", nullable = false)
-    @JsonBackReference
+    @JsonBackReference("inspectionField-annotations")
     private InspectionField inspectionField;
 
     @Column(name = "annotation_type")

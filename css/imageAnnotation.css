@@ -1,0 +1,88 @@
+/* Image Annotation Styles */
+
+.select-image-box {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border: 2px solid #333;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.existing-image-div {
+    position: relative;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.existing-image-image {
+    max-width: 100%;
+    max-height: 400px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.existing-image-div canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: auto;
+    border: 2px dashed rgba(255, 0, 0, 0.5);
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.annotation-tools {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.annotation-tools button {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.annotation-tools button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.annotation-tools button:active {
+    transform: translateY(0);
+}
+
+.annotation-tools button.active {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+}
+
+.annotation-tools input[type="color"] {
+    width: 50px;
+    height: 40px;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+}
+
+.annotation-tools input[type="color"]:hover {
+    border-color: #667eea;
+}
