@@ -47,8 +47,17 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldI
     }
 
     rectTool.addEventListener("click", () => {
-        currentTool = "rectangle";
+        if (rectTool.classList.contains("active")) {
+            currentTool = null;
+            rectTool.classList.remove("active");
+            canvas.style.cursor = "default";
+        } else {
+            currentTool = "rectangle";
+            rectTool.classList.add("active");
+        }
         deleteMode = false;
+        deleteModeButton.classList.remove("active");
+        deleteModeButton.textContent = "Delete Mode";
         canvas.style.cursor = "crosshair";
     });
 
@@ -74,9 +83,15 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldI
             // Check if click is on an annotation
             const clickX = e.offsetX;
             const clickY = e.offsetY;
+
+            console.log("Click at:", clickX, clickY);
+
             for (let i = annotations.length - 1; i >= 0; i--) {
                 const ann = annotations[i];
                 if (ann.type === "rectangle") {
+
+                    console.log("Checking rectangle:", ann);
+
                     if (clickX >= ann.x && clickX <= ann.x + ann.width && clickY >= ann.y && clickY <= ann.y + ann.height) {
                         // Delete from backend if it has id
                         if (ann.id) {
@@ -127,16 +142,30 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldI
                 height: e.offsetY - startY,
                 color: colourPicker.value
             };
+            normalizeRectangle(ann);
             annotations.push(ann);
             redrawAnnotations();
         }
     });
 
+    // normalize width and height for rectangles drawn in reverse direction
+    function normalizeRectangle(ann) {
+        if (ann.width < 0) {
+            ann.x += ann.width;
+            ann.width = Math.abs(ann.width);
+        } 
+        if (ann.height < 0) {
+            ann.y += ann.height;
+            ann.height = Math.abs(ann.height);
+        }
+        return ann;
+    }
+
     saveButton.addEventListener("click", () => {
         // Save only new annotations (without id)
         const newAnnotations = annotations.filter(ann => !ann.id);
         newAnnotations.forEach(ann => {
-            fetch(`http://localhost:8080/api/fields/${fieldId}/annotations`, {
+            fetch(`http://localhost:8080/api/fields/${fieldId}/annotations/save`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(ann)
