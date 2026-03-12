@@ -58,7 +58,7 @@ public class InspectionFieldController {
         return inspectionFieldService.getAnnotations(fieldId);
     }
 
-    @DeleteMapping("/annotations/{annotationId}")
+    @DeleteMapping("/annotations/{annotationId}/delete")
     public ResponseEntity<?> deleteAnnotation(@PathVariable UUID annotationId){
         return inspectionFieldService.deleteAnnotation(annotationId);
     }

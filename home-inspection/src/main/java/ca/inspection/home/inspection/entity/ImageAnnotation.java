@@ -44,4 +44,7 @@ public class ImageAnnotation {
 
     @Column(name = "color")
     private String color;
+
+    @Column(name = "stroke_width")
+    private String strokeWidth;
 }

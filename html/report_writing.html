@@ -71,10 +71,16 @@
                         <img class="existing-image-image">
                         <div class="annotation-tools" hidden>
                             <button id="rect-tool">Rectangle</button>
-                            <button id="text-tool">Text</button>
+                            <button id="ellipse-tool">Ellipse</button>
+                            <button id="arrow-tool">Arrow</button>
                             <button id="delete-mode">Delete Mode</button>
                             <button id="save-annotations">Save Annotations</button>
+
                             <input type="color" id="color-picker" value="#ff0000">
+                            <label for="stroke-size" class="stroke-label">
+                                Stroke: <span id="stroke-size-value">1</span>px
+                            </label>
+                            <input type="range" id="stroke-size" min="1" max="10" value="1">
                         </div>
                     </div>
                     <div class="images-section">

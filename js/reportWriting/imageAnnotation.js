@@ -13,16 +13,28 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldI
 
     // Get tools from HTML
     const toolsDiv = existingImageDiv.querySelector(".annotation-tools");
+
+    const tools = toolsDiv.querySelectorAll("button");
     const rectTool = toolsDiv.querySelector("#rect-tool");
-    const textTool = toolsDiv.querySelector("#text-tool");
+    const ellipseTool = toolsDiv.querySelector("#ellipse-tool");
+    const arrowTool = toolsDiv.querySelector("#arrow-tool");
     const deleteModeButton = toolsDiv.querySelector("#delete-mode");
+
     const saveButton = toolsDiv.querySelector("#save-annotations");
     const colourPicker = toolsDiv.querySelector("#color-picker");
+    const strokeSlider = toolsDiv.querySelector("#stroke-size");
+    const strokeSizeValue = toolsDiv.querySelector("#stroke-size-value");
 
     let currentTool = null;
     let deleteMode = false;
     let startX, startY, isDrawing = false;
+    let strokeSize = parseInt(strokeSlider?.value || "1", 10);
     let annotations = [];
+
+    strokeSlider.addEventListener("input", () => {
+        strokeSize = parseInt(strokeSlider.value, 10);
+        strokeSizeValue.textContent = strokeSize;
+    });
 
     // Load existing annotations
     fetch(`http://localhost:8080/api/fields/${fieldId}/annotations`)
@@ -38,87 +50,122 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldI
         annotations.forEach(ann => {
             ctx.strokeStyle = ann.color || "#ff0000";
             ctx.fillStyle = ann.color || "#ff0000";
+            ctx.lineWidth = ann.strokeWidth || 1;
             if (ann.type === "rectangle") {
                 ctx.strokeRect(ann.x, ann.y, ann.width, ann.height);
-            } else if (ann.type === "text") {
-                ctx.fillText(ann.content, ann.x, ann.y);
+            } else if (ann.type === "ellipse") {
+                ctx.beginPath();
+                ctx.ellipse(ann.x, ann.y, ann.width, ann.height, 0, 0, 2 * Math.PI);
+                ctx.stroke();
             }
         });
     }
 
-    rectTool.addEventListener("click", () => {
-        if (rectTool.classList.contains("active")) {
+    function removeActiveStates(button) {
+        tools.forEach(btn => {
+            if (button !== btn) {
+                btn.classList.remove("active");
+            }
+        });
+    }
+
+    function handleClick(button, tool){
+        // Deactivate all other tools
+        removeActiveStates(button);
+
+        // Handle delete mode toggle separately
+        if (tool === "delete") {
+            deleteMode = !deleteMode;
             currentTool = null;
-            rectTool.classList.remove("active");
+            canvas.style.cursor = deleteMode ? "pointer" : "default";
+            deleteModeButton.textContent = deleteMode ? "Exit Delete Mode" : "Delete Mode";
+            deleteModeButton.classList.toggle("active", deleteMode);
+            return;
+        }
+
+        // Toggle the clicked button
+        if (button.classList.contains("active")) {
+            currentTool = null;
+            button.classList.remove("active");
             canvas.style.cursor = "default";
         } else {
-            currentTool = "rectangle";
-            rectTool.classList.add("active");
+            currentTool = tool;
+            button.classList.add("active");
+            canvas.style.cursor = "crosshair";
         }
+        // Deactivate delete mode when switching tools
         deleteMode = false;
-        deleteModeButton.classList.remove("active");
         deleteModeButton.textContent = "Delete Mode";
-        canvas.style.cursor = "crosshair";
+    }
+
+    rectTool.addEventListener("click", () => {
+        handleClick(rectTool, "rectangle");
     });
 
-    textTool.addEventListener("click", () => {
-        const text = prompt("Enter text:");
-        if (text) {
-            const ann = { type: "text", x: 50, y: 50, content: text, color: colourPicker.value };
-            annotations.push(ann);
-            redrawAnnotations();
-        }
+    ellipseTool.addEventListener("click", () => {
+        handleClick(ellipseTool, "ellipse");
+    });
+
+    arrowTool.addEventListener("click", () => {
+        handleClick(arrowTool, "arrow");
     });
 
     deleteModeButton.addEventListener("click", () => {
-        deleteMode = !deleteMode;
-        currentTool = null;
-        canvas.style.cursor = deleteMode ? "pointer" : "default";
-        deleteModeButton.textContent = deleteMode ? "Exit Delete Mode" : "Delete Mode";
-        deleteModeButton.classList.toggle("active", deleteMode);
+        handleClick(deleteModeButton, "delete");
     });
 
+    function checkRectangleClick(clickX, clickY, ann) {
+        return clickX >= ann.x && clickX <= ann.x + ann.width && clickY >= ann.y && clickY <= ann.y + ann.height;
+    }
+
+    function checkEllipseClick(clickX, clickY, ann) {
+        const dx = clickX - ann.x;
+        const dy = clickY - ann.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        return distance <= ann.width; // Assuming width is the radius for hit detection
+    }
+
+    function deleteAnnotation(ann) {
+        if (ann.id) {
+            fetch(`http://localhost:8080/api/annotations/${ann.id}/delete`, { method: "DELETE" })
+            .then(response => response.text())
+            .then(data => console.log(data))
+            .catch(error => console.error("Error deleting annotation:", error));
+        }
+        annotations = annotations.filter(a => a !== ann);
+        redrawAnnotations();
+    }
+
     canvas.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+
+        const clickX = e.offsetX;
+        const clickY = e.offsetY;
+
         if (deleteMode) {
             // Check if click is on an annotation
-            const clickX = e.offsetX;
-            const clickY = e.offsetY;
-
-            console.log("Click at:", clickX, clickY);
-
             for (let i = annotations.length - 1; i >= 0; i--) {
                 const ann = annotations[i];
                 if (ann.type === "rectangle") {
-
-                    console.log("Checking rectangle:", ann);
-
-                    if (clickX >= ann.x && clickX <= ann.x + ann.width && clickY >= ann.y && clickY <= ann.y + ann.height) {
-                        // Delete from backend if it has id
-                        if (ann.id) {
-                            fetch(`http://localhost:8080/api/annotations/${ann.id}`, { method: "DELETE" });
-                        }
-                        annotations.splice(i, 1);
-                        redrawAnnotations();
+                    if (checkRectangleClick(clickX, clickY, ann)) {
+                        deleteAnnotation(ann);
                         break;
                     }
-                } else if (ann.type === "text") {
-                    // Approximate text area
-                    const textWidth = ctx.measureText(ann.content).width;
-                    const textHeight = 20; // approximate
-                    if (clickX >= ann.x && clickX <= ann.x + textWidth && clickY >= ann.y - textHeight && clickY <= ann.y) {
-                        if (ann.id) {
-                            fetch(`http://localhost:8080/api/annotations/${ann.id}`, { method: "DELETE" });
-                        }
-                        annotations.splice(i, 1);
-                        redrawAnnotations();
+                } else if (ann.type === "ellipse") {
+                    if (checkEllipseClick(clickX, clickY, ann)) {
+                        deleteAnnotation(ann);
                         break;
                     }
                 }
             }
-        } else if (currentTool === "rectangle") {
+            return; // don't start drawing when deleting
+        }
+
+        if (currentTool === "rectangle" || currentTool === "ellipse" || currentTool === "arrow") {
+            e.preventDefault();
             isDrawing = true;
-            startX = e.offsetX;
-            startY = e.offsetY;
+            startX = clickX;
+            startY = clickY;
         }
     });
 
@@ -127,23 +174,50 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldI
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             redrawAnnotations();
             ctx.strokeStyle = colourPicker.value;
+            ctx.lineWidth = strokeSize;
             ctx.strokeRect(startX, startY, e.offsetX - startX, e.offsetY - startY);
+        } else if (isDrawing && currentTool === "ellipse") {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            redrawAnnotations();
+            ctx.strokeStyle = colourPicker.value;
+            ctx.lineWidth = strokeSize;
+            const centerX = (startX + e.offsetX) / 2;
+            const centerY = (startY + e.offsetY) / 2;
+            const radiusX = Math.abs(e.offsetX - startX) / 2;
+            const radiusY = Math.abs(e.offsetY - startY) / 2;
+            ctx.beginPath();
+            ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, 2 * Math.PI);
+            ctx.stroke();
         }
     });
 
     canvas.addEventListener("mouseup", (e) => {
-        if (isDrawing && currentTool === "rectangle") {
+        if (isDrawing) {
             isDrawing = false;
-            const ann = {
-                type: "rectangle",
-                x: startX,
-                y: startY,
-                width: e.offsetX - startX,
-                height: e.offsetY - startY,
-                color: colourPicker.value
-            };
-            normalizeRectangle(ann);
-            annotations.push(ann);
+            if (currentTool === "rectangle") {
+                const ann = {
+                    type: "rectangle",
+                    x: startX,
+                    y: startY,
+                    width: e.offsetX - startX,
+                    height: e.offsetY - startY,
+                    color: colourPicker.value,
+                    strokeWidth: strokeSize
+                };
+                normalizeRectangle(ann);
+                annotations.push(ann);
+            } else if (currentTool === "ellipse") {
+                const ann = {
+                    type: "ellipse",
+                    x: (startX + e.offsetX) / 2,
+                    y: (startY + e.offsetY) / 2,
+                    width: Math.abs(e.offsetX - startX) / 2,
+                    height: Math.abs(e.offsetY - startY) / 2,
+                    color: colourPicker.value,
+                    strokeWidth: strokeSize
+                };
+                annotations.push(ann);
+            } 
             redrawAnnotations();
         }
     });
