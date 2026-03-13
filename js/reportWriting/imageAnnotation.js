@@ -59,6 +59,8 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldI
                 ctx.beginPath();
                 ctx.ellipse(ann.x, ann.y, ann.width, ann.height, 0, 0, 2 * Math.PI);
                 ctx.stroke();
+            } else if (ann.type === "arrow") {
+                drawArrow(ctx, ann);
             } else if (ann.type === "text") {
                 ctx.font = `${ann.strokeWidth * 10}px Arial`;
                 ctx.fillStyle = ann.color || "#000000";
@@ -141,6 +143,64 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldI
         return clickX >= ann.x && clickX <= ann.x + textWidth && clickY >= ann.y - textHeight && clickY <= ann.y;
     }
 
+    function checkArrowClick(clickX, clickY, ann) {
+        const x1 = ann.x;
+        const y1 = ann.y;
+        const x2 = ann.x2;
+        const y2 = ann.y2;
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const lengthSq = dx * dx + dy * dy;
+        if (lengthSq === 0) return false;
+
+        const t = ((clickX - x1) * dx + (clickY - y1) * dy) / lengthSq;
+        const tClamped = Math.max(0, Math.min(1, t));
+        const closestX = x1 + tClamped * dx;
+        const closestY = y1 + tClamped * dy;
+        const distance = Math.hypot(clickX - closestX, clickY - closestY);
+
+        const tolerance = Math.max(6, (ann.strokeWidth || 1) * 1.5);
+        return distance <= tolerance;
+    }
+
+    function drawArrow(ctx, ann) {
+        const startX = ann.x;
+        const startY = ann.y;
+        const endX = ann.x2;
+        const endY = ann.y2;
+        const strokeWidth = ann.strokeWidth*3 || 6;
+        const color = ann.color || "#ff0000";
+
+        const dx = endX - startX;
+        const dy = endY - startY;
+        const length = Math.hypot(dx, dy);
+        if (length < 2) return;
+
+        const headLength = Math.max(5, strokeWidth * 2);
+        const shaftLength = Math.max(0, length - headLength);
+        const angle = Math.atan2(dy, dx);
+
+        ctx.save();
+        ctx.translate(startX, startY);
+        ctx.rotate(angle);
+
+        // Shaft
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.rect(0, -strokeWidth / 2, shaftLength, strokeWidth);
+        ctx.fill();
+
+        // Head (triangle)
+        ctx.beginPath();
+        ctx.moveTo(shaftLength, -strokeWidth);
+        ctx.lineTo(length, 0);
+        ctx.lineTo(shaftLength, strokeWidth);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.restore();
+    }
+
     function deleteAnnotation(ann) {
         if (ann.id) {
             fetch(`http://localhost:8080/api/annotations/${ann.id}/delete`, { method: "DELETE" })
@@ -169,6 +229,11 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldI
                     }
                 } else if (ann.type === "ellipse") {
                     if (checkEllipseClick(clickX, clickY, ann)) {
+                        deleteAnnotation(ann);
+                        break;
+                    }
+                } else if (ann.type === "arrow") {
+                    if (checkArrowClick(clickX, clickY, ann)) {
                         deleteAnnotation(ann);
                         break;
                     }
@@ -210,6 +275,18 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldI
             ctx.beginPath();
             ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, 2 * Math.PI);
             ctx.stroke();
+        } else if (isDrawing && currentTool === "arrow") {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            redrawAnnotations();
+            const preview = {
+                x: startX,
+                y: startY,
+                x2: e.offsetX,
+                y2: e.offsetY,
+                color: colourPicker.value,
+                strokeWidth: strokeSize
+            };
+            drawArrow(ctx, preview);
         }
     });
 
@@ -240,7 +317,16 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldI
                 };
                 annotations.push(ann);
             } else if (currentTool === "arrow") {
-                console.log("Arrow tool is not implemented yet.");
+                const ann = {
+                    type: "arrow",
+                    x: startX,
+                    y: startY,
+                    x2: e.offsetX,
+                    y2: e.offsetY,
+                    color: colourPicker.value,
+                    strokeWidth: strokeSize
+                };
+                annotations.push(ann);
             } else if (currentTool === "text") {
                 const text = textInput.value.trim();
                 if (text) {
@@ -254,8 +340,9 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldI
                     };
                     annotations.push(ann);
                 }
-            redrawAnnotations();
             }
+
+            redrawAnnotations();
         }
     });
 
@@ -282,6 +369,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldI
                 body: JSON.stringify(ann)
             });
         });
-        alert("New annotations saved!");
     });
+
+    removeActiveStates(null); // Ensure no tool is active on load
 }
