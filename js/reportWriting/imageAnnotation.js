@@ -18,12 +18,14 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldI
     const rectTool = toolsDiv.querySelector("#rect-tool");
     const ellipseTool = toolsDiv.querySelector("#ellipse-tool");
     const arrowTool = toolsDiv.querySelector("#arrow-tool");
+    const textTool = toolsDiv.querySelector("#add-text");
     const deleteModeButton = toolsDiv.querySelector("#delete-mode");
 
     const saveButton = toolsDiv.querySelector("#save-annotations");
     const colourPicker = toolsDiv.querySelector("#color-picker");
     const strokeSlider = toolsDiv.querySelector("#stroke-size");
     const strokeSizeValue = toolsDiv.querySelector("#stroke-size-value");
+    const textInput = toolsDiv.querySelector("#text-tool");
 
     let currentTool = null;
     let deleteMode = false;
@@ -57,6 +59,10 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldI
                 ctx.beginPath();
                 ctx.ellipse(ann.x, ann.y, ann.width, ann.height, 0, 0, 2 * Math.PI);
                 ctx.stroke();
+            } else if (ann.type === "text") {
+                ctx.font = `${ann.strokeWidth * 10}px Arial`;
+                ctx.fillStyle = ann.color || "#000000";
+                ctx.fillText(ann.content, ann.x, ann.y);
             }
         });
     }
@@ -110,6 +116,10 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldI
         handleClick(arrowTool, "arrow");
     });
 
+    textTool.addEventListener("click", () => {
+        handleClick(textTool, "text");
+    });
+
     deleteModeButton.addEventListener("click", () => {
         handleClick(deleteModeButton, "delete");
     });
@@ -123,6 +133,12 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldI
         const dy = clickY - ann.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         return distance <= ann.width; // Assuming width is the radius for hit detection
+    }
+
+    function checkTextClick(clickX, clickY, ann) {
+        const textWidth = ctx.measureText(ann.content).width;
+        const textHeight = parseInt(ctx.font, 10);
+        return clickX >= ann.x && clickX <= ann.x + textWidth && clickY >= ann.y - textHeight && clickY <= ann.y;
     }
 
     function deleteAnnotation(ann) {
@@ -156,12 +172,18 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldI
                         deleteAnnotation(ann);
                         break;
                     }
+                } else if (ann.type === "text") {
+                    if (checkTextClick(clickX, clickY, ann)) {
+                        deleteAnnotation(ann);
+                        break;
+                    }
                 }
+                    
             }
             return; // don't start drawing when deleting
         }
 
-        if (currentTool === "rectangle" || currentTool === "ellipse" || currentTool === "arrow") {
+        if (currentTool === "rectangle" || currentTool === "ellipse" || currentTool === "arrow" || currentTool === "text") {
             e.preventDefault();
             isDrawing = true;
             startX = clickX;
@@ -217,8 +239,23 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldI
                     strokeWidth: strokeSize
                 };
                 annotations.push(ann);
-            } 
+            } else if (currentTool === "arrow") {
+                console.log("Arrow tool is not implemented yet.");
+            } else if (currentTool === "text") {
+                const text = textInput.value.trim();
+                if (text) {
+                    const ann = {
+                        type: "text",
+                        x: e.offsetX,
+                        y: e.offsetY,
+                        content: text,
+                        color: colourPicker.value,
+                        strokeWidth: strokeSize
+                    };
+                    annotations.push(ann);
+                }
             redrawAnnotations();
+            }
         }
     });
 
