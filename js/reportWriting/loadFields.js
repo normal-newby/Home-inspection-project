@@ -16,6 +16,8 @@ const selectImageDiv = document.querySelector(".select-image-box");
 const existingImageDiv = document.querySelector(".existing-image-div");
 const existingImageText = document.querySelector(".existing-image-text");
 const existingImageImage = document.querySelector(".existing-image-image");
+const saveNoteButton = document.getElementById("save-note");
+const noteTextArea = document.getElementById("note-text");
 
 function loadInspectionFieldDefinitions(){
     fetch(`http://localhost:8080/api/fields/definition/${place}/${type}/get`)
@@ -94,7 +96,7 @@ function createExistingField(parent, field){ // Creates buttons for already inpu
     });
     button.addEventListener("dblclick", (e) => { // Double click to change image
         e.preventDefault();
-        console.log(field); 
+        button.classList.add("current-button");
         showExistingImage(field.inspectionImage, button.dataset.id);
         selectImageDiv.hidden = false;
         addExistingImages(bookingId, selectImageDiv, button.dataset.id); // Add images to select from
@@ -158,6 +160,16 @@ function deleteInspectionField(id){
     );
 }
 
+function saveNote(note, fieldId){
+    fetch(`http://localhost:8080/api/fields/${fieldId}/note`,
+        {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content: note })
+        }
+    );
+}
+
 //Buttons
 
 buttons.forEach(button => { //place buttons
@@ -172,6 +184,18 @@ lowerButtons.forEach(button => { //type buttons
         const newType = button.getAttribute("data-target")
         window.location.href = `report_writing.html?id=${bookingId}&place=${place}&type=${newType}`
     });
+});
+
+saveNoteButton.addEventListener("click", () => {
+    const note = noteTextArea.value;
+    const activeFieldButton = document.querySelector(".value-button.selected-button.current-button");
+    if (activeFieldButton) {
+        const fieldId = activeFieldButton.dataset.id;
+        saveNote(note, fieldId);
+        noteTextArea.value = ""; // Clear textarea after saving
+    } else {
+        console.log("No active field selected for note.");
+    }
 });
 
 document.addEventListener("click", (e) => {

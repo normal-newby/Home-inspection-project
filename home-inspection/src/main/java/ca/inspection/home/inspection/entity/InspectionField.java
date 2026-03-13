@@ -51,4 +51,7 @@ public class InspectionField {
     @OneToMany(mappedBy = "inspectionField", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference("inspectionField-annotations")
     private List<ImageAnnotation> annotations = new ArrayList<>();
+
+    @Column(name = "note")
+    private String note;
 }

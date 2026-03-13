@@ -97,11 +97,23 @@ public class InspectionFieldService {
             InspectionField field = inspectionFieldRepository.findById(fieldId)
                     .orElseThrow(() -> new RuntimeException("InspectionField not found"));
             InspectionImage image = inspectionImagesRepository.findById(imageId)
-                    .orElseThrow(() -> new RuntimeException("InspectionField not found"));
+                    .orElseThrow(() -> new RuntimeException("InspectionImage not found"));
             field.setInspectionImage(image);
             image.getFields().add(field);
             inspectionFieldRepository.save(field);
 
+            return ResponseEntity.ok().build();
+        } catch (Exception e){
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    public ResponseEntity<?> addNoteToField(UUID fieldId, String note){
+        try {
+            InspectionField field = inspectionFieldRepository.findById(fieldId)
+                    .orElseThrow(() -> new RuntimeException("InspectionField not found"));
+            field.setNote(note);
             return ResponseEntity.ok().build();
         } catch (Exception e){
             e.printStackTrace();
