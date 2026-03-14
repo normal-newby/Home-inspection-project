@@ -109,17 +109,33 @@ public class InspectionFieldService {
         }
     }
 
+    // Notes
+
     public ResponseEntity<?> addNoteToField(UUID fieldId, String note){
         try {
             InspectionField field = inspectionFieldRepository.findById(fieldId)
                     .orElseThrow(() -> new RuntimeException("InspectionField not found"));
             field.setNote(note);
+            inspectionFieldRepository.save(field);
             return ResponseEntity.ok().build();
         } catch (Exception e){
             e.printStackTrace();
             return ResponseEntity.badRequest().build();
         }
     }
+
+    public String getNoteFromField(UUID fieldId){
+        try {
+            InspectionField field = inspectionFieldRepository.findById(fieldId)
+                    .orElseThrow(() -> new RuntimeException("InspectionField not found"));
+            return field.getNote();
+        } catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    // Annotations
 
     public ResponseEntity<?> addAnnotation(UUID fieldId, ImageAnnotation annotation){
         try {

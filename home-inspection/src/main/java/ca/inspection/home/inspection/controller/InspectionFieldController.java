@@ -48,10 +48,24 @@ public class InspectionFieldController {
         return inspectionFieldService.addImageToField(fieldId, imageId);
     }
 
+    //Notes
+
     @PostMapping("/fields/{fieldId}/note")
     public ResponseEntity<?> addNoteToField(@PathVariable UUID fieldId, @RequestBody String note){
         return inspectionFieldService.addNoteToField(fieldId, note);
     }
+
+    @GetMapping("/fields/{fieldId}/note")
+    public String getNoteFromField(@PathVariable UUID fieldId){
+        return inspectionFieldService.getNoteFromField(fieldId);
+    }
+
+    @PutMapping("/fields/{fieldId}/note")
+    public ResponseEntity<?> updateNoteToField(@PathVariable UUID fieldId, @RequestBody String note){
+        return  inspectionFieldService.addNoteToField(fieldId, note);
+    }
+
+    // Annotations
 
     @PostMapping("/fields/{fieldId}/annotations/save")
     public ResponseEntity<?> addAnnotation(@PathVariable UUID fieldId, @RequestBody ImageAnnotation annotation){

@@ -100,8 +100,22 @@ function createExistingField(parent, field){ // Creates buttons for already inpu
         showExistingImage(field.inspectionImage, button.dataset.id);
         selectImageDiv.hidden = false;
         addExistingImages(bookingId, selectImageDiv, button.dataset.id); // Add images to select from
+        fetchExistingNote(button.dataset.id); // Fetch existing note for the field
     }); 
     parent.appendChild(button);
+}
+
+function fetchExistingNote(fieldId){
+    fetch(`http://localhost:8080/api/fields/${fieldId}/note`)
+    .then(response => response.json())
+    .then(note => {
+        if (note) {
+            noteTextArea.value = note.content;
+        } else {
+            noteTextArea.value = "";
+        }
+    })
+    .catch(error => console.log(error));
 }
 
 async function addExistingImages(bookingId, selectImageDiv, fieldId){
@@ -186,13 +200,14 @@ lowerButtons.forEach(button => { //type buttons
     });
 });
 
-saveNoteButton.addEventListener("click", () => {
+saveNoteButton.addEventListener("click", (e) => {
+    e.preventDefault();
     const note = noteTextArea.value;
+    console.log("Saving note:", note);
     const activeFieldButton = document.querySelector(".value-button.selected-button.current-button");
     if (activeFieldButton) {
         const fieldId = activeFieldButton.dataset.id;
         saveNote(note, fieldId);
-        noteTextArea.value = ""; // Clear textarea after saving
     } else {
         console.log("No active field selected for note.");
     }
