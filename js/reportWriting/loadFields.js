@@ -1,6 +1,7 @@
 import { bookingId } from "./getReport.js";
 import { initImagesSlider } from "./loadImages.js";
 import { addAnnotationCanvas } from "./imageAnnotation.js";
+import { setUpRecommendationsPanel } from "./recommendations.js";
 
 const params = new URLSearchParams(window.location.search);
 const place = params.get("place");
@@ -8,8 +9,6 @@ const type = params.get("type");
 
 export const buttons = document.querySelectorAll('.component_button');
 export const lowerButtons = document.querySelectorAll('.component_button_lower');
-export let lastClicked = "roofing";
-export let lastClickedSub = "description";
 
 const contentFields = document.querySelector(".fields");
 const selectImageDiv = document.querySelector(".select-image-box");
@@ -19,8 +18,13 @@ const existingImageImage = document.querySelector(".existing-image-image");
 const saveNoteButton = document.getElementById("save-note");
 const noteTextArea = document.getElementById("note-text");
 
+const recommendationsButton = document.getElementById("show-recommendation-button");
+const recommendationsPanel = document.querySelector(".recommendations-panel");
+let currentRecommendationFieldId = null;
+
 function loadInspectionFieldDefinitions(){
-    fetch(`http://localhost:8080/api/fields/definition/${place}/${type}/get`)
+    console.log(`Loading fields for place: ${place}, type: ${type}`);
+    fetch(`http://localhost:8080/api/fields/definition/${encodeURIComponent(place)}/${encodeURIComponent(type)}/get`)
     .then(response => response.json())
     .then(fields => {
         contentFields.innerHTML=""; //clear previous
@@ -55,9 +59,11 @@ async function renderFields(valuesDiv, field){
     //Fetch user existing inputs
     const existingFields = await getAlreadyExistingFields(field.fieldName);
 
-    existingFields.forEach(existingField => {
-        createExistingField(valuesDiv, existingField); // For already inputted fields
-    });
+    if (existingFields) {
+        existingFields.forEach(existingField => {
+            createExistingField(valuesDiv, existingField); // For already inputted fields
+        });
+    }
 
     //Create buttons
     field.possibleValues.forEach(value => {
@@ -67,7 +73,12 @@ async function renderFields(valuesDiv, field){
 
 async function getAlreadyExistingFields(name){ //fetches user past stored data
     try {
-        const result = await fetch(`http://localhost:8080/api/fields/${bookingId}/${place}/${type}/${name}`)
+        const url = `http://localhost:8080/api/fields/${bookingId}/${encodeURIComponent(place)}/${encodeURIComponent(type)}?name=${encodeURIComponent(name)}`;
+        const result = await fetch(url);
+        if (!result.ok) {
+            const text = await result.text();
+            throw new Error(`Fetch failed (${result.status}): ${text}`);
+        }
         const fields = await result.json();
         return fields;
     } catch (error){
@@ -90,16 +101,25 @@ function createExistingField(parent, field){ // Creates buttons for already inpu
     button.classList.add("selected-button");
     button.textContent = field.selectedValue.value;
     button.dataset.id = field.id;
+
     button.addEventListener("contextmenu", (e) => { // Right click to delete
         e.preventDefault();
         deleteInspectionField(button.dataset.id)
     });
+
     button.addEventListener("dblclick", (e) => { // Double click to change image
         e.preventDefault();
         button.classList.add("current-button");
         showExistingImage(field.inspectionImage, button.dataset.id);
         selectImageDiv.hidden = false;
+
         addExistingImages(bookingId, selectImageDiv, button.dataset.id); // Add images to select from
+         
+        if (type === "recommendations"){ // If field = recommendation, show button
+            recommendationsButton.hidden = false;
+            currentRecommendationFieldId = button.dataset.id;
+        }
+
         fetchExistingNote(button.dataset.id); // Fetch existing note for the field
     }); 
     parent.appendChild(button);
@@ -107,7 +127,10 @@ function createExistingField(parent, field){ // Creates buttons for already inpu
 
 function fetchExistingNote(fieldId){
     fetch(`http://localhost:8080/api/fields/${fieldId}/note`)
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) return null; // If no note exists, return null
+        return response.text();
+    })
     .then(note => {
         if (note) {
             noteTextArea.value = note.content;
@@ -158,7 +181,8 @@ function showExistingImage(image, fieldId){
 }
 
 function saveNewInspectionField(value, fieldName){
-    fetch(`http://localhost:8080/api/fields/${bookingId}/${place}/${type}/${fieldName}/${value}`,
+    const url = `http://localhost:8080/api/fields/${bookingId}/${encodeURIComponent(place)}/${encodeURIComponent(type)}?name=${encodeURIComponent(fieldName)}&value=${encodeURIComponent(value)}`;
+    fetch(url,
         {method : "POST"}
     )
     .then(response => response.json())
@@ -196,6 +220,8 @@ buttons.forEach(button => { //place buttons
 lowerButtons.forEach(button => { //type buttons
     button.addEventListener("click", () => {
         const newType = button.getAttribute("data-target")
+        console.log(`Clicked place button: ${place}`);
+        console.log(`Clicked type button: ${newType}`);
         window.location.href = `report_writing.html?id=${bookingId}&place=${place}&type=${newType}`
     });
 });
@@ -213,9 +239,24 @@ saveNoteButton.addEventListener("click", (e) => {
     }
 });
 
+recommendationsButton.addEventListener("click", () => {
+    selectImageDiv.hidden = true;
+    recommendationsPanel.hidden = false;
+    if (currentRecommendationFieldId) {
+        setUpRecommendationsPanel(currentRecommendationFieldId);
+    } else {
+        console.warn("No recommendation field selected to load");
+    }
+});
+
+
 document.addEventListener("click", (e) => {
-    if (!selectImageDiv.contains(e.target)) {
+    const clickedInsideSelect = selectImageDiv.contains(e.target);
+    const clickedInsideRecommendations = recommendationsPanel.contains(e.target) || recommendationsButton.contains(e.target);
+
+    if (!clickedInsideSelect && !clickedInsideRecommendations) {
         selectImageDiv.hidden = true;
+        recommendationsPanel.hidden = true;
     }
 });
 

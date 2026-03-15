@@ -2,6 +2,7 @@ package ca.inspection.home.inspection.controller;
 
 import ca.inspection.home.inspection.entity.InspectionField;
 import ca.inspection.home.inspection.entity.ImageAnnotation;
+import ca.inspection.home.inspection.entity.InspectionRecommendationField;
 import ca.inspection.home.inspection.service.InspectionFieldService;
 import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,11 +31,29 @@ public class InspectionFieldController {
         return inspectionFieldService.createNewInspectionField(id, place, type, name, value);
     }
 
+    // Support names/values that may contain characters like '/' by using query parameters.
+    @PostMapping("/fields/{id}/{place}/{type}")
+    public ResponseEntity<?> createNewInspectionFieldQuery(@PathVariable UUID id,
+                                                           @PathVariable String place,
+                                                           @PathVariable String type,
+                                                           @RequestParam String name,
+                                                           @RequestParam String value){
+        return inspectionFieldService.createNewInspectionField(id, place, type, name, value);
+    }
+
     @GetMapping("/fields/{id}/{place}/{type}/{name}")
     public List<InspectionField> getInspectionFields(@PathVariable UUID id,
                                                                   @PathVariable String place,
                                                                   @PathVariable String type,
                                                                   @PathVariable String name){
+        return inspectionFieldService.getInspectionFields(id, place, type, name);
+    }
+
+    @GetMapping("/fields/{id}/{place}/{type}")
+    public List<InspectionField> getInspectionFieldsQuery(@PathVariable UUID id,
+                                                          @PathVariable String place,
+                                                          @PathVariable String type,
+                                                          @RequestParam String name){
         return inspectionFieldService.getInspectionFields(id, place, type, name);
     }
 
@@ -80,5 +99,17 @@ public class InspectionFieldController {
     @DeleteMapping("/annotations/{annotationId}/delete")
     public ResponseEntity<?> deleteAnnotation(@PathVariable UUID annotationId){
         return inspectionFieldService.deleteAnnotation(annotationId);
+    }
+
+    // Recommendations
+
+    @GetMapping("/fields/{fieldId}/recommendations")
+    public InspectionRecommendationField getRecommendationField(@PathVariable UUID fieldId){
+        return inspectionFieldService.getRecommendationField(fieldId);
+    }
+
+    @PostMapping("/fields/{fieldId}/recommendations")
+    public ResponseEntity<?> addRecommendationField(@PathVariable UUID fieldId, @RequestBody InspectionRecommendationField recommendationField){
+        return inspectionFieldService.addRecommendationField(fieldId, recommendationField);
     }
 }

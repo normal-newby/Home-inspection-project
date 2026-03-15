@@ -32,6 +32,9 @@ public class InspectionFieldService {
     @Autowired
     private ImageAnnotationRepository imageAnnotationRepository;
 
+    @Autowired
+    private InspectionRecommendationFieldRepository inspectionRecommendationFieldRepository;
+
     public ResponseEntity<?> createNewInspectionField(UUID id,
                                                    String place,
                                                    String type,
@@ -159,6 +162,32 @@ public class InspectionFieldService {
             ImageAnnotation annotation = imageAnnotationRepository.findById(annotationId)
                     .orElseThrow(() -> new RuntimeException("Annotation not found"));
             imageAnnotationRepository.delete(annotation);
+            return ResponseEntity.ok().build();
+        } catch (Exception e){
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    // Recommendation Fields
+
+    public InspectionRecommendationField getRecommendationField(UUID fieldId){
+        try {
+            InspectionField field = inspectionFieldRepository.findById(fieldId)
+                    .orElseThrow(() -> new RuntimeException("Field not found"));
+            return field.getInspectionRecommendationField();
+        } catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public ResponseEntity<?> addRecommendationField(UUID fieldId, InspectionRecommendationField recommendationField){
+        try {
+            InspectionField field = inspectionFieldRepository.findById(fieldId)
+                    .orElseThrow(() -> new RuntimeException("Field not found"));
+            recommendationField.setInspectionField(field);
+            inspectionRecommendationFieldRepository.save(recommendationField);
             return ResponseEntity.ok().build();
         } catch (Exception e){
             e.printStackTrace();
