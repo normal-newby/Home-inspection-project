@@ -186,9 +186,41 @@ public class InspectionFieldService {
         try {
             InspectionField field = inspectionFieldRepository.findById(fieldId)
                     .orElseThrow(() -> new RuntimeException("Field not found"));
-            recommendationField.setInspectionField(field);
-            inspectionRecommendationFieldRepository.save(recommendationField);
-            return ResponseEntity.ok().build();
+
+            InspectionRecommendationField existing = field.getInspectionRecommendationField();
+
+            InspectionRecommendationField saved;
+            if (existing == null) {
+                recommendationField.setInspectionField(field);
+                saved = inspectionRecommendationFieldRepository.save(recommendationField);
+            } else {
+                // Update only the fields that are provided by the client.
+                if (recommendationField.getDirection() != null) {
+                    existing.setDirection(recommendationField.getDirection());
+                }
+                if (recommendationField.getFloorLevel() != null) {
+                    existing.setFloorLevel(recommendationField.getFloorLevel());
+                }
+                if (recommendationField.getRoom() != null) {
+                    existing.setRoom(recommendationField.getRoom());
+                }
+                if (recommendationField.getTask() != null) {
+                    existing.setTask(recommendationField.getTask());
+                }
+                if (recommendationField.getTime() != null) {
+                    existing.setTime(recommendationField.getTime());
+                }
+                if (recommendationField.getLower_cost() != null) {
+                    existing.setLower_cost(recommendationField.getLower_cost());
+                }
+                if (recommendationField.getUpper_cost() != null) {
+                    existing.setUpper_cost(recommendationField.getUpper_cost());
+                }
+                existing.setInspectionField(field);
+                saved = inspectionRecommendationFieldRepository.save(existing);
+            }
+
+            return ResponseEntity.ok(saved);
         } catch (Exception e){
             e.printStackTrace();
             return ResponseEntity.badRequest().build();

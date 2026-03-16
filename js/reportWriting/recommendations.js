@@ -26,6 +26,7 @@ const sectionsConfig = {
 };
 
 const recommendationsWrapper = document.querySelector(".recommendations-section-wrapper");
+const submitButton = document.getElementById("submit-recommendations-button");
 
 function createOptionButton(value, onSelect) {
     const btn = document.createElement("button");
@@ -107,49 +108,19 @@ function renderSections() {
 
         recommendationsWrapper.appendChild(recommendationSection);
     };
-
-    // Add a submit button to save recommendations back to the server.
-    const existingSubmit = document.getElementById("submit-recommendations-button");
-    if (!existingSubmit) {
-        const submitBtn = document.createElement("button");
-        submitBtn.id = "submit-recommendations-button";
-        submitBtn.textContent = "Save recommendations";
-        submitBtn.type = "button";
-        submitBtn.classList.add("recommendations-submit");
-        recommendationsWrapper.appendChild(submitBtn);
-    }
 }
 
 function highlightExistingValues(recommendations) {
-    // Clear any previous selection state so we can properly highlight the current field.
-    Object.values(sectionsConfig).forEach(config => {
-        const sectionRoot = document.querySelector(config.selector);
-        if (!sectionRoot) return;
-
-        sectionRoot.querySelectorAll(".recommendations-options button").forEach(btn => {
-            btn.classList.remove("selected");
-        });
-
-        sectionRoot.querySelectorAll("input[data-cost-key]").forEach(input => {
-            input.value = "";
-        });
-    });
-
     if (!recommendations) return;
 
-    const mapping = {
-        direction: "direction",
-        floorLevel: "floorLevel",
-        room: "room",
-        task: "task",
-        time: "time",
-    };
+    const keys = ["direction", "floorLevel", "room", "task", "time"];
 
-    Object.entries(mapping).forEach(([sectionKey, propName]) => {
-        const value = recommendations[propName];
+    keys.forEach(key => {
+        const value = recommendations[key];
+        console.log(value);
         if (value === null || value === undefined) return;
 
-        const section = sectionsConfig[sectionKey];
+        const section = sectionsConfig[key];
         if (!section) return;
 
         const sectionRoot = document.querySelector(section.selector);
@@ -157,7 +128,7 @@ function highlightExistingValues(recommendations) {
 
         const buttons = sectionRoot.querySelectorAll(".recommendations-options button");
         buttons.forEach(btn => {
-            btn.classList.toggle("selected", btn.dataset.value === String(value));
+            btn.classList.toggle("selected", btn.dataset.value === value);
         });
     });
 
@@ -222,10 +193,9 @@ function submitRecommendations(fieldId) {
                 throw new Error(`Failed to save recommendations: ${response.status} ${text}`);
             });
         }
-        return response.text();
+        return response.json();
     })
     .then(saved => {
-        console.log("Recommendations saved:", saved);
         highlightExistingValues(saved);
     })
     .catch(error => {
@@ -235,32 +205,23 @@ function submitRecommendations(fieldId) {
 }
 
 export function setUpRecommendationsPanel(fieldId) {
-    if (!fieldId) {
-        console.warn("No fieldId provided to setUpRecommendationsPanel");
-        return;
-    }
-
     renderSections();
 
-    const submitBtn = document.getElementById("submit-recommendations-button");
-    if (submitBtn) {
-        submitBtn.addEventListener("click", () => submitRecommendations(fieldId));
-    }
+    submitButton.addEventListener("click", () => submitRecommendations(fieldId));
 
     fetch(`http://localhost:8080/api/fields/${fieldId}/recommendations`)
-        .then(response => {
-            if (!response.ok) {
-                return response.text().then(text => {
-                    throw new Error(`Failed to load recommendations: ${response.status} ${text}`);
-                });
-            }
-            return response.text();
-        })
-        .then(recommendations => {
-            console.log(recommendations);
-            highlightExistingValues(recommendations);
-        })
-        .catch(error => {
-            console.error(error);
-        });
+    .then(response => {
+        if (!response.ok) {
+            return response.text().then(text => {
+                throw new Error(`Failed to load recommendations: ${response.status} ${text}`);
+            });
+        }
+        return response.json();
+    })
+    .then(recommendations => {
+        highlightExistingValues(recommendations);
+    })
+    .catch(error => {
+        console.error(error);
+    });
 }
