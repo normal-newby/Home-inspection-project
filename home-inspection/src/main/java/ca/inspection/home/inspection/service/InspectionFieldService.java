@@ -138,6 +138,33 @@ public class InspectionFieldService {
         }
     }
 
+    // Check In summary
+
+    public ResponseEntity<?> updateFieldInSummary(UUID fieldId, Boolean checked){
+        try {
+            InspectionField field = inspectionFieldRepository.findById(fieldId)
+                    .orElseThrow(() -> new RuntimeException("InspectionField not found"));
+            field.setIncludeInSummary(checked);
+            inspectionFieldRepository.save(field);
+            return ResponseEntity.ok().build();
+        } catch (Exception e){
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    public Boolean checkInSummary(UUID fieldId){
+        try {
+            InspectionField field = inspectionFieldRepository.findById(fieldId)
+                    .orElseThrow(() -> new RuntimeException("InspectionField not found"));
+            Boolean value = field.getIncludeInSummary();
+            return value != null ? value : false;
+        } catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     // Annotations
 
     public ResponseEntity<?> addAnnotation(UUID fieldId, ImageAnnotation annotation){

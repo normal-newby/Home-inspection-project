@@ -54,4 +54,7 @@ public class InspectionField {
 
     @Column(name = "note")
     private String note;
+
+    @Column(name = "include_in_summary")
+    private Boolean includeInSummary;
 }

@@ -18,9 +18,12 @@ const existingImageImage = document.querySelector(".existing-image-image");
 const saveNoteButton = document.getElementById("save-note");
 const noteTextArea = document.getElementById("note-text");
 
+const includeInSummaryBox = document.getElementById("include-in-summary");
 const recommendationsButton = document.getElementById("show-recommendation-button");
 const recommendationsPanel = document.querySelector(".recommendations-panel");
 let currentRecommendationFieldId = null;
+
+let curField = null;
 
 function loadInspectionFieldDefinitions(){
     console.log(`Loading fields for place: ${place}, type: ${type}`);
@@ -110,6 +113,9 @@ function createExistingField(parent, field){ // Creates buttons for already inpu
     button.addEventListener("dblclick", (e) => { // Double click to change image
         e.preventDefault();
         button.classList.add("current-button");
+
+        curField = button.dataset.id;
+
         showExistingImage(field.inspectionImage, button.dataset.id);
         selectImageDiv.hidden = false;
 
@@ -121,6 +127,7 @@ function createExistingField(parent, field){ // Creates buttons for already inpu
         }
 
         fetchExistingNote(button.dataset.id); // Fetch existing note for the field
+        fetchInSummary(button.dataset.id) // Fetch in summary for field
     }); 
     parent.appendChild(button);
 }
@@ -208,6 +215,29 @@ function saveNote(note, fieldId){
     );
 }
 
+function updateInSummary() {
+    const includeBool = includeInSummaryBox.checked;
+    fetch(`http://localhost:8080/api/fields/${curField}/summary`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(includeBool),
+    });
+}
+
+function fetchInSummary(fieldId){
+    fetch(`http://localhost:8080/api/fields/${fieldId}/summary`)
+    .then(response => response.json())
+    .then(inSummary => {
+        console.log(inSummary);
+        if (inSummary) {
+            includeInSummaryBox.checked = true;
+        } else {
+            includeInSummaryBox.checked = false;
+        }
+    })
+    .catch(error => console.log(error));
+}
+
 //Buttons
 
 buttons.forEach(button => { //place buttons
@@ -248,6 +278,8 @@ recommendationsButton.addEventListener("click", () => {
         console.warn("No recommendation field selected to load");
     }
 });
+
+includeInSummaryBox.addEventListener("click", () => updateInSummary());
 
 
 document.addEventListener("click", (e) => {

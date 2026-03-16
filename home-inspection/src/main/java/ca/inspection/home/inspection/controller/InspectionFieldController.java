@@ -101,6 +101,18 @@ public class InspectionFieldController {
         return inspectionFieldService.deleteAnnotation(annotationId);
     }
 
+    // include in summary
+
+    @PutMapping("/fields/{fieldId}/summary")
+    public ResponseEntity<?> checkPutInSummary(@PathVariable UUID fieldId, @RequestBody Boolean checked){
+        return inspectionFieldService.updateFieldInSummary(fieldId, checked);
+    }
+
+    @GetMapping("/fields/{fieldId}/summary")
+    public Boolean checkInSummary(@PathVariable UUID fieldId){
+        return inspectionFieldService.checkInSummary(fieldId);
+    }
+
     // Recommendations
 
     @GetMapping("/fields/{fieldId}/recommendations")

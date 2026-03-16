@@ -20,7 +20,7 @@ public class InspectionBookingsService {
     }
 
     public List<InspectionBookings> findAll(){
-        return inspectionBookingsRepository.findAll();
+        return inspectionBookingsRepository.findAllByOrderByCreatedAtDesc();
     }
 
     public InspectionBookings findById(UUID id){

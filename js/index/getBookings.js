@@ -5,6 +5,8 @@ function loadBookings(){
     .then(bookings => {
         bookingsContainer.innerHTML = "";
 
+        console.log(bookings);
+
         bookings.forEach(booking => {
             const bookingElement = document.createElement("div");
             bookingElement.classList.add("booking");
@@ -20,6 +22,9 @@ function loadBookings(){
                     </div>
                     <div class="booking-postal">
                         ${booking.postalCode}
+                    </div>
+                    <div>
+                        ${booking.createdAt}
                     </div>
                 </div>
 
