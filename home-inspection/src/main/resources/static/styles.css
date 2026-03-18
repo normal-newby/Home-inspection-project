@@ -70,3 +70,14 @@ img.report-image {
     display: inline-block;
     margin-right: 1.5em;
 }
+
+.field-image {
+    position: relative;
+    width: 100%;
+    padding: 0;
+}
+
+.report-image {
+    display: block;
+    max-height: 400px;
+}

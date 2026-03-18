@@ -2,17 +2,18 @@ package ca.inspection.home.inspection.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.UUID;
 
 @Entity
 @Table(name = "image_annotation")
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString(exclude = {"inspectionField"})
+@EqualsAndHashCode(exclude = {"inspectionField"})
 public class ImageAnnotation {
     @Id
     @GeneratedValue

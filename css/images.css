@@ -148,5 +148,8 @@
 }
 
 .existing-image-image {
-    max-height: 200px;
+    max-width: 100%;
+    max-height: 300px;
+    display: block;
+    object-fit: contain;
 }

@@ -1,11 +1,11 @@
 export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldId) {
     // Create canvas
     const canvas = document.createElement("canvas");
-    canvas.width = existingImageImage.width;
-    canvas.height = existingImageImage.height;
+    canvas.width = existingImageImage.offsetWidth+4;
+    canvas.height = existingImageImage.offsetHeight+4;
     canvas.style.position = "absolute";
-    canvas.style.top = existingImageImage.offsetTop + "px";
-    canvas.style.left = existingImageImage.offsetLeft + "px";
+    canvas.style.top = existingImageImage.offsetTop-4 + "px";
+    canvas.style.left = existingImageImage.offsetLeft-4 + "px";
     canvas.style.pointerEvents = "auto";
     existingImageDiv.appendChild(canvas);
 
