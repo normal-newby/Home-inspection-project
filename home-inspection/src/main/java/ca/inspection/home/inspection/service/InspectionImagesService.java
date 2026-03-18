@@ -21,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -75,7 +76,7 @@ public class InspectionImagesService {
         }
     }
 
-    public List<InspectionImage> getImages(UUID id){
+    public Set<InspectionImage> getImages(UUID id){
         InspectionReport inspectionReport = inspectionBookingsService.getReportFromBooking(id);
         return inspectionReport.getImages();
     }

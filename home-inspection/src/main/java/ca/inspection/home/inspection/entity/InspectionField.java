@@ -3,9 +3,7 @@ package ca.inspection.home.inspection.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -15,9 +13,12 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "inspection_field")
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString(exclude = {"inspectionReport", "inspectionFieldDefinition", "selectedValue", "inspectionImage", "inspectionRecommendationField", "annotations"})
+@EqualsAndHashCode(exclude = {"inspectionReport", "inspectionFieldDefinition", "selectedValue", "inspectionImage", "inspectionRecommendationField", "annotations"})
 public class InspectionField {
     @Id
     @GeneratedValue

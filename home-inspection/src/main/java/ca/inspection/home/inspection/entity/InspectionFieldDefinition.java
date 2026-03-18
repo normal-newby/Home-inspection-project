@@ -2,9 +2,7 @@ package ca.inspection.home.inspection.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -14,9 +12,12 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "inspection_field_definition")
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString(exclude = {"possibleValues"})
+@EqualsAndHashCode(exclude = {"possibleValues"})
 public class InspectionFieldDefinition {
     @GeneratedValue
     @Id

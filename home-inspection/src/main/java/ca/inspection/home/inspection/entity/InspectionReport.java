@@ -3,22 +3,20 @@ package ca.inspection.home.inspection.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "inspection_report")
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString(exclude = {"inspectionBooking", "images", "fields"})
+@EqualsAndHashCode(exclude = {"inspectionBooking", "images", "fields"})
 public class InspectionReport {
     @Id
     @GeneratedValue
@@ -32,9 +30,9 @@ public class InspectionReport {
 
     @OneToMany(mappedBy = "inspectionReport", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
-    private List<InspectionImage> images = new ArrayList<>();
+    private Set<InspectionImage> images = new HashSet<>();
 
     @OneToMany(mappedBy = "inspectionReport", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference("inspectionReport-fields")
-    private List<InspectionField> fields = new ArrayList<>();
+    private Set<InspectionField> fields = new HashSet<>();
 }
