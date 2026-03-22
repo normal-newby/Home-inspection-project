@@ -14,61 +14,103 @@
 </div>
 
 <div class="section">
+
+    <!-- SUMMARY -->
     <h2>Summary</h2>
-    <p th:if="${report.fields == null || #lists.isEmpty(report.fields)}">No fields have been filled in yet.</p>
-    <div th:if="${report.fields != null}">
-        <div th:each="field : ${report.fields}" class="field">
-            <div><span class="label" th:text="${field.inspectionFieldDefinition.fieldName}"></span></div>
+    <p th:if="${summaryFields == null || summaryFields.isEmpty()}">No summary fields available.</p>
+    <div th:each="placeEntry : ${summaryFields}">
+        <h3 th:text="${placeEntry.key}"></h3>
+        <div th:each="typeEntry : ${placeEntry.value}">
+            <h4 th:text="${typeEntry.key}"></h4>
+            <div th:each="field : ${typeEntry.value}" class="field">
+                <div><span class="label" th:text="${field.inspectionFieldDefinition.fieldName}"></span></div>
+                <div class="field-value" th:if="${field.selectedValue != null}" th:text="${field.selectedValue.value}"></div>
 
-            <div th:if="${field.inspectionImage != null}" class = "field-image">
-                <img th:src = "@{/api/images/file/{id}(id=${field.inspectionImage.id})}" alt = "Image" class = "report-image">
-
-                <!-- Image annotations -->
-                 <svg style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
-                    th:if="${field.annotations != null and !#lists.isEmpty(field.annotations)}">
-
-                    <g th:each="annotation : ${field.annotations}">
-
-                        <!-- Rectangle -->
-                        <rect th:if="${annotation.type == 'rectangle'}"
-                            th:attr="x=${annotation.x},
-                                    y=${annotation.y},
-                                    width=${annotation.width},
-                                    height=${annotation.height},
-                                    stroke=${annotation.color},
-                                    stroke-width=${annotation.strokeWidth}"
-                            fill="none"/>
-
-                        <!-- Circle -->
-                        <ellipse th:if="${annotation.type == 'circle'}"
-                                th:attr="cx=${annotation.x + annotation.width / 2},
-                                        cy=${annotation.y + annotation.height / 2},
-                                        rx=${annotation.width / 2},
-                                        ry=${annotation.height / 2},
-                                        stroke=${annotation.color},
-                                        stroke-width=${annotation.strokeWidth}"
-                                fill="none"/>
-
-                        <!-- Text -->
-                        <text th:if="${annotation.type == 'text'}"
-                            th:attr="x=${annotation.x},
-                                    y=${annotation.y},
-                                    fill=${annotation.color},
-                                    font-size=${annotation.strokeWidth}"
-                            th:text="${annotation.content}"/>
-
-                    </g>
-                </svg>
-
-                <div th:if = "${field.inspectionImage.description != null}"
-                     th:text = "${field.inspectionImage.description}" class = "field-value">
+                <div th:if="${field.inspectionFieldDefinition.fieldType == 'recommendations'}"
+                     th:with="recommendation=${field.inspectionRecommendationField}"
+                     class="recommendations">
+                    <p>Direction: <span th:text="${recommendation?.direction}"></span></p>
+                    <p>Floor Level: <span th:text="${recommendation?.floorLevel}"></span></p>
+                    <p>Room: <span th:text="${recommendation?.room}"></span></p>
+                    <p>Task: <span th:text="${recommendation?.task}"></span></p>
+                    <p>Time: <span th:text="${recommendation?.time}"></span></p>
+                    <p>Cost Range:
+                        <span th:text="${recommendation?.lower_cost}"></span> -
+                        <span th:text="${recommendation?.upper_cost}"></span>
+                    </p>
                 </div>
-            </div>
 
-            <div class="field-value" th:if="${field.selectedValue != null}" th:text="${field.selectedValue.value}"></div>
-            <div class="field-value" th:if="${field.note != null}" th:text="${field.note}"></div>
+                <div class="field-value" th:if="${field.note != null}" th:text="${field.note}"></div>
+            </div>
         </div>
     </div>
+
+    <!-- ALL FIELDS -->
+    <h2>All Fields</h2>
+    <p th:if="${allFields == null || allFields.isEmpty()}">No fields have been filled in yet.</p>
+    <div th:each="placeEntry : ${allFields}">
+        <h3 th:text="${placeEntry.key}"></h3>
+        <div th:each="typeEntry : ${placeEntry.value}">
+            <h4 th:text="${typeEntry.key}"></h4>
+            <div th:each="field : ${typeEntry.value}" class="field">
+                <div><span class="label" th:text="${field.inspectionFieldDefinition.fieldName}"></span></div>
+                <div class="field-value" th:if="${field.selectedValue != null}" th:text="${field.selectedValue.value}"></div>
+
+                <div th:if="${field.inspectionFieldDefinition.fieldType == 'recommendations'}"
+                     th:with="recommendation=${field.inspectionRecommendationField}"
+                     class="recommendations">
+                    <p>Direction: <span th:text="${recommendation?.direction}"></span></p>
+                    <p>Floor Level: <span th:text="${recommendation?.floorLevel}"></span></p>
+                    <p>Room: <span th:text="${recommendation?.room}"></span></p>
+                    <p>Task: <span th:text="${recommendation?.task}"></span></p>
+                    <p>Time: <span th:text="${recommendation?.time}"></span></p>
+                    <p>Cost Range:
+                        <span th:text="${recommendation?.lower_cost}"></span> -
+                        <span th:text="${recommendation?.upper_cost}"></span>
+                    </p>
+                </div>
+
+                <div th:if="${field.inspectionImage != null}" class="field-image">
+                    <img th:src="@{/api/images/file/{id}(id=${field.inspectionImage.id})}" alt="Image" class="report-image">
+
+                    <svg style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
+                         th:if="${field.annotations != null and !#lists.isEmpty(field.annotations)}">
+                        <g th:each="annotation : ${field.annotations}">
+                            <rect th:if="${annotation.type == 'rectangle'}"
+                                  th:attr="x=${annotation.x},
+                                          y=${annotation.y},
+                                          width=${annotation.width},
+                                          height=${annotation.height},
+                                          stroke=${annotation.color},
+                                          stroke-width=${annotation.strokeWidth}"
+                                  fill="none"/>
+                            <ellipse th:if="${annotation.type == 'circle'}"
+                                     th:attr="cx=${annotation.x + annotation.width / 2},
+                                             cy=${annotation.y + annotation.height / 2},
+                                             rx=${annotation.width / 2},
+                                             ry=${annotation.height / 2},
+                                             stroke=${annotation.color},
+                                             stroke-width=${annotation.strokeWidth}"
+                                     fill="none"/>
+                            <text th:if="${annotation.type == 'text'}"
+                                  th:attr="x=${annotation.x},
+                                          y=${annotation.y},
+                                          fill=${annotation.color},
+                                          font-size=${annotation.strokeWidth}"
+                                  th:text="${annotation.content}"/>
+                        </g>
+                    </svg>
+
+                    <div th:if="${field.inspectionImage.description != null}"
+                         th:text="${field.inspectionImage.description}" class="field-value">
+                    </div>
+                </div>
+
+                <div class="field-value" th:if="${field.note != null}" th:text="${field.note}"></div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <a th:href="@{/report/{id}/pdf(id=${report.inspectionBooking.id})}" class="btn" target="_blank">Download PDF</a>

@@ -1,0 +1,21 @@
+Cover letter:
+- Date: date of inspection (inspector decides)
+- Name, address... (booking information)
+- Body paragraph(s): predecided, same for all inspections
+
+Invoice:
+- Invoice class - payment?
+
+Agreement:
+- predecided
+
+Summary:
+- summary letter: predecided
+- no need for images
+
+Inspection field layout:
+- Split into 3 sections: description, limitations, recommendations
+- layout: field name, field value, image
+
+Ideas:
+- Create profile class with everything about inspector metadata

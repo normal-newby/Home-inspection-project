@@ -1,7 +1,9 @@
 package ca.inspection.home.inspection.controller;
 
+import ca.inspection.home.inspection.entity.InspectionField;
 import ca.inspection.home.inspection.entity.InspectionReport;
 import ca.inspection.home.inspection.service.InspectionReportsService;
+import ca.inspection.home.inspection.service.ReportViewService;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +23,8 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/report")
@@ -34,9 +37,25 @@ public class ReportViewController {
     @Autowired
     private SpringTemplateEngine templateEngine;
 
+    @Autowired
+    private ReportViewService reportViewService;
+
     @GetMapping("/{bookingId}")
     public String viewReport(@PathVariable UUID bookingId, Model model) {
         InspectionReport report = inspectionReportsService.getOrCreateByBooking(bookingId);
+
+        Comparator<InspectionField> fieldComparator = reportViewService.getComparator();
+
+        List<InspectionField> fields = reportViewService.getSortedFields(
+                report, fieldComparator
+        );
+
+        Map<String, Map<String, List<InspectionField>>> allFields = reportViewService.getAllFields(fields);
+
+        Map<String, Map<String, List<InspectionField>>> summaryFields = reportViewService.getSummaryFields(fields);
+
+        model.addAttribute("summaryFields", summaryFields);
+        model.addAttribute("allFields", allFields);
         model.addAttribute("report", report);
         return "report";
     }
