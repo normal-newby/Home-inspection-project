@@ -1,0 +1,203 @@
+*, *::before, *::after { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+}
+
+:root {
+    --ink: #1a1a18;
+    --paper: #f5f2eb;
+    --accent: #b5470b;
+    --muted: #7a7567;
+    --border: #ddd9d0;
+    --card: #ffffff;
+}
+
+body {
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+}
+
+/* ── Navbar ── */
+.container { max-width: 1100px; margin: 0 auto; padding: 0 2rem; }
+
+.navbar {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--card);
+}
+
+.navbarBox a {
+    display: block;
+    padding: 1.1rem 1.6rem;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+    transition: color 0.2s, border-bottom 0.2s;
+    border-bottom: 2px solid transparent;
+}
+
+.navbarBox a:hover,
+.navbarBox a.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+/* ── Page layout ── */
+.page {
+    max-width: 860px;
+    margin: 3.5rem auto;
+    padding: 0 2rem 4rem;
+}
+
+.page-header {
+    margin-bottom: 2.5rem;
+    border-left: 3px solid var(--accent);
+    padding-left: 1rem;
+}
+
+.page-header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.2rem;
+    font-weight: 400;
+    line-height: 1.2;
+}
+
+.page-header p {
+    margin-top: 0.4rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+/* ── Form card ── */
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2rem 2.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.card-title {
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem 2rem;
+}
+
+.form-grid.full { grid-template-columns: 1fr; }
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.field label {
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+    text-transform: uppercase;
+}
+
+.field input,
+.field textarea {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.65rem 0.85rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 300;
+    color: var(--ink);
+    transition: border-color 0.2s, background 0.2s;
+    width: 100%;
+}
+
+.field input:focus,
+.field textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: #fff;
+}
+
+.field textarea {
+    resize: vertical;
+    min-height: 130px;
+    line-height: 1.6;
+}
+
+/* ── Actions ── */
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 2rem;
+}
+
+.btn {
+    padding: 0.7rem 1.8rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border: 1px solid var(--accent);
+}
+
+.btn-primary:hover { background: #943b08; border-color: #943b08; }
+
+.btn-secondary {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+}
+
+.btn-secondary:hover { border-color: var(--muted); color: var(--ink); }
+
+/* ── Success banner ── */
+.banner {
+    display: none;
+    align-items: center;
+    gap: 0.6rem;
+    background: #edf7f0;
+    border: 1px solid #b2ddc0;
+    border-radius: 3px;
+    padding: 0.75rem 1rem;
+    font-size: 0.88rem;
+    color: #276740;
+    margin-bottom: 1.5rem;
+}
+
+.banner.show { display: flex; }
+
+@media (max-width: 600px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .page { margin: 2rem auto; }
+}

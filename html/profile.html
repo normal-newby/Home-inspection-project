@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspector Profile</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/profile.css">
+</head>
+<body>
+
+<div class="navbar">
+    <div class="container" style="display:flex;">
+        <div class="navbarBox"><p><a href="index.html">Home</a></p></div>
+        <div class="navbarBox"><p><a href="booking.html">Book Inspection</a></p></div>
+        <div class="navbarBox"><p><a href="profile.html" class="active">Profile</a></p></div>
+    </div>
+</div>
+
+<div class="page">
+ 
+    <div class="page-header">
+        <h1>Inspector Profile</h1>
+        <p>This information appears on your cover letters, invoices, and reports.</p>
+    </div>
+ 
+    <div class="banner" id="successBanner">
+        ✓ Profile saved successfully.
+    </div>
+ 
+    <form id="profileForm">
+ 
+        <!-- Personal & Business Info -->
+        <div class="card">
+            <div class="card-title">Personal &amp; Business</div>
+            <div class="form-grid">
+                <div class="field">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" placeholder="John Smith"/>
+                </div>
+                <div class="field">
+                    <label for="company">Company Name</label>
+                    <input type="text" id="company" placeholder="Smith Inspections Inc."/>
+                </div>
+                <div class="field">
+                    <label for="phone">Phone</label>
+                    <input type="tel" id="phone" placeholder="(416) 555-0100"/>
+                </div>
+                <div class="field">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="john@smithinspections.ca"/>
+                </div>
+                <div class="field">
+                    <label for="logoPath">Logo Path</label>
+                    <input type="text" id="logoPath" placeholder="/images/logo.png"/>
+                </div>
+            </div>
+        </div>
+ 
+        <!-- Document Bodies -->
+        <div class="card">
+            <div class="card-title">Cover Letter Body</div>
+            <div class="form-grid full">
+                <div class="field">
+                    <label for="coverLetterBody">Body Paragraphs</label>
+                    <textarea id="coverLetterBody" placeholder="Thank you for choosing our inspection services..."></textarea>
+                </div>
+            </div>
+        </div>
+ 
+        <div class="card">
+            <div class="card-title">Summary Letter Body</div>
+            <div class="form-grid full">
+                <div class="field">
+                    <label for="summaryLetterBody">Body Paragraphs</label>
+                    <textarea id="summaryLetterBody" placeholder="The following is a summary of findings..."></textarea>
+                </div>
+            </div>
+        </div>
+ 
+        <div class="card">
+            <div class="card-title">Agreement</div>
+            <div class="form-grid full">
+                <div class="field">
+                    <label for="agreementBody">Agreement Text</label>
+                    <textarea id="agreementBody" placeholder="This inspection agreement is entered into..."></textarea>
+                </div>
+            </div>
+        </div>
+ 
+        <div class="actions">
+            <button type="button" id="resetBtn" class="btn btn-secondary">Reset</button>
+            <button type="button" id="saveBtn" class="btn btn-primary">Save Profile</button>
+        </div>
+ 
+    </form>
+</div>
+
+<script type = "module" src = "../js/profile/profile.js"></script>
+
+</body>
+</html>
