@@ -1,58 +1,82 @@
-body { 
-    padding: 50px, auto;
-    text-align: center;
+*, *::before, *::after { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
 }
-.container {
-    border: 2px solid black;
-    margin-left: auto;
-    margin-right: auto;
-    width: 70%;
-    min-height: 500px;
-    text-align: center;
-    padding-bottom: 20px;
+
+:root {
+    --ink: #1a1a18;
+    --paper: #f5f2eb;
+    --accent: #b5470b;
+    --muted: #7a7567;
+    --border: #ddd9d0;
+    --card: #ffffff;
 }
-.body_content{
-    margin-left: auto;
-    margin-right: auto;
-    width: 95%;
-    min-height: 400px;
-    text-align: center;
-    margin-top: 2px;
+
+body {
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
 }
-.navbar{
-    height: 50px;
-    background-color: lightgrey;
+
+/* ── Navbar ── */
+.container { 
+    max-width: 1100px; 
+    margin: 0 auto; 
+    padding: 0 2rem; 
+    display: flex;
 }
-.navbarBox{
-    display: inline-block;
-    align-items: center;
-    vertical-align: middle;
-    height: 99%;
-    width: auto;
-    border-top: 0px;
-    border-bottom: 0px;
-    border-left: 0px;
-    border-right: 1px;
-    border-style: solid;
-    border-color: black;
+
+.navbar {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--card);
 }
-.navbarBox p{
-    font-size: 15x;
-    font-family: sans-serif;
-    font-weight: bold;
-    color: grey;
-    margin-top: 15px;
-    margin-bottom: auto;
-    margin-left: 20px;
-    margin-right: 20px;
-}
-.navbarBox a{
+
+.navbarBox a {
+    display: block;
+    padding: 1.1rem 1.6rem;
     text-decoration: none;
-    color: rgb(56,56,56);
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+    transition: color 0.2s, border-bottom 0.2s;
+    border-bottom: 2px solid transparent;
 }
-.navbarBox a:hover{
-    color: red;
+
+.navbarBox a:hover,
+.navbarBox a.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
 }
-h1 {
-    color: blue;
+
+/* ── Page layout ── */
+.page {
+    max-width: 860px;
+    margin: 3.5rem auto;
+    padding: 0 2rem 4rem;
+}
+
+.page-header {
+    margin-bottom: 2.5rem;
+    border-left: 3px solid var(--accent);
+    padding-left: 1rem;
+}
+
+.page-header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.2rem;
+    font-weight: 400;
+    line-height: 1.2;
+}
+
+.page-header p {
+    margin-top: 0.4rem;
+    color: var(--muted);
+    font-size: 0.9rem;
 }

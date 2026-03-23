@@ -5,106 +5,123 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Web Page</title>
     <link rel="stylesheet" href="../css/styles.css">
-    <link rel="stylesheet" href="../css/inspectionPage.css">
+    <link rel="stylesheet" href="../css/fieldEntry.css">
 </head>
 <body>
+<div class="navbar">
     <div class="container">
-        <div class = "navbar">
-            <div class = "navbarBox">
-                <p><a href="index.html">Home</a></p>
-            </div>
-            <div class = "navbarBox">
-                <p><a href="booking.html">Book inspection</a></p>
+        <div class="navbarBox"><a href="index.html">Home</a></div>
+        <div class="navbarBox"><a href="booking.html" class="active">Book Inspection</a></div>
+        <div class="navbarBox"><a href="profile.html">Profile</a></div>
+    </div>
+</div>
+<div class = "page">
+    <div class = "page-header">
+        <h1>Book an Inspection</h1>
+        <p>Enter client information</p>
+    </div>
+
+    <form action="/submit_booking" method="post" id="booking-form">
+        <div class="card">
+            <div class="card-title">Inspection Address</div>
+            
+            <div class = "form-grid">
+                <div class = "field">
+                    <label for="inspection_address">Street Address *</label>
+                    <input type="text" id="inspection_address" name="inspectionAddress" placeholder="69 Lord Seaton Rd" required>
+                </div>
+                <div class = "field">
+                    <label for="Suite">Suite / Unit</label>
+                    <input type="text" id="Suite" name="suite" placeholder="420">
+                </div>
+                <div class = "field">
+                    <label for="City">City *</label>
+                    <input type="text" id="City" name="city" placeholder="Toronto" required>
+                </div>
+                <div class = "field">
+                    <label for="Zip">Postal / Zip Code</label>
+                    <input type="text" id="Zip" name="postalCode" placeholder="M1M 1M1">
+                </div>
+                <div class = "field">
+                    <label for="Province">Province / State</label>
+                    <select id="Province" name="province">
+                        <option value="" disabled selected>Select province</option>
+                        <option value="ON">Ontario</option>
+                        <option value="QC">Quebec</option>
+                        <option value="NS">Nova Scotia</option>
+                        <option value="NB">New Brunswick</option>
+                        <option value="MB">Manitoba</option>
+                        <option value="BC">British Columbia</option>
+                        <option value="PE">Prince Edward Island</option>
+                        <option value="SK">Saskatchewan</option>
+                        <option value="AB">Alberta</option>
+                        <option value="NL">Newfoundland and Labrador</option>
+                        <option value="NT">Northwest Territories</option>
+                        <option value="YT">Yukon</option>
+                        <option value="NU">Nunavut</option>
+                    </select>
+                </div>
             </div>
         </div>
-        <h1>Book an Inspection</h1>
-        <hr>
-        <form action="/submit_booking" method="post" id="booking-form">
-            <fieldset class = "bookingFieldSet">
-                <legend class = "legends">Inspection Address</legend>
-                <label for="inspection_address">Inspection Address:*</label>
-                <input type="text" id="inspection_address" name="inspectionAddress" placeholder="69 lord seaton" required>
-                <label for="Suite">Suite</label>
-                <input type="text" id="Suite" name="suite" placeholder="420">
-                <label for="City">City*</label>
-                <input type="text" id="City" name="city" placeholder="Toronto" required>
-                <label for="Zip">Zip/Postal</label>
-                <input type="text" id="Zip" name="postalCode" placeholder="M1M1M1">
-                <label for="Province">Province/State</label>
-                <select id="Province" name="province">
-                    <option value="" disabled selected>Select your option</option>
-                    <option value="ON">Ontario</option>
-                    <option value="QC">Quebec</option>
-                    <option value="NS">Nova Scotia</option>
-                    <option value="NB">New Brunswick</option>
-                    <option value="MB">Manitoba</option>
-                    <option value="BC">British Columbia</option>
-                    <option value="PE">Prince Edward Island</option>
-                    <option value="SK">Saskatchewan</option>   
-                    <option value="AB">Alberta</option>
-                    <option value="NL">Newfoundland and Labrador</option>
-                    <option value="NT">Northwest Territories</option>
-                    <option value="YT">Yukon</option>
-                    <option value="NU">Nunavut</option>
-                </select>
-            </fieldset>
-            <fieldset class="bookingFieldSet">
-                <legend class="legends">Client Info</legend>
-                <label for="first_name">First Name:*</label>
-                <input type="text" id="first_name" name="clientFirstName" placeholder="John" required>
-                <label for="last_name">Last Name:*</label>
-                <input type="text" id="last_name" name="clientLastName" placeholder="Doe" required>
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" placeholder="djliu@hotmail.com">
-                <label for="phone">Phone Number:</label>
-                <input type="tel" id="phone" name="phone" placeholder="416-420-6969">
-            </fieldset>
-            <fieldset class="bookingFieldSet">
-                <legend class="legends">Reference*</legend>
+    
+        <!-- Client Info -->
+        <div class="card">
+            <div class="card-title">Client Info</div>
+    
+            <div class = "form-grid">
+                <div class = "field">
+                    <label for="first_name">First Name *</label>
+                    <input type="text" id="first_name" name="clientFirstName" placeholder="John" required>
+                </div>
+                <div class = "field">
+                    <label for="last_name">Last Name *</label>
+                    <input type="text" id="last_name" name="clientLastName" placeholder="Doe" required>
+                </div>
+                <div class = "field">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="john@example.com">
+                </div>
+                <div class = "field">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" placeholder="416-420-6969">
+                </div>
+            </div>
+        </div>
+    
+        <!-- Reference -->
+        <div class="card">
+            <div class = "card-title">Referred By</div>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="referredBy" value="None" checked><span>None</span></label>
+                <label class="radio-option"><input type="radio" name="referredBy" value="Buyer Agent"><span>Buyer Agent</span></label>
+                <label class="radio-option"><input type="radio" name="referredBy" value="Seller Agent"><span>Seller Agent</span></label>
+                <label class="radio-option"><input type="radio" name="referredBy" value="Friend"><span>Friend</span></label>
+                <label class="radio-option"><input type="radio" name="referredBy" value="Family"><span>Family</span></label>
+                <label class="radio-option"><input type="radio" name="referredBy" value="Lender"><span>Lender</span></label>
+                <label class="radio-option"><input type="radio" name="referredBy" value="Other"><span>Other</span></label>
+            </div>
+        </div>
+    
+        <!-- Booked By -->
+        <div class="card">
+            <div class="card-title">Booked By</div>
+            <div class="radio-group">
+                <label class="radio-option"><input type="radio" name="bookedBy" value="None" checked><span>None</span></label>
+                <label class="radio-option"><input type="radio" name="bookedBy" value="Seller Agent"><span>Seller Agent</span></label>
+                <label class="radio-option"><input type="radio" name="bookedBy" value="Buyer Agent"><span>Buyer Agent</span></label>
+                <label class="radio-option"><input type="radio" name="bookedBy" value="Client"><span>Client</span></label>
+                <label class="radio-option"><input type="radio" name="bookedBy" value="Other"><span>Other</span></label>
+            </div>
+        </div>
+    
+        <div class="actions">
+            <button type="reset" id="resetBtn" class="btn btn-secondary">Reset</button>
+            <button type="submit" id="saveBtn" class="btn btn-primary">Save Profile</button>
+        </div>
 
-                <input type="radio" id="none_reference" name="referredBy" value="None" checked>
-                <label for="none_reference">None</label>
-
-                <input type="radio" id="buyer_agent_reference" name="referredBy" value="Buyer Agent" required>
-                <label for="buyer_agent_reference">Buyer Agent</label>
-
-                <input type="radio" id="seller_agent_reference" name="referredBy" value="Seller Agent" required> 
-                <label for="seller_agent_reference">Seller Agent</label>
-
-                <input type="radio" id="friend_reference" name="referredBy" value="Friend" required>
-                <label for="friend_reference">Friend</label>
-
-                <input type="radio" id="family_reference" name="referredBy" value="Family" required>
-                <label for="family_reference">Family</label>
-
-                <input type="radio" id="lender_reference" name="referredBy" value="Lender" required>
-                <label for="lender_reference">Lender</label>
-
-                <input type="radio" id="other_reference" name="referredBy" value="Other" required>
-                <label for="other_reference">Other</label>
-            </fieldset>
-            <fieldset class="bookingFieldSet">
-                <legend class="legends">Booked by</legend>
-                <input type="radio" id="none_booked" name="bookedBy" value="None" checked>
-                <label for="none_booked">None</label>
-
-                <input type="radio" id="seller_agent_booked" name="bookedBy" value="Seller Agent" required>
-                <label for="seller_agent_booked">Seller Agent</label>
-
-                <input type="radio" id="buyer_agent_booked" name="bookedBy" value="Buyer Agent" required>
-                <label for="buyer_agent_booked">Buyer Agent</label>
-
-                <input type="radio" id="client_booked" name="bookedBy" value="Client" required>
-                <label for="client_booked">Client</label>
-
-                <input type="radio" id="other_booked" name="bookedBy" value="Other" required>
-                <label for="other_booked">Other</label>
-            </fieldset>
-            <button type="submit" class="submitButton">Submit</button>
-            <button type="reset" class="resetButton">Reset</button>
-        </form>
         <p class="note">An asterisk (*) indicates a required field</p>
-    </div>
-    <script src="../js/booking/booking.js"></script>
+    </form>
+</div>
+<script src="../js/booking/booking.js"></script>
 </body>
 </html>
