@@ -1,8 +1,12 @@
 package ca.inspection.home.inspection.controller;
 
+import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectionField;
 import ca.inspection.home.inspection.entity.InspectionReport;
+import ca.inspection.home.inspection.entity.InspectorProfile;
+import ca.inspection.home.inspection.service.InspectionBookingsService;
 import ca.inspection.home.inspection.service.InspectionReportsService;
+import ca.inspection.home.inspection.service.InspectorProfileService;
 import ca.inspection.home.inspection.service.ReportViewService;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,6 +36,12 @@ import java.util.stream.Collectors;
 public class ReportViewController {
 
     @Autowired
+    private InspectorProfileService inspectorProfileService;
+
+    @Autowired
+    private InspectionBookingsService inspectionBookingsService;
+
+    @Autowired
     private InspectionReportsService inspectionReportsService;
 
     @Autowired
@@ -42,6 +52,10 @@ public class ReportViewController {
 
     @GetMapping("/{bookingId}")
     public String viewReport(@PathVariable UUID bookingId, Model model) {
+        InspectorProfile profile = inspectorProfileService.getProfile();
+
+        InspectionBookings booking = inspectionBookingsService.findById(bookingId);
+
         InspectionReport report = inspectionReportsService.getOrCreateByBooking(bookingId);
 
         Comparator<InspectionField> fieldComparator = reportViewService.getComparator();
@@ -54,6 +68,8 @@ public class ReportViewController {
 
         Map<String, Map<String, List<InspectionField>>> summaryFields = reportViewService.getSummaryFields(fields);
 
+        model.addAttribute("booking", booking);
+        model.addAttribute("profile", profile);
         model.addAttribute("summaryFields", summaryFields);
         model.addAttribute("allFields", allFields);
         model.addAttribute("report", report);

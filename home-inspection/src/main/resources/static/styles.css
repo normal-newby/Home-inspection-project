@@ -1,83 +1,160 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing:
+    border-box;
+}
+
 body {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    margin: 24px;
-    line-height: 1.4;
-    color: #222;
+    font-family: Arial, sans-serif;
+    font-size: 11pt;
+    color: #1a1a1a;
 }
 
-h1 {
-    margin-bottom: 0.2em;
+/* ── Page setup ── */
+
+@page{
+    size: A4 portrait;
+    margin: 0;
 }
 
-h2 {
-    margin-top: 1.5em;
-    margin-bottom: 0.4em;
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 0.1em;
+/* ── Cover Page ── */
+
+#cover-page {
+    width: 100%;
+    height: 297mm;
+    display: flex;
+    flex-direction: column;
+    page-break-after: always;
+    background-color: #ffffff;
 }
 
-.section {
-    margin-bottom: 1.2em;
+/* Top accent bar */
+#cover-page::before {
+    content: "";
+    display: block;
+    height: 8px;
+    background-color: #1a5276;
 }
 
-.field {
-    padding: 0.4em 0;
+/* ── Logo area ───────────────────────────────── */
+#cover-logo {
+    padding: 28mm 20mm 0 20mm;
+    text-align: center;
+}
+
+#cover-logo img {
+    max-height: 28mm;
+    max-width: 80mm;
+    object-fit: contain;
+}
+
+#cover-logo .tagline {
+    margin-top: 6px;
+    font-size: 9pt;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #1a5276;
+    font-weight: bold;
+}
+
+/* ── Divider ─────────────────────────────────── */
+.cover-divider {
+    width: 60mm;
+    height: 3px;
+    background: #1a5276;
+    margin: 10mm auto;
+}
+
+/* ── Report label ────────────────────────────── */
+#cover-report-label {
+    text-align: center;
+    font-size: 11pt;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 6mm;
+}
+
+/* ── Property address (hero text) ───────────────*/
+#cover-property-address {
+    text-align: center;
+    padding: 0 20mm;
+    flex-grow: 1;           /* push meta block down naturally */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#cover-property-address .street {
+    font-size: 26pt;
+    font-weight: bold;
+    color: #1a1a1a;
+    text-transform: uppercase;
+    line-height: 1.15;
+}
+
+#cover-property-address .city-province {
+    font-size: 16pt;
+    color: #444;
+    margin-top: 3mm;
+}
+
+/* ── Meta block ──────────────────────────────── */
+#cover-meta {
+    margin: 0 20mm 10mm 20mm;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+#cover-meta table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#cover-meta td {
+    padding: 5px 14px;
+    font-size: 10pt;
+    vertical-align: middle;
     border-bottom: 1px solid #eee;
 }
 
-.field:last-child {
+#cover-meta td.label {
+    width: 38%;
+    color: #777;
+    text-transform: uppercase;
+    font-size: 8pt;
+    letter-spacing: 1px;
+    background: #f7f9fb;
+}
+
+#cover-meta td.value {
+    font-weight: bold;
+    color: #1a1a1a;
+}
+
+#cover-meta tr:last-child td {
     border-bottom: none;
 }
 
-.label {
-    font-weight: 700;
+/* ── Footer contact bar ──────────────────────── */
+#cover-footer {
+    background-color: #1a5276;
+    color: #ffffff;
+    padding: 6mm 20mm;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 9pt;
 }
 
-.field-value {
-    margin-left: 0.4em;
-}
-
-.btn {
-    display: inline-block;
-    padding: 0.5em 1em;
-    border-radius: 4px;
-    border: 1px solid #333;
-    background-color: #0b62a4;
-    color: #fff;
+#cover-footer a {
+    color: #aed6f1;
     text-decoration: none;
-    font-weight: 600;
-    margin-top: 1em;
 }
 
-.btn:hover {
-    background-color: #084b7a;
-}
-
-img.report-image {
-    max-width: 100%;
-    height: auto;
-    margin: 0.5em 0;
-    border: 1px solid #ddd;
-    padding: 4px;
-    border-radius: 4px;
-}
-
-.meta {
-    margin-bottom: 1em;
-}
-
-.meta span {
-    display: inline-block;
-    margin-right: 1.5em;
-}
-
-.field-image {
-    position: relative;
-    width: 100%;
-    padding: 0;
-}
-
-.report-image {
-    display: block;
-    max-height: 400px;
+#cover-footer .separator {
+    color: #5d8aa8;
+    margin: 0 8px;
 }
