@@ -28,6 +28,11 @@ public class InspectorProfile {
     private String website;
     private String logoPath;
 
+    private String address;
+    private String city;
+    private String province;
+    private String postalCode;
+
     @Column(columnDefinition = "TEXT")
     private String coverLetterBody;
 

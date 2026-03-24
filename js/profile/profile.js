@@ -1,4 +1,4 @@
-const fields = ['name', 'company', 'phone', 'email', 'website', 'logoPath', 'coverLetterBody', 'summaryLetterBody', 'agreementBody'];
+const fields = ['name', 'company', 'phone', 'email', 'website', 'logoPath', 'address', 'city', 'province', 'postalCode', 'coverLetterBody', 'summaryLetterBody', 'agreementBody'];
  
 function populateForm(profile) {
     fields.forEach(f => {

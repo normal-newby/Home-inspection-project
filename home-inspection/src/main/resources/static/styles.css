@@ -18,7 +18,7 @@ body {
     margin: 0;
 }
 
-/* ── Cover Page ── */
+/* ── Cover Page ────────────────────────────── */
 
 #cover-page {
     width: 100%;
@@ -66,7 +66,7 @@ body {
     margin: 10mm auto;
 }
 
-/* ── Report label ────────────────────────────── */
+/* ── Report label ── */
 #cover-report-label {
     text-align: center;
     font-size: 11pt;
@@ -76,7 +76,7 @@ body {
     margin-bottom: 6mm;
 }
 
-/* ── Property address (hero text) ───────────────*/
+/* ── Property address (hero text) ──*/
 #cover-property-address {
     text-align: center;
     padding: 0 20mm;
@@ -100,7 +100,7 @@ body {
     margin-top: 3mm;
 }
 
-/* ── Meta block ──────────────────────────────── */
+/* ── Meta block ── */
 #cover-meta {
     margin: 0 20mm 10mm 20mm;
     border: 1px solid #ddd;
@@ -138,7 +138,7 @@ body {
     border-bottom: none;
 }
 
-/* ── Footer contact bar ──────────────────────── */
+/* ── Footer contact bar ── */
 #cover-footer {
     background-color: #1a5276;
     color: #ffffff;
@@ -157,4 +157,77 @@ body {
 #cover-footer .separator {
     color: #5d8aa8;
     margin: 0 8px;
+}
+
+/* ── Letter page ─────────────────────────────── */
+#letter-page {
+  padding: 20mm;
+  page-break-after: always;
+}
+
+#letter-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12mm;
+}
+
+.letter-company-block {
+  text-align: right;
+  font-size: 9pt;
+  color: #555;
+  line-height: 1.6;
+  border-right: 3px solid #1a5276;
+  padding-right: 8px;
+}
+
+.letter-company-block .company-name {
+  font-weight: bold;
+  font-size: 10pt;
+  color: #1a1a1a;
+}
+
+.letter-date {
+  font-size: 10pt;
+  margin-bottom: 6mm;
+  color: #333;
+}
+
+.letter-salutation {
+  font-size: 10.5pt;
+  font-weight: bold;
+  margin-bottom: 4mm;
+}
+
+.letter-re {
+  font-size: 10pt;
+  margin-bottom: 8mm;
+  padding: 4mm 6mm;
+  border-left: 3px solid #1a5276;
+  background: #f7f9fb;
+  line-height: 1.7;
+}
+
+.re-label {
+  font-weight: bold;
+  margin-right: 6px;
+}
+
+.letter-body p {
+  font-size: 10pt;
+  line-height: 1.7;
+  color: #333;
+  margin-bottom: 4mm;
+}
+
+.letter-signature {
+  margin-top: 10mm;
+  font-size: 10pt;
+  line-height: 1.8;
+  color: #333;
+}
+
+/* ── Agreement page ──────────────────────────── */
+#agreement-page {
+  padding: 20mm;
+  page-break-after: always;
 }

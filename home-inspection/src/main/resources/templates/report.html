@@ -57,6 +57,49 @@
     </div>
 </div>
 
+<!-- ===================== LETTER PAGE ===================== -->
+<div id="letter-page">
+
+    <!-- Header: company info top-right -->
+    <div id="letter-header">
+        <div class="letter-company-block">
+            <div class="company-name" th:text="${profile.company}"></div>
+            <div th:text="${profile.address}">69 Lord Seaton Road</div>
+            <div th:text="|${profile.city}, ${profile.province} ${profile.postalCode}|"></div>
+            <div th:text="${profile.phone}"></div>
+            <div th:text="${profile.website}"></div>
+            <div th:text="${profile.email}"></div>
+        </div>
+    </div>
+
+    <!-- Date -->
+    <div class="letter-date" th:text="${booking.createdAt}"></div>
+
+    <!-- Salutation -->
+    <div class="letter-salutation" th:text="|Dear ${booking.clientFirstName} ${booking.clientLastName},|"></div>
+
+    <!-- RE line -->
+    <div class="letter-re">
+        <span class="re-label">RE:</span>
+        <!--<span th:text="|Report No. ${report.reportNumber}|">Report No. 1253</span><br/>-->
+        <span th:text="${booking.inspectionAddress}"></span><br/>
+        <span th:text="|${booking.city}, ${booking.province}|"></span><br/>
+        <span th:text="${booking.postalCode}">M5T 1W5</span>
+    </div>
+
+    <!-- Body — static paragraphs -->
+    <div class="letter-body" th:text="${profile.coverLetterBody}"></div>
+
+</div>
+
+<!-- ===================== AGREEMENT PAGE ===================== -->
+<div id="agreement-page">
+
+    <!-- Body -->
+    <div class="agreement-body" th:text="${profile.agreementBody}"></div>
+
+</div>
+
 <!-- SUMMARY -->
 <h2>Summary</h2>
 <p th:if="${summaryFields == null || summaryFields.isEmpty()}">No summary fields available.</p>
