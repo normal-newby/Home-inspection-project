@@ -1,129 +1,136 @@
+ /* ── Image carousel ── */
 .images-section {
-    position: relative;
-    width: 100%;
-    margin: 30px auto;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
     display: flex;
     align-items: center;
+    gap: 0.75rem;
 }
 
 .images-viewport {
-    overflow: hidden;
-    width: 100%;
-    border-radius: 14px;
-    margin-left: 10px;
-    margin-right: 10px;
+    flex: 1;
+    overflow: hidden;  
+    border-radius: 3px;
+    background: var(--paper);
+    border: 1px solid var(--border);
 }
 
 .images-track {
-    display: flex;
-    transition: transform 0.4s ease-in-out;
+  display: nsform 0.3s ease;
 }
 
 .image-slide {
-    min-width: 100%;
+    min-width: 100%; 
     display: grid;
     grid-template-columns: repeat(6, 1fr);
-    grid-template-rows: repeat(1, 1fr);
-    overflow: hidden;
-    gap: 12px;
-    padding: 12px;
-    box-sizing: border-box;
-    background: #f8f9fa;
+    gap: 0.4rem;
+    padding: 0.5rem;
 }
 
 .image-slide img {
     width: 100%;
-    height: 160px;
+    aspect-ratio: 1 / 1;
     object-fit: cover;
-    border-radius: 12px;
-    box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+    border-radius: 3px;
+    border: 1px solid var(--border);
     cursor: pointer;
-    transition: transform 0.2s ease;
+    transition: border-color 0.15s, opacity 0.15s;
 }
 
 .image-slide img:hover {
-    transform: scale(1.04);
+    border-color: var(--accent);
+    opacity: 0.85;
 }
 
 .nav-btn {
-    background: #111;
-    color: white;
-    border: none;
-    width: 50px;
-    height: 50px;
-    border-radius: 100px;
-    font-size: 26px;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+    color: var(--muted);
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transition: border-color 0.15s, color 0.15s;
+    flex-shrink: 0;
 }
 
-.nav-btn:hover {
-    background: #333;
+.nav-btn:hover { 
+    border-color: var(--muted); 
+    color: var(--ink); 
 }
 
-.show-image-box{
-    position: absolute;
+/* ── Show image overlay ── */
+.show-image-box {
+    position: fixed;
+    width: 500px;
+    height: 500px;
+    transform: translate(-50%, -50%);
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
-    width: 800px;
-    height: 500px;
-    background-color: lightgrey;
-    padding-bottom: 50px;
+    background: rgba(42, 37, 32, 0.6);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.show-image-box[hidden] {
+    display: none; 
 }
 
 .image-container {
     width: 100%;
-    height: 100%;
-    background: #111;
-    overflow: hidden;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
 }
 
 .image-container img {
-    max-height: 100%;
-    max-width: 100%;
-    object-fit: contain;
+    width: 100%;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    display: block;
 }
 
-.close-button{
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 30px;
-    height: 30px;
-    border: 1px solid black;
-    border-radius: 5px;
-    background: rgba(255, 255, 255, 0.496);
-    color: red;
-    transition: background 0.2s ease, transform 0.1s ease;
-}
-
-.close-button:hover {
+.close-button {
+    align-self: flex-end;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.3rem 0.75rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted);
     cursor: pointer;
-    background: rgba(255,255,255,0.3);
-    transform: scale(1.05);
+    transition: border-color 0.15s, color 0.15s;
+}
+.close-button:hover { 
+    border-color: var(--muted); 
+    color: var(--ink); 
 }
 
 .delete-image-button {
-    position: absolute;
-    bottom: 8px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 10px 18px;
-    background: #ff4d4d;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
+    align-self: flex-start;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.3rem 0.75rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted);
     cursor: pointer;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-    transition: background 0.2s ease, transform 0.1s ease;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
-
-.delete-image-button:hover {
-    background: #ff1a1a;
-    transform: translate(-50%, 1px);
+.delete-image-button:hover { 
+    border-color: #c0392b; 
+    color: #c0392b; 
 }
 
 /* Select images */

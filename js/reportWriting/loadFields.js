@@ -178,6 +178,7 @@ function showExistingImage(image, fieldId){
     if (!image){
         existingImageText.textContent = "No images selected";
     } else {
+        existingImageDiv.hidden = false;
         existingImageText.textContent = "This is your selected image";
         existingImageImage.src = `http://localhost:8080/api/images/file/${image.id}`;
         existingImageImage.onload = () => {

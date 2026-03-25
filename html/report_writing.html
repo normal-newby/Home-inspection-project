@@ -11,106 +11,114 @@
         <link rel="stylesheet" href="../css/recommendations.css">
     </head>
     <body>
-        <div class="container">
-            <div class = "navbar">
-                <div class = "navbarBox">
-                    <p><a href="index.html">Home</a></p>
+        <div class="navbar">
+            <div class="container">
+                <div class="navbarBox"><a href="index.html" class="active">Home</a></div>
+                <div class="navbarBox"><a href="booking.html">Book Inspection</a></div>
+                <div class="navbarBox"><a href="profile.html">Profile</a></div>
+            </div>
+        </div>
+        <div class = "body_content">
+            <div class="component-nav">
+                <p class="nav-label">Components</p>
+                <div class="btn-group">
+                    <button class="component_button" data-target="roofing">Roofing</button>
+                    <button class="component_button" data-target="exterior">Exterior</button>
+                    <button class="component_button" data-target="structure">Structure</button>
+                    <button class="component_button" data-target="electrical">Electrical</button>
+                    <button class="component_button" data-target="heating">Heating</button>
+                    <button class="component_button" data-target="cooling">Cooling</button>
+                    <button class="component_button" data-target="insulation">Insulation</button>
+                    <button class="component_button" data-target="plumbing">Plumbing</button>
+                    <button class="component_button" data-target="interior">Interior</button>
                 </div>
-                <div class = "navbarBox">
-                    <p><a href="booking.html">Book inspection</a></p>
+                <div class="btn-group">
+                    <button class="component_button component_button_lower" data-target="description">Description</button>
+                    <button class="component_button component_button_lower" data-target="limitations">Limitations</button>
+                    <button class="component_button component_button_lower" data-target="recommendations">Recommendations</button>
                 </div>
             </div>
-            <div class = "body_content">
-                <button class = "component_button" data-target = "roofing">Roofing</button>
-                <button class = "component_button" data-target = "exterior">Exterior</button>
-                <button class = "component_button" data-target = "structure">Structure</button>
-                <button class = "component_button" data-target = "electrical">Electrical</button>
-                <button class = "component_button" data-target = "heating">Heating</button>
-                <button class = "component_button" data-target = "cooling">Cooling</button>
-                <button class = "component_button" data-target = "insulation">Insulation</button>
-                <button class = "component_button" data-target = "plumbing">Plumbing</button>
-                <button class = "component_button" data-target = "interior">Interior</button>
-                <br>
-                <button class = "component_button component_button_lower" data-target="description">Description</button>
-                <button class = "component_button component_button_lower" data-target="limitations">Limitations</button>
-                <button class = "component_button component_button_lower" data-target="recommendations">Recommendations</button>
-
-                <br>
-                
+            
+            <!-- File upload / report actions -->
+            <div class="action-bar">
+                <label class="file-input-label" for="image-input">＋ Add Images</label>
                 <input type="file" id="image-input" accept="image/*" multiple>
-                <button id="save-images-button" type="button">Save images</button>
-                <button id="view-report-button">View Report</button>
+                <button id="save-images-button" class="btn btn-secondary" type="button">Save Images</button>
+                <button id="view-report-button" class="btn btn-primary">View Report</button>
+            </div>
 
+            <div class="images-section">
+                <button class="nav-btn prev">←</button>
+
+                <div class="images-viewport">
+                    <div class="images-track"></div>
+                </div>
+
+                <button class="nav-btn next">→</button>
+            </div>
+
+            <div class="show-image-box" hidden>
+                <button class="close-button">X</button>
+                <div class="image-container"></div>
+                <button class="delete-image-button">delete image</button>
+            </div>
+            
+            <!-- Fields! -->
+            <p class="helper-text">Click an item to add. Highlighted items are already added — right-click to delete, double-click to edit.</p>
+
+            <div class="fields"></div>
+
+            <!-- Select image / annotation box -->
+            <div class="select-image-box" hidden>
+                <p class="existing-image-text">Selected Image</p>
+                <div class="existing-image-div" hidden>
+                    <img class="existing-image-image" alt="">
+                    <div class="annotation-tools" hidden>
+                        <button id="rect-tool">Rectangle</button>
+                        <button id="ellipse-tool">Ellipse</button>
+                        <button id="arrow-tool">Arrow</button>
+                        <button id="delete-mode">Delete Mode</button>
+                        <button id="save-annotations">Save</button>
+                        <label for="text-tool">Text:</label>
+                        <input type="text" id="text-tool" placeholder="Enter text…">
+                        <button id="add-text">Add</button>
+                        <input type="color" id="color-picker" value="#ff0000">
+                        <label for="stroke-size" class="stroke-label">Stroke: <span id="stroke-size-value">1</span>px</label>
+                        <input type="range" id="stroke-size" min="1" max="10" value="1">
+                    </div>
+                </div>
+            
                 <div class="images-section">
                     <button class="nav-btn prev">←</button>
-
                     <div class="images-viewport">
                         <div class="images-track"></div>
                     </div>
-
                     <button class="nav-btn next">→</button>
                 </div>
-
-                <div class="show-image-box" hidden>
-                    <button class="close-button">X</button>
-                    <div class="image-container"></div>
-                    <button class="delete-image-button">delete image</button>
+            
+                <div class="add-note-section">
+                    <label for="note-text">Annotation Note</label>
+                    <textarea id="note-text" rows="4"></textarea>
+                    <button id="save-note">Save Note</button>
                 </div>
-
-                <p>Click item to add. Highlighted ones are already added -> right click to delete, double click to edit.</p>
-                <div class="fields">
-                    
-                </div>
-                <div class="select-image-box" hidden>
-                    <div class="existing-image-div">
-                        <p class="existing-image-text"></p>
-                        <img class="existing-image-image">
-                        <div class="annotation-tools" hidden>
-                            <button id="rect-tool">Rectangle</button>
-                            <button id="ellipse-tool">Ellipse</button>
-                            <button id="arrow-tool">Arrow</button>
-                            <button id="delete-mode">Delete Mode</button>
-                            <button id="save-annotations">Save Annotations</button>
-
-                            <label for = "text-tool">Enter Text: </label>
-                            <input type="text" id="text-tool">
-                            <button id="add-text">Add Text</button>
-
-                            <input type="color" id="color-picker" value="#ff0000">
-                            <label for="stroke-size" class="stroke-label">
-                                Stroke: <span id="stroke-size-value">1</span>px
-                            </label>
-                            <input type="range" id="stroke-size" min="1" max="10" value="1">
-                        </div>
-                    </div>
-                    <div class="images-section">
-                        <button class="nav-btn prev">←</button>
-
-                        <div class="images-viewport">
-                            <div class="images-track"></div>
-                        </div>
-
-                        <button class="nav-btn next">→</button>
-                    </div>
-                    <div class = "add-note-section">
-                        <label for="note-text">Annotation Note:</label>
-                        <textarea id="note-text" rows="4" cols="30"></textarea>
-                        <button id="save-note">Save Note</button>
-                    </div>
-                    <label for="include-in-summary">Include in summary</label>
+            
+                <div class="include-summary-row">
                     <input id="include-in-summary" type="checkbox">
-
-                    <button id="show-recommendation-button" hidden>Recommendations</button>
+                    <label for="include-in-summary">Include in summary</label>
                 </div>
-                <div class = "recommendations-panel" hidden>
-                    <h3>Recommendations</h3>
-                    <div class = "recommendations-section-wrapper">
-                        
-                    </div>
-                    <button id = "submit-recommendations-button" class = "recommendations-submit">Save and submit</button>
-                </div>
+            
+                <button id="show-recommendation-button" hidden>Recommendations</button>
             </div>
+
+            <!-- Recommendations panel -->
+            <div class="recommendations-panel" hidden>
+                <h3>Recommendations</h3>
+                <div class="recommendations-section-wrapper"></div>
+                <button id="submit-recommendations-button">Save and Submit</button>
+            </div>
+            
         </div>
+
         <script type = "module" src = "../js/reportWriting/loadFields.js"></script>
         <script type = "module" src = "../js/reportWriting/getReport.js"></script>
         <script type = "module" src = "../js/reportWriting/loadImages.js"></script>
