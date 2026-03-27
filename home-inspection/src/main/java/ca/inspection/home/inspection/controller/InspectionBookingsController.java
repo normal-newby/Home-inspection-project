@@ -25,7 +25,7 @@ public class InspectionBookingsController {
         return inspectionBookingsService.findAll();
     }
 
-    @GetMapping("/get/bookings/{id}")
+    @GetMapping("/bookings/{id}")
     public InspectionBookings getBooking(@PathVariable UUID id){
         return inspectionBookingsService.findById(id);
     }

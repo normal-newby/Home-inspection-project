@@ -27,7 +27,7 @@ function loadBookings(){
                         <a href="report_writing.html?id=${booking.id}&place=roofing&type=description" class="booking-link primary">
                             Write Report →
                         </a>
-                        <a href="booking-details.html?id=${booking.id}" class="booking-link secondary">
+                        <a href="booking.html?id=${booking.id}" class="booking-link secondary">
                             View Details →
                         </a>
                     </div>

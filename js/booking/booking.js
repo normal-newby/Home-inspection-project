@@ -1,10 +1,11 @@
-import { saveForm, populateForm } from "../formFactory.js";
+import { saveForm, loadForm } from "../formFactory.js";
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
 
+const URI = id ? `http://localhost:8080/api/bookings/${id}` : `http://localhost:8080/api/bookings`
 const fields = ["inspectionAddress", "suite", "city", "postalCode", "province", "clientFirstName", "clientLastName", "email", "phone", "month", "day", "year", "referredBy", "bookedBy"];
 const saveBtn = document.getElementById("saveBtn");
-const resetBtn = document.getElementById("resetBtn");
 
-saveBtn.addEventListener("click", () => {console.log("hi"); saveForm(`http://localhost:8080/api/bookings`, fields)});
-//resetBtn.addEventListener("click", () => loadProfile);
+saveBtn.addEventListener("click", () => {saveForm(URI, fields)});
 
-console.log("Hi");
+if (id) loadForm(URI, fields);
