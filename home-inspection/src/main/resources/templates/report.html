@@ -3,9 +3,30 @@
 <head>
     <meta charset="UTF-8" />
     <title>Inspection Report Preview</title>
-    <link rel = "stylesheet" th:href = "@{/styles.css}">
+    <style th:utext="${css}"></style>
 </head>
 <body>
+
+<!-- ===================== HEADER AND FOOTER ===================== -->
+
+<div id="page-header">
+    <div id="page-header-left">
+        <div th:text="|${booking.inspectionAddress}, ${booking.city}, ${booking.province}|"></div>
+        <div th:text="${booking.createdAt}"></div>
+    </div>
+    <div class="page-header-right">
+        <div class="header-company" th:text="${profile.company}"></div>
+        <div class="header-address" th:text="|${profile.address}, ${profile.city}|"></div>
+        <div class="header-contact" th:text="|${profile.phone} · ${profile.email}|"></div>
+    </div>
+</div>
+
+<div id="page-footer">
+    <span>Something here</span>
+    <span class="footer-right">
+        Page <span class="page-number"></span> of <span class="total-pages"></span>
+    </span>
+</div>
 
 <!-- ===================== COVER PAGE ===================== -->
 <div id="cover-page">
@@ -62,6 +83,7 @@
 
     <!-- Header: company info top-right -->
     <div id="letter-header">
+        <div class="letter-header-spacer"></div>
         <div class="letter-company-block">
             <div class="company-name" th:text="${profile.company}"></div>
             <div th:text="${profile.address}">69 Lord Seaton Road</div>
@@ -82,8 +104,8 @@
     <div class="letter-re">
         <span class="re-label">RE:</span>
         <!--<span th:text="|Report No. ${report.reportNumber}|">Report No. 1253</span><br/>-->
-        <span th:text="${booking.inspectionAddress}"></span><br/>
-        <span th:text="|${booking.city}, ${booking.province}|"></span><br/>
+        <span th:text="${booking.inspectionAddress}"></span><br></br>
+        <span th:text="|${booking.city}, ${booking.province}|"></span><br></br>
         <span th:text="${booking.postalCode}">M5T 1W5</span>
     </div>
 
@@ -156,7 +178,7 @@
             </div>
 
             <div th:if="${field.inspectionImage != null}" class="field-image">
-                <img th:src="@{/api/images/file/{id}(id=${field.inspectionImage.id})}" alt="Image" class="report-image">
+                <img src="/api/images/file/{id}(id=${field.inspectionImage.id})" alt="Image" class="report-image"></img>
 
                 <svg style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
                      th:if="${field.annotations != null and !#lists.isEmpty(field.annotations)}">
@@ -196,6 +218,5 @@
     </div>
 </div>
 
-<a th:href="@{/report/{id}/pdf(id=${report.inspectionBooking.id})}" class="btn" target="_blank">Download PDF</a>
 </body>
 </html>

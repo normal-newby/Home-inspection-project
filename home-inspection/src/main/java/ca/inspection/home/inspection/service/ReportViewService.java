@@ -2,8 +2,18 @@ package ca.inspection.home.inspection.service;
 
 import ca.inspection.home.inspection.entity.InspectionField;
 import ca.inspection.home.inspection.entity.InspectionReport;
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+import lombok.AllArgsConstructor;
+import org.apache.tomcat.util.http.fileupload.ByteArrayOutputStream;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 
+import java.io.IOException;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -20,6 +30,12 @@ public class ReportViewService {
     private List<String> typeOrder = List.of(
             "description", "limitations", "recommendations"
     );
+
+    @Autowired
+    private SpringTemplateEngine templateEngine;
+
+    @Autowired
+    private RestTemplate restTemplate;
 
     public Comparator<InspectionField> getComparator(){
         Comparator<InspectionField> fieldComparator = Comparator.comparingInt(f -> {
@@ -74,5 +90,35 @@ public class ReportViewService {
                         )
                 ));
 
+    }
+
+    public byte[] generatePdf(String templateName, Context context){
+        try {
+            // Read CSS file and inject into context
+            String css = new String(getClass()
+                    .getClassLoader()
+                    .getResourceAsStream("static/styles.css")
+                    .readAllBytes());
+            context.setVariable("css", css);
+        } catch (Exception e) {
+            throw new RuntimeException("Could not load styles.css", e);
+        }
+
+        String html = templateEngine.process(templateName, context);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, String> body = Map.of("html", html);
+        HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
+
+        ResponseEntity<byte[]> response = restTemplate.exchange(
+                "http://localhost:3001/generate-pdf",
+                HttpMethod.POST,
+                request,
+                byte[].class
+        );
+
+        return response.getBody();
     }
 }
