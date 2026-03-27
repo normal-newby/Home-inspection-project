@@ -1,7 +1,4 @@
 images/
-pdf-service/node_modules
-pdf-service/package-lock.json
-
 
 database
 database.db
