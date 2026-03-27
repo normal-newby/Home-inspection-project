@@ -21,30 +21,30 @@
         <p>Enter client information</p>
     </div>
 
-    <form action="/submit_booking" method="post" id="booking-form">
+    <form id="booking-form">
         <div class="card">
             <div class="card-title">Inspection Address</div>
             
             <div class = "form-grid">
                 <div class = "field">
-                    <label for="inspection_address">Street Address *</label>
-                    <input type="text" id="inspection_address" name="inspectionAddress" placeholder="69 Lord Seaton Rd" required>
+                    <label for="inspectionAddress">Street Address *</label>
+                    <input type="text" id="inspectionAddress" placeholder="69 Lord Seaton Rd" required>
                 </div>
                 <div class = "field">
-                    <label for="Suite">Suite / Unit</label>
-                    <input type="text" id="Suite" name="suite" placeholder="420">
+                    <label for="suite">Suite / Unit</label>
+                    <input type="text" id="suite" placeholder="420">
                 </div>
                 <div class = "field">
-                    <label for="City">City *</label>
-                    <input type="text" id="City" name="city" placeholder="Toronto" required>
+                    <label for="city">City *</label>
+                    <input type="text" id="city" placeholder="Toronto" required>
                 </div>
                 <div class = "field">
-                    <label for="Zip">Postal / Zip Code</label>
-                    <input type="text" id="Zip" name="postalCode" placeholder="M1M 1M1">
+                    <label for="postalCode">Postal / Zip Code</label>
+                    <input type="text" id="postalCode" placeholder="M1M 1M1">
                 </div>
                 <div class = "field">
-                    <label for="Province">Province / State</label>
-                    <select id="Province" name="province">
+                    <label for="province">Province / State</label>
+                    <select id="province">
                         <option value="" disabled selected>Select province</option>
                         <option value="ON">Ontario</option>
                         <option value="QC">Quebec</option>
@@ -70,20 +70,20 @@
     
             <div class = "form-grid">
                 <div class = "field">
-                    <label for="first_name">First Name *</label>
-                    <input type="text" id="first_name" name="clientFirstName" placeholder="John" required>
+                    <label for="clientFirstName">First Name *</label>
+                    <input type="text" id="clientFirstName" placeholder="John" required>
                 </div>
                 <div class = "field">
-                    <label for="last_name">Last Name *</label>
-                    <input type="text" id="last_name" name="clientLastName" placeholder="Doe" required>
+                    <label for="clientLastName">Last Name *</label>
+                    <input type="text" id="clientLastName" placeholder="Doe" required>
                 </div>
                 <div class = "field">
                     <label for="email">Email</label>
-                    <input type="email" id="email" name="email" placeholder="john@example.com">
+                    <input type="email" id="email" placeholder="john@example.com">
                 </div>
                 <div class = "field">
                     <label for="phone">Phone Number</label>
-                    <input type="tel" id="phone" name="phone" placeholder="416-420-6969">
+                    <input type="tel" id="phone" placeholder="416-420-6969">
                 </div>
             </div>
         </div>
@@ -94,7 +94,7 @@
             <div class="form-grid">
                 <div class="field">
                     <label for="month">Month</label>
-                    <select id="month" name="month">
+                    <select id="month">
                         <option value="" disabled selected>Select month</option>
                         <option value="January">January</option>
                         <option value="February">February</option>
@@ -112,11 +112,11 @@
                 </div>
                 <div class="field">
                     <label for="day">Day</label>
-                    <input type="number" id="day" name="day" placeholder="1" min="1" max="31"/>
+                    <input type="number" id="day" placeholder="1" min="1" max="31"/>
                 </div>
                 <div class="field">
                     <label for="year">Year</label>
-                    <input type="number" id="year" name="year" placeholder="2026" min="1900" max="2100"/>
+                    <input type="number" id="year" placeholder="2026" min="1900" max="2100"/>
                 </div>
             </div>
         </div>
@@ -124,26 +124,30 @@
         <!-- Reference -->
         <div class="card">
             <div class = "card-title">Referred By</div>
-            <div class="radio-group">
-                <label class="radio-option"><input type="radio" name="referredBy" value="None" checked><span>None</span></label>
-                <label class="radio-option"><input type="radio" name="referredBy" value="Buyer Agent"><span>Buyer Agent</span></label>
-                <label class="radio-option"><input type="radio" name="referredBy" value="Seller Agent"><span>Seller Agent</span></label>
-                <label class="radio-option"><input type="radio" name="referredBy" value="Friend"><span>Friend</span></label>
-                <label class="radio-option"><input type="radio" name="referredBy" value="Family"><span>Family</span></label>
-                <label class="radio-option"><input type="radio" name="referredBy" value="Lender"><span>Lender</span></label>
-                <label class="radio-option"><input type="radio" name="referredBy" value="Other"><span>Other</span></label>
+            <div class="field">
+                <select id="referredBy">
+                    <option value="None">None</option>
+                    <option value="Buyer Agent">Buyer Agent</option>
+                    <option value="Seller Agent">Seller Agent</option>
+                    <option value="Friend">Friend</option>
+                    <option value="Family">Family</option>
+                    <option value="Lender">Lender</option>
+                    <option value="Other">Other</option>
+                </select>
             </div>
         </div>
     
         <!-- Booked By -->
         <div class="card">
             <div class="card-title">Booked By</div>
-            <div class="radio-group">
-                <label class="radio-option"><input type="radio" name="bookedBy" value="None" checked><span>None</span></label>
-                <label class="radio-option"><input type="radio" name="bookedBy" value="Seller Agent"><span>Seller Agent</span></label>
-                <label class="radio-option"><input type="radio" name="bookedBy" value="Buyer Agent"><span>Buyer Agent</span></label>
-                <label class="radio-option"><input type="radio" name="bookedBy" value="Client"><span>Client</span></label>
-                <label class="radio-option"><input type="radio" name="bookedBy" value="Other"><span>Other</span></label>
+            <div class="field">
+                <select id="bookedBy">
+                    <option value="None">None</option>
+                    <option value="Seller Agent">Seller Agent</option>
+                    <option value="Buyer Agent">Buyer Agent</option>
+                    <option value="Client">Client</option>
+                    <option value="Other">Other</option>
+                </select>
             </div>
         </div>
     
@@ -155,6 +159,7 @@
         <p class="note">An asterisk (*) indicates a required field</p>
     </form>
 </div>
-<script src="../js/booking/booking.js"></script>
+<script type="module" src="../js/booking/booking.js"></script>
+<script type="module" src="../js/formFactory.js"></script>
 </body>
 </html>
