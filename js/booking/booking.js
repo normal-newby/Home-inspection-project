@@ -1,17 +1,10 @@
-const form = document.getElementById("booking-form");
+import { saveForm, populateForm } from "../formFactory.js";
 
-form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    
-    const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
-    console.log(data);
+const fields = ["inspectionAddress", "suite", "city", "postalCode", "province", "clientFirstName", "clientLastName", "email", "phone", "month", "day", "year", "referredBy", "bookedBy"];
+const saveBtn = document.getElementById("saveBtn");
+const resetBtn = document.getElementById("resetBtn");
 
-    fetch("http://localhost:8080/api/bookings", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data)
-    });
-});
+saveBtn.addEventListener("click", () => {console.log("hi"); saveForm(`http://localhost:8080/api/bookings`, fields)});
+//resetBtn.addEventListener("click", () => loadProfile);
+
+console.log("Hi");

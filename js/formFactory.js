@@ -22,6 +22,7 @@ export async function saveForm(URI, fields) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(collectForm(fields))
         });
+        console.log(res);
         if (!res.ok) throw new Error('Failed to save profile');
     } catch (err) {
         console.error('Error saving profile:', err);
