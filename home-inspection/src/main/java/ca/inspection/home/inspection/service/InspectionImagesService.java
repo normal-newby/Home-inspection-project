@@ -35,7 +35,7 @@ public class InspectionImagesService {
     @Autowired
     InspectionBookingsService inspectionBookingsService;
 
-    private static final Path DIRECTORY = Paths.get("D:\\Projects\\Home inspection project\\images");
+    private static final Path DIRECTORY = Paths.get("D:\\Projects\\Home-inspection-project\\home-inspection\\src\\main\\resources\\assets\\images");
 
     @Transactional
     public void saveImages(
@@ -85,8 +85,7 @@ public class InspectionImagesService {
         try {
             InspectionImage image = inspectionImagesRepository.getById(id);
 
-            Path filePath = Paths.get("D:\\Projects\\Home inspection project\\images")
-                    .resolve(image.getImageUrl());
+            Path filePath = DIRECTORY.resolve(image.getImageUrl());
             Resource resource = new UrlResource(filePath.toUri());
 
             return ResponseEntity.ok()

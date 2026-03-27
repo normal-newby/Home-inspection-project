@@ -37,6 +37,11 @@ public class InspectionBookings {
     private String email;
     private String phone;
 
+    // Time
+    private String month;
+    private Integer day;
+    private Integer year;
+
     // Metadata
     private String referredBy;
     private String bookedBy;
