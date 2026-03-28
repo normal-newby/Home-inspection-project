@@ -425,3 +425,135 @@ body {
 .summary-table tbody tr:nth-child(even) {
     background-color: #fafafa;
 }
+
+/* ── All Fields ──────────────────────────── */
+
+.report-place-header {
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--paper);
+    background: var(--accent);
+    padding: 0.6rem 1rem;
+    border-radius: 3px;
+    margin-bottom: 1.25rem;
+}
+
+.report-type-header {
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border-bottom: 1px solid var(--accent);
+    padding-bottom: 0.35rem;
+    margin: 1.25rem 0 0.85rem;
+}
+
+.report-field-card {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--card);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    page-break-inside: avoid;
+}
+
+.report-field-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding-bottom: 0.65rem;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.report-field-name {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--ink);
+}
+
+.report-field-value {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+/* Image stacks canvas on top of img */
+.report-field-image-wrap {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    margin-bottom: 0.85rem;
+}
+
+.report-field-image {
+    display: block;
+    width: 100%;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+}
+
+.report-field-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.report-field-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    margin-bottom: 0.65rem;
+}
+
+.report-meta-item {
+    display: flex;
+    gap: 0.4rem;
+    align-items: baseline;
+}
+
+.report-meta-label {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.report-meta-value {
+    font-size: 0.82rem;
+    font-weight: 400;
+    color: var(--ink);
+}
+
+.report-field-implication {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin-bottom: 0.55rem;
+    font-size: 0.82rem;
+    font-weight: 300;
+    color: var(--ink);
+    line-height: 1.5;
+}
+
+.report-field-note {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.82rem;
+    font-weight: 300;
+    color: var(--ink);
+    line-height: 1.5;
+}
