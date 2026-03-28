@@ -2,6 +2,7 @@ import { bookingId } from "./getReport.js";
 import { initImagesSlider } from "./loadImages.js";
 import { addAnnotationCanvas } from "./imageAnnotation.js";
 import { setUpRecommendationsPanel } from "./recommendations.js";
+import { fetchExisting, saveFunction } from "../fetchExisting.js";
 
 const params = new URLSearchParams(window.location.search);
 const place = params.get("place");
@@ -15,11 +16,13 @@ const selectImageDiv = document.querySelector(".select-image-box");
 const existingImageDiv = document.querySelector(".existing-image-div");
 const existingImageText = document.querySelector(".existing-image-text");
 const existingImageImage = document.querySelector(".existing-image-image");
+
 const saveNoteButton = document.getElementById("save-note");
 const noteTextArea = document.getElementById("note-text");
 
 const includeInSummaryRow = document.querySelector(".include-summary-row");
 const includeInSummaryBox = document.getElementById("include-in-summary");
+
 const recommendationsButton = document.getElementById("show-recommendation-button");
 const recommendationsPanel = document.querySelector(".recommendations-panel");
 let currentRecommendationFieldId = null;
@@ -121,33 +124,18 @@ function createExistingField(parent, field){ // Creates buttons for already inpu
         selectImageDiv.hidden = false;
 
         addExistingImages(bookingId, selectImageDiv, button.dataset.id); // Add images to select from
+
+        fetchExisting(`http://localhost:8080/api/fields/${button.dataset.id}/note`, noteTextArea); // Fetch existing note for the field
          
         if (type === "recommendations"){ // If field = recommendation, show button
             recommendationsButton.hidden = false;
             currentRecommendationFieldId = button.dataset.id;
 
             includeInSummaryRow.hidden = false;
-            fetchExistingNote(button.dataset.id); // Fetch existing note for the field
             fetchInSummary(button.dataset.id) // Fetch in summary for field
         }
     }); 
     parent.appendChild(button);
-}
-
-function fetchExistingNote(fieldId){
-    fetch(`http://localhost:8080/api/fields/${fieldId}/note`)
-    .then(response => {
-        if (!response.ok) return null; // If no note exists, return null
-        return response.text();
-    })
-    .then(note => {
-        if (note) {
-            noteTextArea.value = note.content;
-        } else {
-            noteTextArea.value = "";
-        }
-    })
-    .catch(error => console.log(error));
 }
 
 async function addExistingImages(bookingId, selectImageDiv, fieldId){
@@ -208,16 +196,6 @@ function deleteInspectionField(id){
     );
 }
 
-function saveNote(note, fieldId){
-    fetch(`http://localhost:8080/api/fields/${fieldId}/note`,
-        {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ content: note })
-        }
-    );
-}
-
 function updateInSummary() {
     const includeBool = includeInSummaryBox.checked;
     fetch(`http://localhost:8080/api/fields/${curField}/summary`, {
@@ -259,18 +237,7 @@ lowerButtons.forEach(button => { //type buttons
     });
 });
 
-saveNoteButton.addEventListener("click", (e) => {
-    e.preventDefault();
-    const note = noteTextArea.value;
-    console.log("Saving note:", note);
-    const activeFieldButton = document.querySelector(".value-button.selected-button.current-button");
-    if (activeFieldButton) {
-        const fieldId = activeFieldButton.dataset.id;
-        saveNote(note, fieldId);
-    } else {
-        console.log("No active field selected for note.");
-    }
-});
+saveNoteButton.addEventListener("click", (e) => saveFunction(e, noteTextArea));
 
 recommendationsButton.addEventListener("click", () => {
     selectImageDiv.hidden = true;

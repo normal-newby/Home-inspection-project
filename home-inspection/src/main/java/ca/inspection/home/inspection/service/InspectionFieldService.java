@@ -243,6 +243,9 @@ public class InspectionFieldService {
                 if (recommendationField.getUpper_cost() != null) {
                     existing.setUpper_cost(recommendationField.getUpper_cost());
                 }
+                if (recommendationField.getImplication() != null) {
+                    existing.setImplication(recommendationField.getImplication());
+                }
                 existing.setInspectionField(field);
                 saved = inspectionRecommendationFieldRepository.save(existing);
             }

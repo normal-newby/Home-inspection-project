@@ -239,80 +239,134 @@ body {
 
 /* ── Letter page ─────────────────────────────── */
 #letter-page {
-  padding: 20mm;
-  page-break-after: always;
-}
-
-#letter-header {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 12mm;
-}
-
-.letter-company-block {
-  text-align: right;
-  font-size: 9pt;
-  color: #555;
-  line-height: 1.6;
-  border-right: 3px solid #1a5276;
-  padding-right: 8px;
-}
-
-.letter-company-block .company-name {
-  font-weight: bold;
-  font-size: 10pt;
-  color: #1a1a1a;
+    padding: 10mm;
+    page-break-after: always;
 }
 
 .letter-date {
-  font-size: 10pt;
-  margin-bottom: 6mm;
-  color: #333;
+    font-size: 10pt;
+    margin-bottom: 6mm;
+    color: #333;
 }
 
 .letter-salutation {
-  font-size: 10.5pt;
-  font-weight: bold;
-  margin-bottom: 4mm;
+    font-size: 10.5pt;
+    font-weight: bold;
+    margin-bottom: 4mm;
 }
 
 .letter-re {
-  font-size: 10pt;
-  margin-bottom: 8mm;
-  padding: 4mm 6mm;
-  border-left: 3px solid #1a5276;
-  background: #f7f9fb;
-  line-height: 1.7;
+    font-size: 10pt;
+    margin-bottom: 8mm;
+    padding: 4mm 6mm;
+    border-left: 3px solid #1a5276;
+    background: #f7f9fb;
+    line-height: 1.7;
 }
 
 .re-label {
-  font-weight: bold;
-  margin-right: 6px;
+    font-weight: bold;
+    margin-right: 6px;
 }
 
-.letter-body p {
-  font-size: 10pt;
-  line-height: 1.7;
-  color: #333;
-  margin-bottom: 4mm;
+.letter-body {
+    white-space: pre-wrap;
+    font-size: 10pt;
+    line-height: 1.7;
+    color: #333;
+    margin-bottom: 4mm;
 }
 
 .letter-signature {
-  margin-top: 10mm;
-  font-size: 10pt;
-  line-height: 1.8;
-  color: #333;
+    margin-top: 10mm;
+    font-size: 10pt;
+    line-height: 1.8;
+    color: #333;
 }
 
 /* ── Agreement page ──────────────────────────── */
-#agreement-page {
-    padding: 20mm;
+
+.agreement-parties {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.75rem;
+    background: var(--card);
+}
+
+.agreement-parties-title {
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.agreement-parties-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.agreement-party-label {
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.35rem;
+}
+
+.agreement-party-value {
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: var(--ink);
+    line-height: 1.5;
+}
+
+.agreement-preamble {
+    font-size: 0.82rem;
+    color: var(--ink);
+    line-height: 1.6;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.agreement-preamble strong {
+    font-weight: 500;
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
+}
+
+.agreement-body {
+    padding: 0 1.5rem;
+    font-size: 0.82rem;
+    font-weight: 300;
+    color: var(--ink);
+    line-height: 1.7;
+    white-space: pre-wrap;
+}
+
+.agreement-signature {
+    margin-top: 2rem;
+    padding: 1.25rem 1.5rem 0;
+    margin-top: 2rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.82rem;
+    color: var(--ink);
 }
 
 /* ── Summary page ──────────────────────────── */
 
 #summary-page {
-    padding: 20mm;
+    padding: 10mm;
     display: block;
     min-height: 100px;
 }
@@ -322,6 +376,15 @@ body {
     font-weight: 700;
     color: #1a1a1a;
     margin-bottom: 8mm;
+}
+
+.summary-letter {
+    padding: 0 1.5rem;
+    font-size: 0.82rem;
+    font-weight: 300;
+    color: var(--ink);
+    line-height: 1.7;
+    white-space: pre-wrap;
 }
 
 .summary-section-header {

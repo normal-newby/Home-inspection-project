@@ -23,6 +23,9 @@ const sectionsConfig = {
         selector: ".recommendations-section:nth-of-type(6)",
         // This section is rendered as inputs instead of option buttons.
     },
+    implication: {
+        selector: ".recommendations-section:nth-of-type(7)",
+    }
 };
 
 const recommendationsWrapper = document.querySelector(".recommendations-section-wrapper");
@@ -68,6 +71,14 @@ function createCostInputs() {
     return container;
 }
 
+function createImplicationInput() {
+    const textarea = document.createElement("textarea");
+    textarea.placeholder = "Describe the implication...";
+    textarea.dataset.implicationKey = "implication";
+    textarea.classList.add("recommendations-implication-input");
+    return textarea;
+}
+
 function renderSections() {
     recommendationsWrapper.innerHTML = "";
     for (let i = 0; i < Object.keys(sectionsConfig).length; i++) {
@@ -93,6 +104,8 @@ function renderSections() {
 
         if (sectionKey === "cost") {
             optionsContainer.appendChild(createCostInputs());
+        } else if (sectionKey === "implication"){
+            optionsContainer.appendChild(createImplicationInput());
         } else {
             //Create buttons
             config.options.forEach(option => {
@@ -145,6 +158,11 @@ function highlightExistingValues(recommendations) {
             upperInput.value = recommendations.upper_cost;
         }
     }
+
+    const implicationSection = document.querySelector('[data-implication-key="implication"]');
+    if (implicationSection && recommendations.implication) {
+        implicationSection.value = recommendations.implication;
+    }
 }
 
 function collectRecommendationsFromUI() {
@@ -176,11 +194,18 @@ function collectRecommendationsFromUI() {
         }
     }
 
+    const implicationSection = document.querySelector('[data-implication-key="implication"]');
+    if (implicationSection && implicationSection.value.trim() !== "") {
+        payload.implication = implicationSection.value.trim();
+    }
+
     return payload;
 }
 
 function submitRecommendations(fieldId) {
     const payload = collectRecommendationsFromUI();
+
+    console.log(payload);
 
     fetch(`http://localhost:8080/api/fields/${fieldId}/recommendations`, {
         method: "POST",

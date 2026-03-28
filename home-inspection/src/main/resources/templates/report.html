@@ -83,21 +83,10 @@
 <!-- ===================== LETTER PAGE ===================== -->
 <div id="letter-page" class="page-break-after">
 
-    <!-- Header: company info top-right -->
-    <div id="letter-header">
-        <div class="letter-header-spacer"></div>
-        <div class="letter-company-block">
-            <div class="company-name" th:text="${profile.company}"></div>
-            <div th:text="${profile.address}">69 Lord Seaton Road</div>
-            <div th:text="|${profile.city}, ${profile.province} ${profile.postalCode}|"></div>
-            <div th:text="${profile.phone}"></div>
-            <div th:text="${profile.website}"></div>
-            <div th:text="${profile.email}"></div>
-        </div>
-    </div>
-
     <!-- Date -->
-    <div class="letter-date" th:text="${booking.createdAt}"></div>
+    <div class="letter-date">
+        <span th:text="|${booking.month} ${booking.day}, ${booking.year}|"></span>
+    </div>
 
     <!-- Salutation -->
     <div class="letter-salutation" th:text="|Dear ${booking.clientFirstName} ${booking.clientLastName},|"></div>
@@ -106,28 +95,66 @@
     <div class="letter-re">
         <span class="re-label">RE:</span>
         <!--<span th:text="|Report No. ${report.reportNumber}|">Report No. 1253</span><br/>-->
-        <span th:text="${booking.inspectionAddress}"></span><br></br>
-        <span th:text="|${booking.city}, ${booking.province}|"></span><br></br>
+        <span th:text="${booking.inspectionAddress}"></span><br>
+        <span th:text="|${booking.city}, ${booking.province}|"></span><br>
         <span th:text="${booking.postalCode}">M5T 1W5</span>
     </div>
 
     <!-- Body — static paragraphs -->
     <div class="letter-body" th:text="${profile.coverLetterBody}"></div>
+    <div class="letter-signature" th:text="${profile.name}"></div>
+    on behalf of
+    <div th:text="${profile.company}"></div>
 
 </div>
 
 <!-- ===================== AGREEMENT PAGE ===================== -->
 <div id="agreement-page" class="page-break-after">
 
-    <!-- Body -->
+    <!-- Parties Header -->
+    <div class="agreement-parties">
+        <div class="agreement-parties-title">Parties to the Agreement</div>
+        <div class="agreement-parties-grid">
+            <div class="agreement-party-block">
+                <div class="agreement-party-label">Company</div>
+                <div class="agreement-party-value" th:text="${profile.company}"></div>
+                <div class="agreement-party-value" th:text="${profile.address}"></div>
+                <div class="agreement-party-value" th:text="|${profile.city}, ${profile.province} ${profile.postalCode}|"></div>
+            </div>
+            <div class="agreement-party-block">
+                <div class="agreement-party-label">Client</div>
+                <div class="agreement-party-value" th:text="|${booking.clientFirstName} ${booking.clientLastName}|"></div>
+            </div>
+            <!--
+            <div class="agreement-party-block">
+                <div class="agreement-party-label">Total Fee</div>
+                <div class="agreement-party-value" th:text="${booking.totalFee}"></div>
+            </div>-->
+        </div>
+        <div class="agreement-preamble">
+            <span th:text="|This is an agreement between ${booking.clientFirstName} ${booking.clientLastName} and ${profile.company}.|"></span>
+            <strong>THIS CONTRACT LIMITS THE LIABILITY OF THE HOME INSPECTION COMPANY. PLEASE READ CAREFULLY BEFORE SIGNING.</strong>
+        </div>
+    </div>
+
+    <!-- Body: numbered clauses from DB -->
     <div class="agreement-body" th:text="${profile.agreementBody}"></div>
+
+    <!-- Signature Block -->
+    <div class="agreement-signature">
+        <span>I, </span>
+        <span th:text="|${booking.clientFirstName} ${booking.clientLastName}|"></span>
+        <span> (Signature)___________________________, (Date)_______________, have read, understood and accepted the terms of this agreement.</span>
+    </div>
 
 </div>
 
 <!-- SUMMARY -->
 <div id="summary-page" class="page-break-after">
 
-    <div class="summary-title">Summary of Findings</div>
+    <div class="summary-title">Summary</div>
+
+    <div class="summary-letter page-break-after" th:text="${profile.summaryLetterBody}"></div>
 
     <div th:each="section : ${summaryFields}">
         <div class="summary-section-header" th:text="${section.key}"></div>
@@ -135,6 +162,7 @@
             <thead>
             <tr>
                 <th>Finding</th>
+                <th>Implication</th>
                 <th>Condition</th>
                 <th>Location</th>
                 <th>Task</th>
@@ -145,7 +173,8 @@
             <tbody>
             <tr th:each="field : ${section.value}">
                 <td th:text="${field.inspectionFieldDefinition.fieldName}"></td>
-                <td th:text="${field.selectedValue}"></td>
+                <td th:text="${field.inspectionRecommendationField?.implication}"></td>
+                <td th:text="${field.selectedValue.value}"></td>
                 <td th:text="${field.inspectionRecommendationField.floorLevel}"></td>
                 <td th:text="${field.inspectionRecommendationField.task}"></td>
                 <td th:text="${field.inspectionRecommendationField.time}"></td>

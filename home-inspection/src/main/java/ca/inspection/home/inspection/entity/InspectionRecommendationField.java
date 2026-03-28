@@ -32,4 +32,7 @@ public class InspectionRecommendationField {
     private String time; //when do we have to fix it by?
     private String lower_cost; //whats the lower bound
     private String upper_cost; //whats the upper bound
+
+    @Column(columnDefinition = "text")
+    private String implication;
 }

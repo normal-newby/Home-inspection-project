@@ -152,3 +152,30 @@
 .recommendations-cost-input[type=number] {
     -moz-appearance: textfield;
 }
+
+.recommendations-implication-input {
+    width: 100%;
+    min-height: 80px;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.55rem 0.75rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 300;
+    color: var(--ink);
+    resize: vertical;
+    transition: border-color 0.15s;
+    box-sizing: border-box;
+}
+
+.recommendations-implication-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: #fff;
+}
+
+.recommendations-implication-input::placeholder {
+    color: var(--muted);
+    font-weight: 300;
+}
