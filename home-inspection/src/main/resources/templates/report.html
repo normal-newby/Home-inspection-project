@@ -7,29 +7,31 @@
 </head>
 <body>
 
-<!-- ===================== HEADER AND FOOTER ===================== -->
-
-<div id="page-header">
-    <div id="page-header-left">
-        <div th:text="|${booking.inspectionAddress}, ${booking.city}, ${booking.province}|"></div>
-        <div th:text="${booking.createdAt}"></div>
-    </div>
-    <div class="page-header-right">
-        <div class="header-company" th:text="${profile.company}"></div>
-        <div class="header-address" th:text="|${profile.address}, ${profile.city}|"></div>
-        <div class="header-contact" th:text="|${profile.phone} · ${profile.email}|"></div>
-    </div>
-</div>
-
-<div id="page-footer">
-    <span>Something here</span>
-    <span class="footer-right">
-        Page <span class="page-number"></span> of <span class="total-pages"></span>
-    </span>
-</div>
-
 <!-- ===================== COVER PAGE ===================== -->
 <div id="cover-page">
+
+    <!-- ===================== HEADER AND FOOTER ===================== -->
+
+    <div id="page-header">
+        <div id="page-header-left">
+            <div th:text="|${booking.inspectionAddress}, ${booking.city}, ${booking.province}|"></div>
+            <div th:text="${booking.createdAt}"></div>
+        </div>
+        <div id="page-header-right">
+            <div class="header-company" th:text="${profile.company}"></div>
+            <div class="header-address" th:text="|${profile.address}, ${profile.city}|"></div>
+            <div class="header-contact" th:text="|${profile.phone} · ${profile.email}|"></div>
+        </div>
+    </div>
+
+    <div id="page-footer">
+        <span>Something here</span>
+        <span id="footer-right">
+            Page <span class="page-number"></span> of <span class="total-pages"></span>
+        </span>
+    </div>
+
+    <!-- ===================== END HEADER AND FOOTER ===================== -->
 
     <div id="cover-logo">
         <img th:src="profile.logoPath">
@@ -79,7 +81,7 @@
 </div>
 
 <!-- ===================== LETTER PAGE ===================== -->
-<div id="letter-page">
+<div id="letter-page" class="page-break-after">
 
     <!-- Header: company info top-right -->
     <div id="letter-header">
@@ -115,7 +117,7 @@
 </div>
 
 <!-- ===================== AGREEMENT PAGE ===================== -->
-<div id="agreement-page">
+<div id="agreement-page" class="page-break-after">
 
     <!-- Body -->
     <div class="agreement-body" th:text="${profile.agreementBody}"></div>
@@ -123,33 +125,36 @@
 </div>
 
 <!-- SUMMARY -->
-<h2>Summary</h2>
-<p th:if="${summaryFields == null || summaryFields.isEmpty()}">No summary fields available.</p>
-<div th:each="placeEntry : ${summaryFields}">
-    <h3 th:text="${placeEntry.key}"></h3>
-    <div th:each="typeEntry : ${placeEntry.value}">
-        <h4 th:text="${typeEntry.key}"></h4>
-        <div th:each="field : ${typeEntry.value}" class="field">
-            <div><span class="label" th:text="${field.inspectionFieldDefinition.fieldName}"></span></div>
-            <div class="field-value" th:if="${field.selectedValue != null}" th:text="${field.selectedValue.value}"></div>
+<div id="summary-page" class="page-break-after">
 
-            <div th:if="${field.inspectionFieldDefinition.fieldType == 'recommendations'}"
-                 th:with="recommendation=${field.inspectionRecommendationField}"
-                 class="recommendations">
-                <p>Direction: <span th:text="${recommendation?.direction}"></span></p>
-                <p>Floor Level: <span th:text="${recommendation?.floorLevel}"></span></p>
-                <p>Room: <span th:text="${recommendation?.room}"></span></p>
-                <p>Task: <span th:text="${recommendation?.task}"></span></p>
-                <p>Time: <span th:text="${recommendation?.time}"></span></p>
-                <p>Cost Range:
-                    <span th:text="${recommendation?.lower_cost}"></span> -
-                    <span th:text="${recommendation?.upper_cost}"></span>
-                </p>
-            </div>
+    <div class="summary-title">Summary of Findings</div>
 
-            <div class="field-value" th:if="${field.note != null}" th:text="${field.note}"></div>
-        </div>
+    <div th:each="section : ${summaryFields}">
+        <div class="summary-section-header" th:text="${section.key}"></div>
+        <table class="summary-table">
+            <thead>
+            <tr>
+                <th>Finding</th>
+                <th>Condition</th>
+                <th>Location</th>
+                <th>Task</th>
+                <th>Time</th>
+                <th>Est. Cost</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="field : ${section.value}">
+                <td th:text="${field.inspectionFieldDefinition.fieldName}"></td>
+                <td th:text="${field.selectedValue}"></td>
+                <td th:text="${field.inspectionRecommendationField.floorLevel}"></td>
+                <td th:text="${field.inspectionRecommendationField.task}"></td>
+                <td th:text="${field.inspectionRecommendationField.time}"></td>
+                <td th:text="|$${field.inspectionRecommendationField.lower_cost} – $${field.inspectionRecommendationField.upper_cost}|"></td>
+            </tr>
+            </tbody>
+        </table>
     </div>
+
 </div>
 
 <!-- ALL FIELDS -->

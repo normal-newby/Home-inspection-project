@@ -12,6 +12,7 @@
   "type": "commonjs",
   "dependencies": {
     "express": "^5.2.1",
+    "pagedjs": "^0.4.3",
     "puppeteer": "^24.40.0"
   }
 }

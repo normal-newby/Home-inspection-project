@@ -1,6 +1,6 @@
 /* ── Component nav buttons ── */
 .body_content {
-	max-width: 960px;
+	max-width: 1050px;
 	margin: 0 auto;
 }
 
@@ -121,8 +121,8 @@
 	border: 1px solid var(--accent);
 }
 .btn-primary:hover { 
-	background: #943b08; 
-	border-color: #943b08; 
+	background: var(--dark-accent); 
+	border-color: var(--dark-accent); 
 }
 
 .btn-secondary {

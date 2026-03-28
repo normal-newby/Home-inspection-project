@@ -18,6 +18,7 @@ const existingImageImage = document.querySelector(".existing-image-image");
 const saveNoteButton = document.getElementById("save-note");
 const noteTextArea = document.getElementById("note-text");
 
+const includeInSummaryRow = document.querySelector(".include-summary-row");
 const includeInSummaryBox = document.getElementById("include-in-summary");
 const recommendationsButton = document.getElementById("show-recommendation-button");
 const recommendationsPanel = document.querySelector(".recommendations-panel");
@@ -124,10 +125,11 @@ function createExistingField(parent, field){ // Creates buttons for already inpu
         if (type === "recommendations"){ // If field = recommendation, show button
             recommendationsButton.hidden = false;
             currentRecommendationFieldId = button.dataset.id;
-        }
 
-        fetchExistingNote(button.dataset.id); // Fetch existing note for the field
-        fetchInSummary(button.dataset.id) // Fetch in summary for field
+            includeInSummaryRow.hidden = false;
+            fetchExistingNote(button.dataset.id); // Fetch existing note for the field
+            fetchInSummary(button.dataset.id) // Fetch in summary for field
+        }
     }); 
     parent.appendChild(button);
 }
@@ -242,17 +244,17 @@ function fetchInSummary(fieldId){
 //Buttons
 
 buttons.forEach(button => { //place buttons
+    if (button.getAttribute("data-target") === place) button.classList.add("active");
     button.addEventListener("click", () => {
-        const newPlace = button.getAttribute("data-target")
-        window.location.href = `report_writing.html?id=${bookingId}&place=${newPlace}&type=${type}`
+        const newPlace = button.getAttribute("data-target");
+        window.location.href = `report_writing.html?id=${bookingId}&place=${newPlace}&type=${type}`;
     });
 });
 
 lowerButtons.forEach(button => { //type buttons
+    if (button.getAttribute("data-target") === type) button.classList.add("active");
     button.addEventListener("click", () => {
         const newType = button.getAttribute("data-target")
-        console.log(`Clicked place button: ${place}`);
-        console.log(`Clicked type button: ${newType}`);
         window.location.href = `report_writing.html?id=${bookingId}&place=${place}&type=${newType}`
     });
 });

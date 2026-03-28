@@ -91,7 +91,7 @@ public class ReportViewController {
                 report, fieldComparator
         );
         Map<String, Map<String, List<InspectionField>>> allFields = reportViewService.getAllFields(fields);
-        Map<String, Map<String, List<InspectionField>>> summaryFields = reportViewService.getSummaryFields(fields);
+        Map<String, List<InspectionField>> summaryFields = reportViewService.getSummaryFields(fields);
 
         context.setVariable("booking", booking);
         context.setVariable("profile", profile);

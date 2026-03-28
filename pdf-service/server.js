@@ -4,6 +4,9 @@ const puppeteer = require('puppeteer');
 const app = express();
 app.use(express.json({ limit: '50mb' }));
 
+const fs = require('fs');
+const path = require('path');
+
 app.post('/generate-pdf', async (req, res) => {
     let browser;
     try {
@@ -13,17 +16,19 @@ app.post('/generate-pdf', async (req, res) => {
         });
 
         const page = await browser.newPage();
+
         await page.setContent(req.body.html, { waitUntil: 'networkidle0' });
+
+        await page.addScriptTag({
+            path: path.join(__dirname, 'node_modules/pagedjs/dist/paged.polyfill.js')
+        });
+        await page.waitForSelector('.pagedjs_page', { timeout: 30000 });
+
+        await page.evaluate(() => typeof window.PagedPolyfill !== 'undefined');
 
         const pdf = await page.pdf({
             format: 'A4',
             printBackground: true,
-            margin: {
-                top: '28mm',
-                bottom: '20mm',
-                left: '15mm',
-                right: '15mm'
-            }
         });
 
         res.set('Content-Type', 'application/pdf');

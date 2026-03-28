@@ -1,8 +1,7 @@
 * {
     margin: 0;
     padding: 0;
-    box-sizing:
-    border-box;
+    box-sizing: border-box;
 }
 
 body {
@@ -64,7 +63,7 @@ body {
   color: #777;
 }
 
-.footer-right {
+#footer-right {
   text-align: right;
 }
 
@@ -307,6 +306,59 @@ body {
 
 /* ── Agreement page ──────────────────────────── */
 #agreement-page {
-  padding: 20mm;
-  page-break-after: always;
+    padding: 20mm;
+}
+
+/* ── Summary page ──────────────────────────── */
+
+#summary-page {
+    padding: 20mm;
+    display: block;
+    min-height: 100px;
+}
+
+.summary-title {
+    font-size: 20pt;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 8mm;
+}
+
+.summary-section-header {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #ffffff;
+    background-color: #2c3e50;
+    padding: 5px 8px;
+    margin-top: 6mm;
+    margin-bottom: 0;
+}
+
+.summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8.5pt;
+    margin-bottom: 2mm;
+}
+
+.summary-table thead tr {
+    background-color: #f0f0f0;
+}
+
+.summary-table th {
+    text-align: left;
+    padding: 5px 8px;
+    font-weight: 600;
+    border-bottom: 1px solid #ccc;
+    white-space: nowrap;
+}
+
+.summary-table td {
+    padding: 5px 8px;
+    border-bottom: 1px solid #eeeeee;
+    vertical-align: top;
+}
+
+.summary-table tbody tr:nth-child(even) {
+    background-color: #fafafa;
 }

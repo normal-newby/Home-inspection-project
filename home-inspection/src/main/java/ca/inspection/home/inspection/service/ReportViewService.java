@@ -77,17 +77,15 @@ public class ReportViewService {
                 ));
     }
 
-    public Map<String, Map<String, List<InspectionField>>> getSummaryFields(List<InspectionField> fields){
+    public Map<String, List<InspectionField>> getSummaryFields(List<InspectionField> fields){
         return fields.stream()
                 .filter(f -> Boolean.TRUE.equals(f.getIncludeInSummary()))
+                .filter(f -> f.getInspectionFieldDefinition().getFieldType().equals("recommendations"))
+                .filter(f -> f.getInspectionRecommendationField() != null)
                 .collect(Collectors.groupingBy(
                         f -> f.getInspectionFieldDefinition().getFieldPlace(),
                         LinkedHashMap::new,
-                        Collectors.groupingBy(
-                                f -> f.getInspectionFieldDefinition().getFieldType(),
-                                LinkedHashMap::new,
-                                Collectors.toList()
-                        )
+                        Collectors.toList()
                 ));
 
     }
