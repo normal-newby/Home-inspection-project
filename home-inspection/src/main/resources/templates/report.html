@@ -209,14 +209,11 @@
                 <!-- Card Header: Field Name + Value -->
                 <div class="report-field-header">
                     <span class="report-field-name" th:text="${field.inspectionFieldDefinition.fieldName}"></span>
-                    <span class="report-field-value"
-                          th:if="${field.selectedValue != null}"
-                          th:text="${field.selectedValue.value}"></span>
+                    <span class="report-field-value" th:text="${field.selectedValue.value}"></span>
                 </div>
 
                 <!-- Image + Annotations -->
-                <div class="report-field-image-wrap"
-                     th:if="${field.inspectionImage != null}">
+                <div class="report-field-image-wrap" th:if="${field.inspectionImage != null}">
                     <img class="report-field-image"
                          th:src="'/assets/images/' + ${field.inspectionImage.id} + '.jpg'"
                          th:id="'img-' + ${field.id}"
@@ -228,8 +225,7 @@
                 </div>
 
                 <!-- Meta Row: Floor Level + Location -->
-                <div class="report-field-meta"
-                     th:if="${field.inspectionRecommendationField != null}">
+                <div class="report-field-meta" th:if="${field.inspectionRecommendationField != null}">
                     <div class="report-meta-item"
                          th:if="${field.inspectionRecommendationField.floorLevel != null}">
                         <span class="report-meta-label">Floor</span>

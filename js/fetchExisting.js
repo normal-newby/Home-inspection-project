@@ -5,8 +5,9 @@ export function fetchExisting(URI, textArea){
         return response.json();
     })
     .then(note => {
+        console.log(note);
         if (note) {
-            textArea.value = note.content;
+            textArea.value = note;
         } else {
             textArea.value = "";
         }
@@ -30,8 +31,8 @@ function save(URI, content){
     fetch(URI,
         {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ content: content })
+            headers: { "Content-Type": "text/plain" },
+            body: content
         }
     );
 }

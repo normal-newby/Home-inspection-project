@@ -257,6 +257,7 @@ document.addEventListener("click", (e) => {
     const clickedInsideRecommendations = recommendationsPanel.contains(e.target) || recommendationsButton.contains(e.target);
 
     if (!clickedInsideSelect && !clickedInsideRecommendations) {
+        document.querySelectorAll(".value-button").forEach(btn => btn.classList.remove("current-button"));
         selectImageDiv.hidden = true;
         recommendationsPanel.hidden = true;
     }

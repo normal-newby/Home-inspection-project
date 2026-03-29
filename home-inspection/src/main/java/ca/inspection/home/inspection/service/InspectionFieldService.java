@@ -118,6 +118,7 @@ public class InspectionFieldService {
         try {
             InspectionField field = inspectionFieldRepository.findById(fieldId)
                     .orElseThrow(() -> new RuntimeException("InspectionField not found"));
+            System.out.println(note);
             field.setNote(note);
             inspectionFieldRepository.save(field);
             return ResponseEntity.ok().build();
