@@ -25,6 +25,12 @@ public class ImageAnnotation {
     @JsonBackReference("inspectionField-annotations")
     private InspectionField inspectionField;
 
+    @Column(name = "image_display_width")
+    private Double imageDisplayWidth;
+
+    @Column(name = "image_display_height")
+    private Double imageDisplayHeight;
+
     @Column(name = "annotation_type")
     private String type; // e.g., "rectangle", "circle", "text", "freehand"
 

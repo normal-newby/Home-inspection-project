@@ -53,6 +53,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldI
             ctx.strokeStyle = ann.color || "#ff0000";
             ctx.fillStyle = ann.color || "#ff0000";
             ctx.lineWidth = ann.strokeWidth || 1;
+            
             if (ann.type === "rectangle") {
                 ctx.strokeRect(ann.x, ann.y, ann.width, ann.height);
             } else if (ann.type === "ellipse") {
@@ -362,7 +363,13 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldI
     saveButton.addEventListener("click", () => {
         // Save only new annotations (without id)
         const newAnnotations = annotations.filter(ann => !ann.id);
+
         newAnnotations.forEach(ann => {
+            ann.imageDisplayWidth = existingImageImage.offsetWidth;
+            ann.imageDisplayHeight = existingImageImage.offsetHeight;
+
+            console.log('displayWidth:', ann.imageDisplayWidth, 'displayHeight:', ann.imageDisplayHeight);
+            
             fetch(`http://localhost:8080/api/fields/${fieldId}/annotations/save`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

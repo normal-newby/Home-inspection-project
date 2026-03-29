@@ -8,7 +8,6 @@ import ca.inspection.home.inspection.service.InspectionBookingsService;
 import ca.inspection.home.inspection.service.InspectionReportsService;
 import ca.inspection.home.inspection.service.InspectorProfileService;
 import ca.inspection.home.inspection.service.ReportViewService;
-import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ContentDisposition;

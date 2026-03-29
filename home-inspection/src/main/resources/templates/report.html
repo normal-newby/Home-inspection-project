@@ -215,13 +215,9 @@
                 <!-- Image + Annotations -->
                 <div class="report-field-image-wrap" th:if="${field.inspectionImage != null}">
                     <img class="report-field-image"
-                         th:src="'/assets/images/' + ${field.inspectionImage.id} + '.jpg'"
+                         th:src="${field.inspectionImage.base64}"
                          th:id="'img-' + ${field.id}"
                          onerror="this.closest('.report-field-image-wrap').style.display='none'"/>
-                    <canvas class="report-field-canvas"
-                            th:id="'canvas-' + ${field.id}"
-                            th:attr="data-field-id=${field.id}, data-annotations=${#strings.toString(field.annotations)}">
-                    </canvas>
                 </div>
 
                 <!-- Meta Row: Floor Level + Location -->
@@ -275,68 +271,6 @@
         </div>
     </div>
 </div>
-
-<script>
-    (function () {
-        const data = window.annotationData || {};
-
-        function drawArrow(ctx, ann) {
-            const headLen = 12;
-            const dx = ann.width;
-            const dy = ann.height;
-            const angle = Math.atan2(dy, dx);
-            const toX = ann.x + dx;
-            const toY = ann.y + dy;
-            ctx.beginPath();
-            ctx.moveTo(ann.x, ann.y);
-            ctx.lineTo(toX, toY);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(toX, toY);
-            ctx.lineTo(toX - headLen * Math.cos(angle - Math.PI / 6), toY - headLen * Math.sin(angle - Math.PI / 6));
-            ctx.lineTo(toX - headLen * Math.cos(angle + Math.PI / 6), toY - headLen * Math.sin(angle + Math.PI / 6));
-            ctx.closePath();
-            ctx.fill();
-        }
-
-        function renderCanvas(canvas, img, annotations) {
-            canvas.width = img.naturalWidth;
-            canvas.height = img.naturalHeight;
-            const ctx = canvas.getContext('2d');
-            annotations.forEach(ann => {
-                ctx.strokeStyle = ann.color || '#ff0000';
-                ctx.fillStyle = ann.color || '#ff0000';
-                ctx.lineWidth = ann.strokeWidth || 1;
-                if (ann.type === 'rectangle') {
-                    ctx.strokeRect(ann.x, ann.y, ann.width, ann.height);
-                } else if (ann.type === 'ellipse') {
-                    ctx.beginPath();
-                    ctx.ellipse(ann.x, ann.y, ann.width, ann.height, 0, 0, 2 * Math.PI);
-                    ctx.stroke();
-                } else if (ann.type === 'arrow') {
-                    drawArrow(ctx, ann);
-                } else if (ann.type === 'text') {
-                    ctx.font = `${(ann.strokeWidth || 1) * 10}px Arial`;
-                    ctx.fillStyle = ann.color || '#000000';
-                    ctx.fillText(ann.content, ann.x, ann.y);
-                }
-            });
-        }
-
-        document.querySelectorAll('canvas[data-field-id]').forEach(canvas => {
-            const fieldId = canvas.dataset.fieldId;
-            const annotations = data[fieldId] || [];
-            const img = document.getElementById('img-' + fieldId);
-            if (!img) return;
-            if (img.complete && img.naturalWidth > 0) {
-                renderCanvas(canvas, img, annotations);
-            } else {
-                img.addEventListener('load', () => renderCanvas(canvas, img, annotations));
-                img.addEventListener('error', () => canvas.style.display = 'none');
-            }
-        });
-    })();
-</script>
 
 </body>
 </html>

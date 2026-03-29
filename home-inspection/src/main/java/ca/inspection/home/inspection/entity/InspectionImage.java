@@ -25,6 +25,9 @@ public class InspectionImage {
     @Column(name = "id", columnDefinition = "TEXT")
     private UUID id;
 
+    @Transient
+    private String base64;
+
     @ManyToOne
     @JsonBackReference
     @JoinColumn(name = "inspection_report_id", nullable = false)

@@ -53,6 +53,7 @@ public class InspectionField {
     @JsonManagedReference("inspectionField-annotations")
     private List<ImageAnnotation> annotations = new ArrayList<>();
 
+
     @Column(name = "note")
     private String note;
 

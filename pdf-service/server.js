@@ -17,7 +17,11 @@ app.post('/generate-pdf', async (req, res) => {
 
         const page = await browser.newPage();
 
-        await page.setContent(req.body.html, { waitUntil: 'networkidle0' });
+        page.on('console', msg => console.log('PAGE:', msg.text()));
+
+        await page.setContent(req.body.html, { 
+            waitUntil: 'networkidle0',
+        });
 
         await page.addScriptTag({
             path: path.join(__dirname, 'node_modules/pagedjs/dist/paged.polyfill.js')

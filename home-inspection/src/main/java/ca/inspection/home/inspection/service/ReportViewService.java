@@ -2,7 +2,6 @@ package ca.inspection.home.inspection.service;
 
 import ca.inspection.home.inspection.entity.InspectionField;
 import ca.inspection.home.inspection.entity.InspectionReport;
-import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import lombok.AllArgsConstructor;
 import org.apache.tomcat.util.http.fileupload.ByteArrayOutputStream;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +11,7 @@ import org.springframework.web.client.RestTemplate;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.Comparator;
@@ -37,6 +37,12 @@ public class ReportViewService {
     @Autowired
     private RestTemplate restTemplate;
 
+    @Autowired
+    private InspectionImagesService inspectionImagesService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
     public Comparator<InspectionField> getComparator(){
         Comparator<InspectionField> fieldComparator = Comparator.comparingInt(f -> {
                     String place = f.getInspectionFieldDefinition().getFieldPlace().toLowerCase();
@@ -55,13 +61,23 @@ public class ReportViewService {
 
     public List<InspectionField> getSortedFields(InspectionReport report,
                                                  Comparator<InspectionField> fieldComparator){
-        return report.getFields().stream()
+        List<InspectionField> fields = report.getFields().stream()
                 .filter(f -> f != null)
                 .filter(f -> f.getInspectionFieldDefinition() != null)
                 .filter(f -> f.getInspectionFieldDefinition().getFieldPlace() != null)
                 .filter(f -> f.getInspectionFieldDefinition().getFieldType() != null)
                 .sorted(fieldComparator)
                 .toList();
+
+        // Convert images to base64
+        fields.forEach(field -> {
+            if (field.getInspectionImage() != null){
+                String src = inspectionImagesService.toBase64(field.getInspectionImage().getId(), field.getAnnotations());
+                field.getInspectionImage().setBase64(src);
+            }
+        });
+
+        return fields;
     }
 
     public Map<String, Map<String, List<InspectionField>>> getAllFields(List<InspectionField> fields){

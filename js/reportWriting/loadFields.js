@@ -172,6 +172,7 @@ function showExistingImage(image, fieldId){
         existingImageText.textContent = "This is your selected image";
         existingImageImage.src = `http://localhost:8080/api/images/file/${image.id}`;
         existingImageImage.onload = () => {
+            console.log(existingImageImage.offsetWidth, existingImageImage.offsetHeight);
             addAnnotationCanvas(existingImageDiv, existingImageImage, fieldId);
             tools.hidden = false;
         };
