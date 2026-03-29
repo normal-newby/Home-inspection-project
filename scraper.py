@@ -10,7 +10,6 @@ from definition_value_maker import choosePlace, chooseType
 load_dotenv()
 
 BASE_URL = os.getenv("BASE_URL")
-API_URL = os.getenv("API_URL")
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; InspectionBot/1.0)"
@@ -56,7 +55,6 @@ def scrape():
 if __name__ == "__main__":
     definitions = scrape()
     print(len(definitions))
-    print(definitions)
     inspectionPlace = choosePlace()
     inspectionType = chooseType()
 
