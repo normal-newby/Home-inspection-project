@@ -11,6 +11,7 @@ const type = params.get("type");
 export const buttons = document.querySelectorAll('.component_button');
 export const lowerButtons = document.querySelectorAll('.component_button_lower');
 
+const searchBar = document.querySelector(".field-search");
 const contentFields = document.querySelector(".fields");
 const selectImageDiv = document.querySelector(".select-image-box");
 const existingImageDiv = document.querySelector(".existing-image-div");
@@ -221,6 +222,15 @@ function fetchInSummary(fieldId){
 }
 
 //Buttons
+
+searchBar.addEventListener("input", () => { //search function for fields
+    const query = searchBar.value.toLowerCase();
+    document.querySelectorAll(".inspection-field").forEach(field => {
+        const fieldName = field.querySelector(".field-header").textContent.toLowerCase();
+        const match = fieldName.includes(query);
+        field.style.display = match ? "" : "none";
+    });
+});
 
 buttons.forEach(button => { //place buttons
     if (button.getAttribute("data-target") === place) button.classList.add("active");

@@ -143,6 +143,26 @@
     padding-left: 0.1rem;
 }
 
+/* Search bar */
+
+.field-search {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    color: var(--ink);
+    background: var(--card);
+}
+
+.field-search:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
 /* Information values */
 .fields {
 	display: flex;
