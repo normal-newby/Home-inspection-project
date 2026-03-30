@@ -16,7 +16,8 @@ HEADERS = {
 }
 
 COOKIES = {
-    
+    os.getenv("SESSION_ID_NAME"): os.getenv("SESSION_ID"),
+    os.getenv("INSPECTOR_ID_NAME"): os.getenv("INSPECTOR_ID")
 }
 
 res = requests.get(BASE_URL, headers=HEADERS, cookies=COOKIES, timeout=10)
