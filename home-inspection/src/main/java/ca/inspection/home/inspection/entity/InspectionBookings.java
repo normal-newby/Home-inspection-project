@@ -24,6 +24,8 @@ public class InspectionBookings {
     @Column(name = "id", columnDefinition = "TEXT")
     private UUID id; // UUID
 
+    private Integer inspectionNumber;
+
     // Property info
     private String inspectionAddress;
     private String suite;

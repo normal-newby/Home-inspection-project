@@ -27,6 +27,7 @@ public class InspectorProfile {
     private String email;
     private String website;
     private String logoPath;
+    private Integer inspectionNumber;
 
     private String address;
     private String city;

@@ -28,4 +28,13 @@ public class InspectorProfileService {
             return ResponseEntity.badRequest().build();
         }
     }
+
+    public Integer getAndUpdateNumber() {
+        InspectorProfile profile = inspectorProfileRepository.findById(1L)
+                .orElseThrow(() -> new RuntimeException("Inspector profile not found"));
+        Integer updated = profile.getInspectionNumber() + 1;
+        profile.setInspectionNumber(updated);
+        inspectorProfileRepository.save(profile);
+        return updated;
+    }
 }

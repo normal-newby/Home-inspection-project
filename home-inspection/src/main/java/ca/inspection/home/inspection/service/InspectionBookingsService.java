@@ -15,7 +15,10 @@ public class InspectionBookingsService {
     @Autowired
     private InspectionBookingsRepository inspectionBookingsRepository;
 
+    @Autowired InspectorProfileService inspectorProfileService;
+
     public InspectionBookings createBooking(InspectionBookings booking){
+        booking.setInspectionNumber(inspectorProfileService.getAndUpdateNumber());
         return inspectionBookingsRepository.save(booking);
     }
 
