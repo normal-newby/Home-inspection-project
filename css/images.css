@@ -160,7 +160,7 @@
     color: var(--muted);
     margin-bottom: 0.5rem;
 }
-
+/*
 .existing-image-div {
     display: flex;
     flex-direction: column;
@@ -178,4 +178,4 @@
     border: 1px solid var(--border);
     display: block;
     object-fit: contain;
-}
+}*/

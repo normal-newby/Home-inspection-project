@@ -2,7 +2,7 @@ export function fetchExisting(URI, textArea){
     fetch(URI)
     .then(response => {
         if (!response.ok) return null; // If no note exists, return null
-        return response.json();
+        return response.text();
     })
     .then(note => {
         console.log(note);

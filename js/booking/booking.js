@@ -6,6 +6,8 @@ const URI = id ? `http://localhost:8080/api/bookings/${id}` : `http://localhost:
 const fields = ["inspectionAddress", "suite", "city", "postalCode", "province", "clientFirstName", "clientLastName", "email", "phone", "month", "day", "year", "referredBy", "bookedBy"];
 const saveBtn = document.getElementById("saveBtn");
 
-saveBtn.addEventListener("click", () => {saveForm(URI, fields)});
+const method = id ? "PUT" : "POST";
+
+saveBtn.addEventListener("click", () => {saveForm(URI, fields, method)});
 
 if (id) loadForm(URI, fields);

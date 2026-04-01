@@ -15,10 +15,10 @@ function collectForm(fields) {
 }
  
 // Save profile
-export async function saveForm(URI, fields) {
+export async function saveForm(URI, fields, method = "POST") {
     try {
         const res = await fetch(URI, {
-            method: 'POST',
+            method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(collectForm(fields))
         });

@@ -4,6 +4,7 @@ import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectionReport;
 import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -35,5 +36,16 @@ public class InspectionBookingsService {
         InspectionBookings booking = inspectionBookingsRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("booking not found"));
         return booking.getInspectionReport();
+    }
+
+    public ResponseEntity<?> updateBooking(UUID id, InspectionBookings booking){
+        try {
+            booking.setId(id);
+            inspectionBookingsRepository.save(booking);
+            return ResponseEntity.ok().build();
+        } catch (Exception e){
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
     }
 }
