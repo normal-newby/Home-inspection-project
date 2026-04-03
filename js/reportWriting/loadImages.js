@@ -35,7 +35,7 @@ saveImagesButton.addEventListener("click", (e) => {
     });
 });
 
-export async function initImagesSlider(bookingId, container){
+export async function initImagesSlider(bookingId, container, getUsedForReport = false){
     const imagesTrack = container.querySelector(".images-track");
     const nextButton = container.querySelector(".next");
     const prevButton = container.querySelector(".prev");
@@ -46,6 +46,9 @@ export async function initImagesSlider(bookingId, container){
 
     function loopImages(images){ //appends images by 6s to a container
         imagesTrack.innerHTML = "";
+        
+        if (getUsedForReport) images = images.filter(image => !image.used); // If we only want images not used for report, filter them out
+
         for (let i = 0; i < images.length; i += 6){
             const slide = document.createElement("div");
             slide.className = "image-slide";

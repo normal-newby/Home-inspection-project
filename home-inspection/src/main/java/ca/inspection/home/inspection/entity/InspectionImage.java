@@ -41,4 +41,6 @@ public class InspectionImage {
     @JsonBackReference("inspectionField-images")
     @JoinColumn(name = "inspection_field_id")
     private InspectionField inspectionField;
+
+    private Boolean used = false;
 }

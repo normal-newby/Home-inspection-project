@@ -143,7 +143,7 @@ function createExistingField(parent, field){ // Creates buttons for already inpu
 }
 
 async function addExistingImages(bookingId, selectImageDiv, fieldId){
-    const track = await initImagesSlider(bookingId, selectImageDiv);
+    const track = await initImagesSlider(bookingId, selectImageDiv, true); // Initialize slider with only images not used for report
     track.querySelectorAll("img").forEach(img => {
         img.addEventListener("dblclick", (e) => {
             e.preventDefault();
@@ -166,6 +166,9 @@ function clearCanvas(){
     // Clear previous canvas
     const existingCanvas = existingImageDiv.querySelector("canvas");
     if (existingCanvas) existingCanvas.remove();
+    // Clear previous gallery
+    const existingGallery = existingImageDiv.querySelector(".image-gallery");
+    if (existingGallery) existingGallery.remove();
     tools.hidden = true;
 }
 
@@ -206,6 +209,21 @@ function showExistingImage(images, fieldId){
                 tools.hidden = false;
             };
         });
+
+        thumb.addEventListener("contextmenu", (e) => {
+            e.preventDefault();
+            if (confirm("Are you sure you want to remove this image from the field?")) {
+                fetch(`http://localhost:8080/api/fields/${fieldId}/${image.id}`,
+                    { method: "DELETE" }
+                )
+                .then(() => {
+                    thumb.remove();
+                    clearCanvas();
+                })
+                .catch(error => console.log(error));
+            }
+        });
+                    
         gallery.appendChild(thumb);
     });
 

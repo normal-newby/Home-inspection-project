@@ -62,9 +62,16 @@ public class InspectionFieldController {
         inspectionFieldService.deleteInspectionField(id);
     }
 
+    //Images
+
     @PutMapping("/fields/{fieldId}/{imageId}")
     public ResponseEntity<?> addImageToField(@PathVariable UUID fieldId, @PathVariable UUID imageId){
         return inspectionFieldService.addImageToField(fieldId, imageId);
+    }
+
+    @DeleteMapping("/fields/{fieldId}/{imageId}")
+    public ResponseEntity<?> deleteImageFromField(@PathVariable UUID fieldId, @PathVariable UUID imageId){
+        return inspectionFieldService.deleteImageFromField(fieldId, imageId);
     }
 
     //Notes
