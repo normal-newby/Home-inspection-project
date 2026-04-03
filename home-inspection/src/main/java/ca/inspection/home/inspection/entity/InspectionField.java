@@ -17,8 +17,8 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString(exclude = {"inspectionReport", "inspectionFieldDefinition", "selectedValue", "inspectionImage", "inspectionRecommendationField", "annotations"})
-@EqualsAndHashCode(exclude = {"inspectionReport", "inspectionFieldDefinition", "selectedValue", "inspectionImage", "inspectionRecommendationField", "annotations"})
+@ToString(exclude = {"inspectionReport", "inspectionFieldDefinition", "selectedValue", "inspectionImages", "inspectionRecommendationField", "annotations"})
+@EqualsAndHashCode(exclude = {"inspectionReport", "inspectionFieldDefinition", "selectedValue", "inspectionImages", "inspectionRecommendationField", "annotations"})
 public class InspectionField {
     @Id
     @GeneratedValue
@@ -40,10 +40,9 @@ public class InspectionField {
     @JoinColumn(name = "inspection_field_definition_value_id")
     private InspectionFieldDefinitionValue selectedValue;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "inspection_image_id")
-    @JsonManagedReference("inspectionImage-fields")
-    private InspectionImage inspectionImage; //only used if fieldType is description, limitations
+    @OneToMany(mappedBy = "inspectionField", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("inspectionField-images")
+    private List<InspectionImage> inspectionImages = new ArrayList<>(); //multiple images per field
 
     @OneToOne(mappedBy = "inspectionField")
     @JsonManagedReference("inspectionField-recommendation")

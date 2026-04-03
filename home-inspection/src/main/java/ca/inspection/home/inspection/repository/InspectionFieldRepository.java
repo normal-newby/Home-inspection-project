@@ -11,11 +11,11 @@ import java.util.UUID;
 @Repository
 public interface InspectionFieldRepository extends JpaRepository<InspectionField, UUID> {
     @Query("""
-            SELECT f
+            SELECT DISTINCT f
             FROM InspectionField f
             JOIN FETCH f.inspectionFieldDefinition d
             LEFT JOIN FETCH f.selectedValue
-            LEFT JOIN FETCH f.inspectionImage
+            LEFT JOIN FETCH f.inspectionImages i
             WHERE f.inspectionReport.id = :report
             AND d.fieldPlace = :place
             AND d.fieldType = :type

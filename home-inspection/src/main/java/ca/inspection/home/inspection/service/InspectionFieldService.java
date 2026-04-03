@@ -101,8 +101,8 @@ public class InspectionFieldService {
                     .orElseThrow(() -> new RuntimeException("InspectionField not found"));
             InspectionImage image = inspectionImagesRepository.findById(imageId)
                     .orElseThrow(() -> new RuntimeException("InspectionImage not found"));
-            field.setInspectionImage(image);
-            image.getFields().add(field);
+            field.getInspectionImages().add(image);
+            image.setInspectionField(field);
             inspectionFieldRepository.save(field);
 
             return ResponseEntity.ok().build();

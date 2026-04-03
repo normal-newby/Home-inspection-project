@@ -71,9 +71,11 @@ public class ReportViewService {
 
         // Convert images to base64
         fields.forEach(field -> {
-            if (field.getInspectionImage() != null){
-                String src = inspectionImagesService.toBase64(field.getInspectionImage().getId(), field.getAnnotations());
-                field.getInspectionImage().setBase64(src);
+            if (field.getInspectionImages() != null && !field.getInspectionImages().isEmpty()){
+                field.getInspectionImages().forEach(image -> {
+                    String src = inspectionImagesService.toBase64(image.getId(), field.getAnnotations());
+                    image.setBase64(src);
+                });
             }
         });
 

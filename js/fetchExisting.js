@@ -5,7 +5,6 @@ export function fetchExisting(URI, textArea){
         return response.text();
     })
     .then(note => {
-        console.log(note);
         if (note) {
             textArea.value = note;
         } else {

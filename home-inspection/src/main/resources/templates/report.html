@@ -213,11 +213,13 @@
                 </div>
 
                 <!-- Image + Annotations -->
-                <div class="report-field-image-wrap" th:if="${field.inspectionImage != null}">
-                    <img class="report-field-image"
-                         th:src="${field.inspectionImage.base64}"
-                         th:id="'img-' + ${field.id}"
-                         onerror="this.closest('.report-field-image-wrap').style.display='none'"/>
+                <div th:if="${field.inspectionImages != null and !#lists.isEmpty(field.inspectionImages)}">
+                    <div th:each="img : ${field.inspectionImages}" class="report-field-image-wrap">
+                        <img class="report-field-image"
+                             th:src="${img.base64}"
+                             th:id="'img-' + ${field.id} + '-' + ${img.id}"
+                             onerror="this.closest('.report-field-image-wrap').style.display='none'"/>
+                    </div>
                 </div>
 
                 <!-- Meta Row: Floor Level + Location -->

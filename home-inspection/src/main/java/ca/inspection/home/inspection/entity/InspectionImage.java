@@ -37,7 +37,8 @@ public class InspectionImage {
     private String ImageUrl;
     private String description;
 
-    @OneToMany(mappedBy = "inspectionImage", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonBackReference("inspectionImage-fields")
-    private List<InspectionField> fields = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonBackReference("inspectionField-images")
+    @JoinColumn(name = "inspection_field_id")
+    private InspectionField inspectionField;
 }

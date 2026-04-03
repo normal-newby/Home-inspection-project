@@ -17,6 +17,7 @@ const selectImageDiv = document.querySelector(".select-image-box");
 const existingImageDiv = document.querySelector(".existing-image-div");
 const existingImageText = document.querySelector(".existing-image-text");
 const existingImageImage = document.querySelector(".existing-image-image");
+const tools = existingImageDiv.querySelector(".annotation-tools");
 
 const saveNoteButton = document.getElementById("save-note");
 const noteTextArea = document.getElementById("note-text");
@@ -121,13 +122,15 @@ function createExistingField(parent, field){ // Creates buttons for already inpu
 
         curField = button.dataset.id;
 
-        showExistingImage(field.inspectionImage, button.dataset.id);
+        console.log(field); 
+
+        showExistingImage(field.inspectionImages, button.dataset.id);
         selectImageDiv.hidden = false;
 
         addExistingImages(bookingId, selectImageDiv, button.dataset.id); // Add images to select from
 
         fetchExisting(`http://localhost:8080/api/fields/${button.dataset.id}/note`, noteTextArea); // Fetch existing note for the field
-         
+
         if (type === "recommendations"){ // If field = recommendation, show button
             recommendationsButton.hidden = false;
             currentRecommendationFieldId = button.dataset.id;
@@ -157,27 +160,56 @@ function selectImageFunction(imageId, fieldId){
     .catch(error => console.log(error))
 }
 
-function showExistingImage(image, fieldId){
+function clearCanvas(){
     existingImageText.innerHTML = "";
     existingImageImage.src = "";
     // Clear previous canvas
     const existingCanvas = existingImageDiv.querySelector("canvas");
     if (existingCanvas) existingCanvas.remove();
-    const tools = existingImageDiv.querySelector(".annotation-tools");
     tools.hidden = true;
+}
 
-    if (!image){
+function showExistingImage(images, fieldId){
+    clearCanvas();
+    
+     if (!images || images.length === 0) {
         existingImageText.textContent = "No images selected";
-    } else {
-        existingImageDiv.hidden = false;
-        existingImageText.textContent = "This is your selected image";
-        existingImageImage.src = `http://localhost:8080/api/images/file/${image.id}`;
-        existingImageImage.onload = () => {
-            console.log(existingImageImage.offsetWidth, existingImageImage.offsetHeight);
-            addAnnotationCanvas(existingImageDiv, existingImageImage, fieldId);
-            tools.hidden = false;
-        };
+        existingImageImage.hidden = true;
+        return;
     }
+
+    existingImageDiv.hidden = false;
+    existingImageText.textContent = "Select an image to annotate";
+
+    // Build thumbnail grid
+    const gallery = document.createElement("div");
+    gallery.className = "image-gallery";
+
+    images.forEach(image => {
+        const thumb = document.createElement("img");
+        thumb.src = `http://localhost:8080/api/images/file/${image.id}`;
+        thumb.className = "gallery-thumb";
+        thumb.addEventListener("click", () => {
+            // Deselect all
+            gallery.querySelectorAll(".gallery-thumb").forEach(t => t.classList.remove("selected"));
+            thumb.classList.add("selected");
+
+            // Clear previous canvas
+            const prevCanvas = existingImageDiv.querySelector("canvas");
+            if (prevCanvas) prevCanvas.remove();
+            tools.hidden = true;
+
+            existingImageImage.hidden = false;
+            existingImageImage.src = thumb.src;
+            existingImageImage.onload = () => {
+                addAnnotationCanvas(existingImageDiv, existingImageImage, fieldId);
+                tools.hidden = false;
+            };
+        });
+        gallery.appendChild(thumb);
+    });
+
+    existingImageDiv.insertBefore(gallery, existingImageImage);
 }
 
 function saveNewInspectionField(value, fieldName){
@@ -211,7 +243,6 @@ function fetchInSummary(fieldId){
     fetch(`http://localhost:8080/api/fields/${fieldId}/summary`)
     .then(response => response.json())
     .then(inSummary => {
-        console.log(inSummary);
         if (inSummary) {
             includeInSummaryBox.checked = true;
         } else {
