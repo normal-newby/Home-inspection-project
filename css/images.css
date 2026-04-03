@@ -19,7 +19,8 @@
 }
 
 .images-track {
-  display: nsform 0.3s ease;
+    display: flex;
+    transition: transform 0.3s ease;
 }
 
 .image-slide {

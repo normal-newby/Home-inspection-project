@@ -1,23 +1,23 @@
 const sectionsConfig = {
     direction: {
         selector: ".recommendations-section:nth-of-type(1)",
-        options: ["North", "South", "East", "West"],
+        options: ["Various", "Throughout", "North", "South", "East", "West"],
     },
     floorLevel: {
         selector: ".recommendations-section:nth-of-type(2)",
-        options: ["Basement", "Ground", "1st Floor", "2nd Floor", "Attic"],
+        options: ["Basement", "Ground", "1st Floor", "2nd Floor", "3rd Floor", "Attic"],
     },
     room: {
         selector: ".recommendations-section:nth-of-type(3)",
-        options: ["Kitchen", "Bathroom", "Bedroom", "Living Room", "Garage", "Other"],
+        options: ["Kitchen", "Bathroom", "Bedroom", "Living Room", "Roof", "Garage", "Other"],
     },
     task: {
         selector: ".recommendations-section:nth-of-type(4)",
-        options: ["Repair", "Replace", "Inspect", "Maintain", "Monitor"],
+        options: ["Repair", "Replace", "Inspect", "Maintain", "Correct", "Monitor"],
     },
     time: {
         selector: ".recommendations-section:nth-of-type(5)",
-        options: ["Immediate", "Within 30 days", "Within 90 days", "Within 6 months", "At next inspection"],
+        options: ["Immediate", "Within 1 year", "Within 2 years", "Within 3 years", "Discretionary", "Unpredictable"],
     },
     cost: {
         selector: ".recommendations-section:nth-of-type(6)",
