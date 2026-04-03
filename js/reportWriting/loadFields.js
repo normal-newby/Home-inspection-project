@@ -18,10 +18,6 @@ const existingImageDiv = document.querySelector(".existing-image-div");
 const existingImageText = document.querySelector(".existing-image-text");
 const existingImageImage = document.querySelector(".existing-image-image");
 
-const sharedState = { currentTool: null, deleteMode: false, colour: "#ff0000", strokeSize: "1" }; // Shared state for annotation tools
-
-const tools = existingImageDiv.querySelector(".annotation-tools");
-
 const saveNoteButton = document.getElementById("save-note");
 const noteTextArea = document.getElementById("note-text");
 
@@ -155,13 +151,49 @@ async function addExistingImages(bookingId, selectImageDiv, fieldId){
     });
 }
 
-function selectImageFunction(imageId, fieldId){
-    fetch(`http://localhost:8080/api/fields/${fieldId}/${imageId}`,
-        { method: "PUT" }
-    )
-    .then(console.log("Image linked"))
-    .catch(error => console.log(error))
+
+const sharedState = { currentTool: null, deleteMode: false }; // Shared state for annotation tools
+
+const toolsDiv = existingImageDiv.querySelector(".annotation-tools");
+const rectTool = toolsDiv.querySelector("#rect-tool");
+const ellipseTool = toolsDiv.querySelector("#ellipse-tool");
+const arrowTool = toolsDiv.querySelector("#arrow-tool");
+const textTool = toolsDiv.querySelector("#add-text");
+const deleteModeButton = toolsDiv.querySelector("#delete-mode");
+
+function removeActiveStates(except) {
+    toolsDiv.querySelectorAll("button").forEach(
+        btn => { 
+            if (btn !== except) btn.classList.remove("active"); 
+        }
+    );
 }
+
+function handleClick(button, tool) {
+    removeActiveStates(button);
+    if (tool === "delete") {
+        sharedState.deleteMode = !sharedState.deleteMode;
+        sharedState.currentTool = null;
+        deleteModeButton.textContent = sharedState.deleteMode ? "Exit Delete Mode" : "Delete Mode";
+        deleteModeButton.classList.toggle("active", sharedState.deleteMode);
+        return;
+    }
+    if (button.classList.contains("active")) {
+        sharedState.currentTool = null;
+        button.classList.remove("active");
+    } else {
+        sharedState.currentTool = tool;
+        button.classList.add("active");
+    }
+    sharedState.deleteMode = false;
+    deleteModeButton.textContent = "Delete Mode";
+}
+
+rectTool.addEventListener("click", () => handleClick(rectTool, "rectangle"));
+ellipseTool.addEventListener("click", () => handleClick(ellipseTool, "ellipse"));
+arrowTool.addEventListener("click", () => handleClick(arrowTool, "arrow"));
+textTool.addEventListener("click", () => handleClick(textTool, "text"));
+deleteModeButton.addEventListener("click", () => handleClick(deleteModeButton, "delete"));
 
 function clearCanvas(){
     existingImageText.innerHTML = "";
@@ -172,7 +204,7 @@ function clearCanvas(){
     // Clear previous gallery
     const existingGallery = existingImageDiv.querySelector(".image-gallery");
     if (existingGallery) existingGallery.remove();
-    tools.hidden = true;
+    toolsDiv.hidden = true;
 }
 
 function showExistingImage(images, fieldId){
@@ -196,6 +228,11 @@ function showExistingImage(images, fieldId){
         thumb.src = `http://localhost:8080/api/images/file/${image.id}`;
         thumb.className = "gallery-thumb";
         thumb.addEventListener("click", () => {
+            // Reset states
+            sharedState.currentTool = null;
+            sharedState.deleteMode = false;
+            removeActiveStates(null);
+
             // Deselect all
             gallery.querySelectorAll(".gallery-thumb").forEach(t => t.classList.remove("selected"));
             thumb.classList.add("selected");
@@ -203,27 +240,20 @@ function showExistingImage(images, fieldId){
             // Clear previous canvas
             const prevCanvas = existingImageDiv.querySelector("canvas");
             if (prevCanvas) prevCanvas.remove();
-            tools.hidden = true;
+            toolsDiv.hidden = true;
 
             existingImageImage.hidden = false;
             existingImageImage.src = thumb.src;
             existingImageImage.onload = () => {
-                addAnnotationCanvas(existingImageDiv, existingImageImage, image.id);
-                tools.hidden = false;
+                addAnnotationCanvas(existingImageDiv, existingImageImage, image.id, sharedState);
+                toolsDiv.hidden = false;
             };
         });
 
         thumb.addEventListener("contextmenu", (e) => {
             e.preventDefault();
             if (confirm("Are you sure you want to remove this image from the field?")) {
-                fetch(`http://localhost:8080/api/fields/${fieldId}/${image.id}`,
-                    { method: "DELETE" }
-                )
-                .then(() => {
-                    thumb.remove();
-                    clearCanvas();
-                })
-                .catch(error => console.log(error));
+                deleteImageFromField(image.id, fieldId);
             }
         });
                     
@@ -232,6 +262,8 @@ function showExistingImage(images, fieldId){
 
     existingImageDiv.insertBefore(gallery, existingImageImage);
 }
+
+// Endpoints for fields and images
 
 function saveNewInspectionField(value, fieldName){
     const url = `http://localhost:8080/api/fields/${bookingId}/${encodeURIComponent(place)}/${encodeURIComponent(type)}?name=${encodeURIComponent(fieldName)}&value=${encodeURIComponent(value)}`;
@@ -248,6 +280,26 @@ function saveNewInspectionField(value, fieldName){
 function deleteInspectionField(id){
     fetch(`http://localhost:8080/api/fields/${id}`,
         { method : "DELETE" }
+    );
+}
+
+function selectImageFunction(imageId, fieldId){
+    fetch(`http://localhost:8080/api/fields/${fieldId}/${imageId}`,
+        { method: "PUT" }
+    )
+    .then(console.log("Image linked"))
+    .catch(error => console.log(error))
+}
+
+function deleteImageFromField(imageId, fieldId){
+    fetch(`http://localhost:8080/api/fields/${fieldId}/${imageId}`,
+            { method: "DELETE" }
+        )
+        .then(() => {
+            thumb.remove();
+            clearCanvas();
+        })
+        .catch(error => console.log(error)
     );
 }
 

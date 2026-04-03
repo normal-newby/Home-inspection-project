@@ -1,4 +1,4 @@
-export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageId) {
+export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageId, sharedState){ 
     // Create canvas
     const canvas = document.createElement("canvas");
     canvas.width = existingImageImage.offsetWidth+4;
@@ -11,15 +11,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
 
     const ctx = canvas.getContext("2d");
 
-    // Get tools from HTML
     const toolsDiv = existingImageDiv.querySelector(".annotation-tools");
-
-    const tools = toolsDiv.querySelectorAll("button");
-    const rectTool = toolsDiv.querySelector("#rect-tool");
-    const ellipseTool = toolsDiv.querySelector("#ellipse-tool");
-    const arrowTool = toolsDiv.querySelector("#arrow-tool");
-    const textTool = toolsDiv.querySelector("#add-text");
-    const deleteModeButton = toolsDiv.querySelector("#delete-mode");
 
     const saveButton = toolsDiv.querySelector("#save-annotations");
     const colourPicker = toolsDiv.querySelector("#color-picker");
@@ -27,8 +19,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
     const strokeSizeValue = toolsDiv.querySelector("#stroke-size-value");
     const textInput = toolsDiv.querySelector("#text-tool");
 
-    let currentTool = null;
-    let deleteMode = false;
+
     let startX, startY, isDrawing = false;
     let strokeSize = parseInt(strokeSlider?.value || "1", 10);
     let annotations = [];
@@ -81,63 +72,6 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
             }
         });
     }
-
-    function removeActiveStates(button) {
-        tools.forEach(btn => {
-            if (button !== btn) {
-                btn.classList.remove("active");
-            }
-        });
-    }
-
-    function handleClick(button, tool){
-        // Deactivate all other tools
-        removeActiveStates(button);
-
-        // Handle delete mode toggle separately
-        if (tool === "delete") {
-            deleteMode = !deleteMode;
-            currentTool = null;
-            canvas.style.cursor = deleteMode ? "pointer" : "default";
-            deleteModeButton.textContent = deleteMode ? "Exit Delete Mode" : "Delete Mode";
-            deleteModeButton.classList.toggle("active", deleteMode);
-            return;
-        }
-
-        // Toggle the clicked button
-        if (button.classList.contains("active")) {
-            currentTool = null;
-            button.classList.remove("active");
-            canvas.style.cursor = "default";
-        } else {
-            currentTool = tool;
-            button.classList.add("active");
-            canvas.style.cursor = "crosshair";
-        }
-        // Deactivate delete mode when switching tools
-        deleteMode = false;
-        deleteModeButton.textContent = "Delete Mode";
-    }
-
-    rectTool.addEventListener("click", () => {
-        handleClick(rectTool, "rectangle");
-    });
-
-    ellipseTool.addEventListener("click", () => {
-        handleClick(ellipseTool, "ellipse");
-    });
-
-    arrowTool.addEventListener("click", () => {
-        handleClick(arrowTool, "arrow");
-    });
-
-    textTool.addEventListener("click", () => {
-        handleClick(textTool, "text");
-    });
-
-    deleteModeButton.addEventListener("click", () => {
-        handleClick(deleteModeButton, "delete");
-    });
 
     function checkRectangleClick(clickX, clickY, ann) {
         return clickX >= ann.x && clickX <= ann.x + ann.width && clickY >= ann.y && clickY <= ann.y + ann.height;
@@ -233,7 +167,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
         const clickX = e.offsetX;
         const clickY = e.offsetY;
 
-        if (deleteMode) {
+        if (sharedState.deleteMode) {
             // Check if click is on an annotation
             for (let i = annotations.length - 1; i >= 0; i--) {
                 const ann = annotations[i];
@@ -262,7 +196,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
             return; // don't start drawing when deleting
         }
 
-        if (currentTool === "rectangle" || currentTool === "ellipse" || currentTool === "arrow" || currentTool === "text") {
+        if (sharedState.currentTool === "rectangle" || sharedState.currentTool === "ellipse" || sharedState.currentTool === "arrow" || sharedState.currentTool === "text") {
             e.preventDefault();
             isDrawing = true;
             startX = clickX;
@@ -271,13 +205,13 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
     });
 
     canvas.addEventListener("mousemove", (e) => {
-        if (isDrawing && currentTool === "rectangle") {
+        if (isDrawing && sharedState.currentTool === "rectangle") {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             redrawAnnotations();
             ctx.strokeStyle = colourPicker.value;
             ctx.lineWidth = strokeSize;
             ctx.strokeRect(startX, startY, e.offsetX - startX, e.offsetY - startY);
-        } else if (isDrawing && currentTool === "ellipse") {
+        } else if (isDrawing && sharedState.currentTool === "ellipse") {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             redrawAnnotations();
             ctx.strokeStyle = colourPicker.value;
@@ -289,7 +223,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
             ctx.beginPath();
             ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, 2 * Math.PI);
             ctx.stroke();
-        } else if (isDrawing && currentTool === "arrow") {
+        } else if (isDrawing && sharedState.currentTool === "arrow") {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             redrawAnnotations();
             const preview = {
@@ -307,7 +241,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
     canvas.addEventListener("mouseup", (e) => {
         if (isDrawing) {
             isDrawing = false;
-            if (currentTool === "rectangle") {
+            if (sharedState.currentTool === "rectangle") {
                 const ann = {
                     type: "rectangle",
                     x: startX,
@@ -319,7 +253,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
                 };
                 normalizeRectangle(ann);
                 annotations.push(ann);
-            } else if (currentTool === "ellipse") {
+            } else if (sharedState.currentTool === "ellipse") {
                 const ann = {
                     type: "ellipse",
                     x: (startX + e.offsetX) / 2,
@@ -330,7 +264,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
                     strokeWidth: strokeSize
                 };
                 annotations.push(ann);
-            } else if (currentTool === "arrow") {
+            } else if (sharedState.currentTool === "arrow") {
                 const ann = {
                     type: "arrow",
                     x: startX,
@@ -341,7 +275,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
                     strokeWidth: strokeSize
                 };
                 annotations.push(ann);
-            } else if (currentTool === "text") {
+            } else if (sharedState.currentTool === "text") {
                 const text = textInput.value.trim();
                 if (text) {
                     const ann = {
@@ -397,5 +331,4 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
         });
     });
 
-    removeActiveStates(null); // Ensure no tool is active on load
 }
