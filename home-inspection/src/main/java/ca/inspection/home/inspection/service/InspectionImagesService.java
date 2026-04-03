@@ -116,7 +116,7 @@ public class InspectionImagesService {
                     Color color = Color.decode(annotation.getColor() == null ? "ff0000" : annotation.getColor());
                     graphics2D.setColor(color);
 
-                    float stroke = Float.parseFloat(
+                    float stroke = 5 * Float.parseFloat(
                             annotation.getStrokeWidth() == null ? "1" : annotation.getStrokeWidth());
                     graphics2D.setStroke(new BasicStroke(stroke));
 

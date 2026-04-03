@@ -170,10 +170,12 @@ function removeActiveStates(except) {
 }
 
 function handleClick(button, tool) {
+    const canvas = existingImageDiv.querySelector("canvas");
     removeActiveStates(button);
     if (tool === "delete") {
         sharedState.deleteMode = !sharedState.deleteMode;
         sharedState.currentTool = null;
+        canvas.style.cursor = sharedState.deleteMode ? "pointer" : "default";
         deleteModeButton.textContent = sharedState.deleteMode ? "Exit Delete Mode" : "Delete Mode";
         deleteModeButton.classList.toggle("active", sharedState.deleteMode);
         return;
@@ -181,9 +183,11 @@ function handleClick(button, tool) {
     if (button.classList.contains("active")) {
         sharedState.currentTool = null;
         button.classList.remove("active");
+        canvas.style.cursor = "default";
     } else {
         sharedState.currentTool = tool;
         button.classList.add("active");
+        canvas.style.cursor = "crosshair";
     }
     sharedState.deleteMode = false;
     deleteModeButton.textContent = "Delete Mode";
@@ -202,7 +206,7 @@ function clearCanvas(){
     const existingCanvas = existingImageDiv.querySelector("canvas");
     if (existingCanvas) existingCanvas.remove();
     // Clear previous gallery
-    const existingGallery = existingImageDiv.querySelector(".image-gallery");
+    const existingGallery = selectImageDiv.querySelector(".image-gallery");
     if (existingGallery) existingGallery.remove();
     toolsDiv.hidden = true;
 }
@@ -260,7 +264,7 @@ function showExistingImage(images, fieldId){
         gallery.appendChild(thumb);
     });
 
-    existingImageDiv.insertBefore(gallery, existingImageImage);
+    selectImageDiv.insertBefore(gallery, existingImageDiv);
 }
 
 // Endpoints for fields and images

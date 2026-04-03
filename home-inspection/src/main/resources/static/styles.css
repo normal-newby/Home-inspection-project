@@ -508,7 +508,7 @@ body {
 
 .report-field-image {
     display: block;
-    width: 100%;
+    max-height: 500px;
     border-radius: 3px;
     border: 1px solid var(--border);
 }

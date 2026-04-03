@@ -1,13 +1,10 @@
 export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageId, sharedState){ 
     // Create canvas
+    const wrapper = existingImageDiv.querySelector(".image-canvas-wrapper");
     const canvas = document.createElement("canvas");
-    canvas.width = existingImageImage.offsetWidth+4;
-    canvas.height = existingImageImage.offsetHeight+4;
-    canvas.style.position = "absolute";
-    canvas.style.top = existingImageImage.offsetTop-4 + "px";
-    canvas.style.left = existingImageImage.offsetLeft-4 + "px";
-    canvas.style.pointerEvents = "auto";
-    existingImageDiv.appendChild(canvas);
+    canvas.width = existingImageImage.offsetWidth;
+    canvas.height = existingImageImage.offsetHeight;
+    wrapper.appendChild(canvas);
 
     const ctx = canvas.getContext("2d");
 
