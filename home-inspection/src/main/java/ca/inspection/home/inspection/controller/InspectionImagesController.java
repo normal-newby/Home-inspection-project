@@ -45,7 +45,7 @@ public class InspectionImagesController {
     }
 
     @DeleteMapping("/images/{id}/delete")
-    public ResponseEntity<?> deleteImage(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteImage(@PathVariable UUID id) {
         return inspectionImagesService.deleteImage(id);
     }
 }

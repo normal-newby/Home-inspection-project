@@ -22,7 +22,7 @@ public class InspectorProfileService {
         try {
             profile.setId(1L);
             inspectorProfileRepository.save(profile);
-            return ResponseEntity.ok().body(profile);
+            return ResponseEntity.ok().build();
         } catch (Exception e){
             e.printStackTrace();
             return ResponseEntity.badRequest().build();

@@ -25,8 +25,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Base64;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class InspectionImagesService {
@@ -168,7 +170,7 @@ public class InspectionImagesService {
         graphics2D.fillPolygon(xPoints, yPoints, 3);
     }
 
-    public ResponseEntity<?> deleteImage(UUID id){
+    public ResponseEntity<Void> deleteImage(UUID id){
         try {
             InspectionImage image = inspectionImagesRepository.getById(id);
 
@@ -179,7 +181,7 @@ public class InspectionImagesService {
             Path path = DIRECTORY.resolve(image.getImageUrl());
             Files.deleteIfExists(path);
 
-            return ResponseEntity.ok().body(Map.of("success", true));
+            return ResponseEntity.ok().build();
 
         } catch (Exception e){
             e.printStackTrace();

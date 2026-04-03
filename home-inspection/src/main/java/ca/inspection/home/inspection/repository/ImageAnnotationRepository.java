@@ -9,4 +9,5 @@ import java.util.UUID;
 
 @Repository
 public interface ImageAnnotationRepository extends JpaRepository<ImageAnnotation, UUID> {
+    List<ImageAnnotation> findByInspectionFieldId(UUID fieldId);
 }

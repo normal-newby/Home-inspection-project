@@ -1,14 +1,11 @@
-export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageId) {
+export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldId) {
     // Create canvas
     const canvas = document.createElement("canvas");
-    
-    canvas.width = existingImageDiv.offsetWidth;
-    canvas.height = existingImageDiv.offsetHeight;
+    canvas.width = existingImageImage.offsetWidth+4;
+    canvas.height = existingImageImage.offsetHeight+4;
     canvas.style.position = "absolute";
-    canvas.style.top = "0";
-    canvas.style.left = "0";
-    canvas.style.zIndex = "10";
-
+    canvas.style.top = existingImageImage.offsetTop-4 + "px";
+    canvas.style.left = existingImageImage.offsetLeft-4 + "px";
     canvas.style.pointerEvents = "auto";
     existingImageDiv.appendChild(canvas);
 
@@ -42,7 +39,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
     });
 
     // Load existing annotations
-    fetch(`http://localhost:8080/api/fields/${imageId}/annotations`)
+    fetch(`http://localhost:8080/api/fields/${fieldId}/annotations`)
         .then(response => response.json())
         .then(data => {
             annotations = data;
@@ -373,7 +370,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
 
             console.log('displayWidth:', ann.imageDisplayWidth, 'displayHeight:', ann.imageDisplayHeight);
             
-            fetch(`http://localhost:8080/api/fields/${imageId}/annotations/save`, {
+            fetch(`http://localhost:8080/api/fields/${fieldId}/annotations/save`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(ann)

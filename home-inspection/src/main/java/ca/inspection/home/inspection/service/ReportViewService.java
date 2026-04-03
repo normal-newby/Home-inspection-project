@@ -1,7 +1,6 @@
 package ca.inspection.home.inspection.service;
 
 import ca.inspection.home.inspection.entity.InspectionField;
-import ca.inspection.home.inspection.entity.InspectionImage;
 import ca.inspection.home.inspection.entity.InspectionReport;
 import lombok.AllArgsConstructor;
 import org.apache.tomcat.util.http.fileupload.ByteArrayOutputStream;
@@ -72,12 +71,9 @@ public class ReportViewService {
 
         // Convert images to base64
         fields.forEach(field -> {
-            List<InspectionImage> images = field.getInspectionImages();
-            if (images != null){
-                images.forEach(image -> {
-                    String src = inspectionImagesService.toBase64(image.getId(), image.getAnnotations());
-                    image.setBase64(src);
-                });
+            if (field.getInspectionImage() != null){
+                String src = inspectionImagesService.toBase64(field.getInspectionImage().getId(), field.getAnnotations());
+                field.getInspectionImage().setBase64(src);
             }
         });
 

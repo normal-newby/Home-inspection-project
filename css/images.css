@@ -161,9 +161,8 @@
     color: var(--muted);
     margin-bottom: 0.5rem;
 }
-
+/*
 .existing-image-div {
-    position: relative;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
@@ -175,9 +174,9 @@
 }
 
 .existing-image-image {
-    position: relative;
-    max-height: 500px;
-    object-fit: contain;
+    width: 100%;
     border-radius: 3px;
     border: 1px solid var(--border);
-}
+    display: block;
+    object-fit: contain;
+}*/
