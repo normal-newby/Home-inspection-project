@@ -12,16 +12,14 @@
 
     <!-- ===================== HEADER AND FOOTER ===================== -->
 
-    <div id="page-header">
-        <div id="page-header-left">
-            <div th:text="|${booking.inspectionAddress}, ${booking.city}, ${booking.province}|"></div>
-            <div th:text="${booking.createdAt}"></div>
-        </div>
-        <div id="page-header-right">
-            <div class="header-company" th:text="${profile.company}"></div>
-            <div class="header-address" th:text="|${profile.address}, ${profile.city}|"></div>
-            <div class="header-contact" th:text="|${profile.phone} · ${profile.email}|"></div>
-        </div>
+    <div id="page-header-left">
+        <div th:text="|${booking.inspectionAddress}, ${booking.city}, ${booking.province}|"></div>
+        <div th:text="|${booking.month} ${booking.day}, ${booking.year}|"></div>
+    </div>
+    <div id="page-header-right">
+        <div class="header-company" th:text="${profile.company}"></div>
+        <div class="header-address" th:text="|${profile.address}, ${profile.city}|"></div>
+        <div class="header-contact" th:text="|${profile.phone} · ${profile.email}|"></div>
     </div>
 
     <div id="page-footer">
@@ -94,7 +92,7 @@
     <!-- RE line -->
     <div class="letter-re">
         <span class="re-label">RE:</span>
-        <!--<span th:text="|Report No. ${report.reportNumber}|">Report No. 1253</span><br/>-->
+        <span th:text="|Report No. ${booking.inspectionNumber}|"></span><br/>
         <span th:text="${booking.inspectionAddress}"></span><br>
         <span th:text="|${booking.city}, ${booking.province}|"></span><br>
         <span th:text="${booking.postalCode}">M5T 1W5</span>

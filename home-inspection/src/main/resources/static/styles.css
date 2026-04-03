@@ -31,7 +31,11 @@ body {
     margin: 28mm 15mm 20mm 15mm;
 
     @top-left {
-        content: element(running-header);
+        content: element(running-header-left);
+    }
+
+    @top-right {
+        content: element(running-header-right);
     }
 
     @bottom-center {
@@ -40,7 +44,6 @@ body {
 }
 
 #page-header {
-    position: running(running-header);
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -48,9 +51,19 @@ body {
     padding-bottom: 4px;
     font-size: 8pt;
     color: var(--muted);
+    width: 100%;
+}
+
+#page-header-left, #page-header-right{
+    width: 100%;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 4px;
+    font-size: 8pt;
+    color: var(--muted);
 }
 
 #page-header-left {
+    position: running(running-header-left);
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -58,6 +71,7 @@ body {
 }
 
 #page-header-right {
+    position: running(running-header-right);
     text-align: right;
     display: flex;
     flex-direction: column;
@@ -86,6 +100,23 @@ body {
     margin: 0;
     border: none;
     @top-left {
+        content: none;
+    }
+    @top-right {
+        content: none;
+    }
+    @bottom-center {
+        content: none;
+    }
+}
+
+@page letter {
+    margin: 0;
+    border: none;
+    @top-left {
+        content: none;
+    }
+    @top-right {
         content: none;
     }
     @bottom-center {
@@ -250,8 +281,9 @@ body {
 /* ── Letter page ── */
 
 #letter-page {
-    padding: 10mm;
+    padding: 20mm;
     page-break-after: always;
+    page: letter
 }
 
 .letter-date {
