@@ -48,6 +48,9 @@ public class InspectionBookings {
     private String referredBy;
     private String bookedBy;
 
+    // Editable columns
+    private String summaryBody;
+
     @OneToOne(mappedBy = "inspectionBooking", cascade = CascadeType.ALL, optional = true)
     @JsonManagedReference("reportBooking")
     private InspectionReport inspectionReport;

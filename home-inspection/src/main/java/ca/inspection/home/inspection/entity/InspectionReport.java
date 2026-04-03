@@ -28,6 +28,9 @@ public class InspectionReport {
     @JoinColumn(name = "inspection_booking_id", nullable = false, unique = true)
     private InspectionBookings inspectionBooking;
 
+    @Column(columnDefinition = "TEXT")
+    private String summary;
+
     @OneToMany(mappedBy = "inspectionReport", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private Set<InspectionImage> images = new HashSet<>();
