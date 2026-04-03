@@ -121,8 +121,10 @@ public class InspectionFieldService {
                     .orElseThrow(() -> new RuntimeException("InspectionField not found"));
             InspectionImage image = inspectionImagesRepository.findById(imageId)
                     .orElseThrow(() -> new RuntimeException("InspectionImage not found"));
-            field.getInspectionImages().remove(image);
             image.setUsed(false);
+            image.setInspectionField(null);
+            inspectionImagesRepository.save(image);
+            field.getInspectionImages().remove(image);
             inspectionFieldRepository.save(field);
 
             return ResponseEntity.ok().body(Map.of("Image deleted", true));
@@ -188,11 +190,11 @@ public class InspectionFieldService {
 
     // Annotations
 
-    public ResponseEntity<?> addAnnotation(UUID fieldId, ImageAnnotation annotation){
+    public ResponseEntity<?> addAnnotation(UUID imageId, ImageAnnotation annotation){
         try {
-            InspectionField field = inspectionFieldRepository.findById(fieldId)
-                    .orElseThrow(() -> new RuntimeException("InspectionField not found"));
-            annotation.setInspectionField(field);
+            InspectionImage image = inspectionImagesRepository.findById(imageId)
+                    .orElseThrow(() -> new RuntimeException("InspectionImage not found"));
+            annotation.setInspectionImage(image);
             imageAnnotationRepository.save(annotation);
             return ResponseEntity.ok().build();
         } catch (Exception e){
@@ -201,8 +203,8 @@ public class InspectionFieldService {
         }
     }
 
-    public List<ImageAnnotation> getAnnotations(UUID fieldId){
-        return imageAnnotationRepository.findByInspectionFieldId(fieldId);
+    public List<ImageAnnotation> getAnnotations(UUID imageId){
+        return imageAnnotationRepository.findByInspectionImageId(imageId);
     }
 
     public ResponseEntity<?> deleteAnnotation(UUID annotationId){

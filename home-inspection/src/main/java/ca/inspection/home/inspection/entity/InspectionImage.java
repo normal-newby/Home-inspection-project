@@ -42,5 +42,9 @@ public class InspectionImage {
     @JoinColumn(name = "inspection_field_id")
     private InspectionField inspectionField;
 
+    @OneToMany(mappedBy = "inspectionImage", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("inspectionImage-annotations")
+    private List<ImageAnnotation> annotations = new ArrayList<>();
+
     private Boolean used = false;
 }

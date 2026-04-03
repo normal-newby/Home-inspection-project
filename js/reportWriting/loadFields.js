@@ -17,6 +17,9 @@ const selectImageDiv = document.querySelector(".select-image-box");
 const existingImageDiv = document.querySelector(".existing-image-div");
 const existingImageText = document.querySelector(".existing-image-text");
 const existingImageImage = document.querySelector(".existing-image-image");
+
+const sharedState = { currentTool: null, deleteMode: false, colour: "#ff0000", strokeSize: "1" }; // Shared state for annotation tools
+
 const tools = existingImageDiv.querySelector(".annotation-tools");
 
 const saveNoteButton = document.getElementById("save-note");
@@ -205,7 +208,7 @@ function showExistingImage(images, fieldId){
             existingImageImage.hidden = false;
             existingImageImage.src = thumb.src;
             existingImageImage.onload = () => {
-                addAnnotationCanvas(existingImageDiv, existingImageImage, fieldId);
+                addAnnotationCanvas(existingImageDiv, existingImageImage, image.id);
                 tools.hidden = false;
             };
         });

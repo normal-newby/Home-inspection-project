@@ -73,7 +73,7 @@ public class ReportViewService {
         fields.forEach(field -> {
             if (field.getInspectionImages() != null && !field.getInspectionImages().isEmpty()){
                 field.getInspectionImages().forEach(image -> {
-                    String src = inspectionImagesService.toBase64(image.getId(), field.getAnnotations());
+                    String src = inspectionImagesService.toBase64(image.getId(), image.getAnnotations());
                     image.setBase64(src);
                 });
             }

@@ -12,8 +12,8 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString(exclude = {"inspectionField"})
-@EqualsAndHashCode(exclude = {"inspectionField"})
+@ToString(exclude = {"inspectionImage"})
+@EqualsAndHashCode(exclude = {"inspectionImage"})
 public class ImageAnnotation {
     @Id
     @GeneratedValue
@@ -21,9 +21,9 @@ public class ImageAnnotation {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "inspection_field_id", nullable = false)
-    @JsonBackReference("inspectionField-annotations")
-    private InspectionField inspectionField;
+    @JoinColumn(name = "inspection_image_id", nullable = false)
+    @JsonBackReference("inspectionImage-annotations")
+    private InspectionImage inspectionImage;
 
     @Column(name = "image_display_width")
     private Double imageDisplayWidth;

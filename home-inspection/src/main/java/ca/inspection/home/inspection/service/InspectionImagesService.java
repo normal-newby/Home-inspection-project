@@ -111,31 +111,33 @@ public class InspectionImagesService {
             Graphics2D graphics2D = img.createGraphics();
             graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            for (ImageAnnotation annotation : annotations){
-                Color color = Color.decode(annotation.getColor() == null ? "ff0000" : annotation.getColor());
-                graphics2D.setColor(color);
+            if (annotations != null) {
+                for (ImageAnnotation annotation : annotations){
+                    Color color = Color.decode(annotation.getColor() == null ? "ff0000" : annotation.getColor());
+                    graphics2D.setColor(color);
 
-                float stroke = Float.parseFloat(
-                        annotation.getStrokeWidth() == null ? "1" : annotation.getStrokeWidth());
-                graphics2D.setStroke(new BasicStroke(stroke));
+                    float stroke = Float.parseFloat(
+                            annotation.getStrokeWidth() == null ? "1" : annotation.getStrokeWidth());
+                    graphics2D.setStroke(new BasicStroke(stroke));
 
-                double scaleX = img.getWidth() / annotation.getImageDisplayWidth();
-                double scaleY = img.getHeight() / annotation.getImageDisplayHeight();
+                    double scaleX = img.getWidth() / annotation.getImageDisplayWidth();
+                    double scaleY = img.getHeight() / annotation.getImageDisplayHeight();
 
-                int x = (int)(annotation.getX() * scaleX);
-                int y = (int)(annotation.getY() * scaleY);
-                int width = (int)(annotation.getWidth() * scaleX);
-                int height = (int)(annotation.getHeight() * scaleY);
+                    int x = (int)(annotation.getX() * scaleX);
+                    int y = (int)(annotation.getY() * scaleY);
+                    int width = (int)(annotation.getWidth() * scaleX);
+                    int height = (int)(annotation.getHeight() * scaleY);
 
-                String type = annotation.getType();
-                switch (type) {
-                    case "rectangle" -> graphics2D.drawRect(x, y, width, height);
-                    case "ellipse" -> graphics2D.drawOval(x, y, width, height);
-                    case "text" -> {
-                        graphics2D.setFont(new Font("Arial", Font.PLAIN, (int) stroke));
-                        graphics2D.drawString(annotation.getContent(), x, y);
+                    String type = annotation.getType();
+                    switch (type) {
+                        case "rectangle" -> graphics2D.drawRect(x, y, width, height);
+                        case "ellipse" -> graphics2D.drawOval(x, y, width, height);
+                        case "text" -> {
+                            graphics2D.setFont(new Font("Arial", Font.PLAIN, (int) stroke));
+                            graphics2D.drawString(annotation.getContent(), x, y);
+                        }
+                        case "arrow" -> drawArrow(graphics2D, annotation, stroke);
                     }
-                    case "arrow" -> drawArrow(graphics2D, annotation, stroke);
                 }
             }
             graphics2D.dispose();

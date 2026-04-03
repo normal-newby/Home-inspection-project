@@ -1,4 +1,4 @@
-export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldId) {
+export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageId) {
     // Create canvas
     const canvas = document.createElement("canvas");
     canvas.width = existingImageImage.offsetWidth+4;
@@ -39,13 +39,25 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldI
     });
 
     // Load existing annotations
-    fetch(`http://localhost:8080/api/fields/${fieldId}/annotations`)
-        .then(response => response.json())
+    fetch(`http://localhost:8080/api/images/${imageId}/annotations`)
+        .then(response => {
+            if (response.status === 404 || response.status === 204) {
+                annotations = [];
+                return null;
+            } else {
+                return response.json();
+            }
+        })
         .then(data => {
-            annotations = data;
+            if (data) {
+                annotations = data;
+            }
             redrawAnnotations();
-        }
-    );
+        })
+        .catch(error => {
+            console.log("No existing annotations found");
+            annotations = [];
+        });
 
     function redrawAnnotations() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -206,11 +218,13 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldI
         if (ann.id) {
             fetch(`http://localhost:8080/api/annotations/${ann.id}/delete`, { method: "DELETE" })
             .then(response => response.text())
-            .then(data => console.log(data))
+            .then(data => {
+                console.log(data);
+                annotations = annotations.filter(a => a !== ann);
+                redrawAnnotations();
+            })
             .catch(error => console.error("Error deleting annotation:", error));
         }
-        annotations = annotations.filter(a => a !== ann);
-        redrawAnnotations();
     }
 
     canvas.addEventListener("mousedown", (e) => {
@@ -244,7 +258,6 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldI
                         break;
                     }
                 }
-                    
             }
             return; // don't start drawing when deleting
         }
@@ -370,10 +383,16 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, fieldI
 
             console.log('displayWidth:', ann.imageDisplayWidth, 'displayHeight:', ann.imageDisplayHeight);
             
-            fetch(`http://localhost:8080/api/fields/${fieldId}/annotations/save`, {
+            fetch(`http://localhost:8080/api/images/${imageId}/annotations/save`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(ann)
+            }).then(response => {
+                if (response.ok) {
+                    console.log("Annotation saved successfully");
+                }
+            }).catch(error => {
+                console.error("Error saving annotation:", error);
             });
         });
     });
