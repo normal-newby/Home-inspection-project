@@ -15,7 +15,7 @@ public interface InspectionFieldRepository extends JpaRepository<InspectionField
             FROM InspectionField f
             JOIN FETCH f.inspectionFieldDefinition d
             LEFT JOIN FETCH f.selectedValue
-            LEFT JOIN FETCH f.inspectionImage
+            LEFT JOIN FETCH f.inspectionImages
             WHERE f.inspectionReport.id = :report
             AND d.fieldPlace = :place
             AND d.fieldType = :type

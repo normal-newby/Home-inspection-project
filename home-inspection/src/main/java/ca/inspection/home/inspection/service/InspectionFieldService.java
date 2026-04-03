@@ -64,7 +64,7 @@ public class InspectionFieldService {
 
             InspectionField saved = inspectionFieldRepository.save(inspectionField);
 
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok().body(saved);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -101,11 +101,10 @@ public class InspectionFieldService {
                     .orElseThrow(() -> new RuntimeException("InspectionField not found"));
             InspectionImage image = inspectionImagesRepository.findById(imageId)
                     .orElseThrow(() -> new RuntimeException("InspectionImage not found"));
-            field.setInspectionImage(image);
-            image.getFields().add(field);
+            field.getInspectionImages().add(image);
             inspectionFieldRepository.save(field);
 
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok().body(field);
         } catch (Exception e){
             e.printStackTrace();
             return ResponseEntity.badRequest().build();
@@ -121,7 +120,7 @@ public class InspectionFieldService {
             System.out.println(note);
             field.setNote(note);
             inspectionFieldRepository.save(field);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok().body(field);
         } catch (Exception e){
             e.printStackTrace();
             return ResponseEntity.badRequest().build();
@@ -147,7 +146,7 @@ public class InspectionFieldService {
                     .orElseThrow(() -> new RuntimeException("InspectionField not found"));
             field.setIncludeInSummary(checked);
             inspectionFieldRepository.save(field);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok().body(field);
         } catch (Exception e){
             e.printStackTrace();
             return ResponseEntity.badRequest().build();
@@ -168,21 +167,23 @@ public class InspectionFieldService {
 
     // Annotations
 
-    public ResponseEntity<?> addAnnotation(UUID fieldId, ImageAnnotation annotation){
+    public ResponseEntity<?> addAnnotation(UUID imageId, ImageAnnotation annotation){
         try {
-            InspectionField field = inspectionFieldRepository.findById(fieldId)
-                    .orElseThrow(() -> new RuntimeException("InspectionField not found"));
-            annotation.setInspectionField(field);
+            InspectionImage image = inspectionImagesRepository.findById(imageId)
+                    .orElseThrow(() -> new RuntimeException("InspectionImage not found"));
+            annotation.setInspectionImage(image);
             imageAnnotationRepository.save(annotation);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok().body(annotation);
         } catch (Exception e){
             e.printStackTrace();
             return ResponseEntity.badRequest().build();
         }
     }
 
-    public List<ImageAnnotation> getAnnotations(UUID fieldId){
-        return imageAnnotationRepository.findByInspectionFieldId(fieldId);
+    public List<ImageAnnotation> getAnnotations(UUID imageId){
+        InspectionImage image = inspectionImagesRepository.findById(imageId)
+                .orElseThrow();
+        return image.getAnnotations();
     }
 
     public ResponseEntity<?> deleteAnnotation(UUID annotationId){
@@ -190,7 +191,7 @@ public class InspectionFieldService {
             ImageAnnotation annotation = imageAnnotationRepository.findById(annotationId)
                     .orElseThrow(() -> new RuntimeException("Annotation not found"));
             imageAnnotationRepository.delete(annotation);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok().body(Map.of("deleted", true));
         } catch (Exception e){
             e.printStackTrace();
             return ResponseEntity.badRequest().build();

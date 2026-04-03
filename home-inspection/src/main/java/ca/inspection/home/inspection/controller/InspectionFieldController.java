@@ -87,13 +87,13 @@ public class InspectionFieldController {
     // Annotations
 
     @PostMapping("/fields/{fieldId}/annotations/save")
-    public ResponseEntity<?> addAnnotation(@PathVariable UUID fieldId, @RequestBody ImageAnnotation annotation){
-        return inspectionFieldService.addAnnotation(fieldId, annotation);
+    public ResponseEntity<?> addAnnotation(@PathVariable UUID imageId, @RequestBody ImageAnnotation annotation){
+        return inspectionFieldService.addAnnotation(imageId, annotation);
     }
 
     @GetMapping("/fields/{fieldId}/annotations")
-    public List<ImageAnnotation> getAnnotations(@PathVariable UUID fieldId){
-        return inspectionFieldService.getAnnotations(fieldId);
+    public List<ImageAnnotation> getAnnotations(@PathVariable UUID imageId){
+        return inspectionFieldService.getAnnotations(imageId);
     }
 
     @DeleteMapping("/annotations/{annotationId}/delete")

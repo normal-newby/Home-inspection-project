@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -42,7 +43,7 @@ public class InspectionBookingsService {
         try {
             booking.setId(id);
             inspectionBookingsRepository.save(booking);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok().body(Map.of("success", true));
         } catch (Exception e){
             e.printStackTrace();
             return ResponseEntity.badRequest().build();

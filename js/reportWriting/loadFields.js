@@ -30,6 +30,10 @@ let currentRecommendationFieldId = null;
 
 let curField = null;
 
+window.addEventListener('beforeunload', () => {
+    console.trace('page is unloading');
+});
+
 function loadInspectionFieldDefinitions(){
     console.log(`Loading fields for place: ${place}, type: ${type}`);
     fetch(`http://localhost:8080/api/fields/definition/${encodeURIComponent(place)}/${encodeURIComponent(type)}/get`)
@@ -99,7 +103,10 @@ function createButton(parent, value, fieldName){ //Creates buttons for possible 
     const button = document.createElement("button");
     button.classList.add("value-button");
     button.textContent = value.value;
-    button.addEventListener("click", () => saveNewInspectionField(value.value, fieldName));
+    button.addEventListener("click", (e) => {
+        e.preventDefault();
+        saveNewInspectionField(value.value, fieldName);
+    });
     parent.appendChild(button);
 }
 
@@ -174,7 +181,7 @@ function showExistingImage(image, fieldId){
         existingImageImage.src = `http://localhost:8080/api/images/file/${image.id}`;
         existingImageImage.onload = () => {
             console.log(existingImageImage.offsetWidth, existingImageImage.offsetHeight);
-            addAnnotationCanvas(existingImageDiv, existingImageImage, fieldId);
+            addAnnotationCanvas(existingImageDiv, existingImageImage, image.id);
             tools.hidden = false;
         };
     }
@@ -248,7 +255,10 @@ lowerButtons.forEach(button => { //type buttons
     });
 });
 
-saveNoteButton.addEventListener("click", (e) => saveFunction(e, noteTextArea));
+saveNoteButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    saveFunction(e, noteTextArea)
+});
 
 recommendationsButton.addEventListener("click", () => {
     selectImageDiv.hidden = true;
@@ -260,7 +270,10 @@ recommendationsButton.addEventListener("click", () => {
     }
 });
 
-includeInSummaryBox.addEventListener("click", () => updateInSummary());
+includeInSummaryBox.addEventListener("click", (e) => { 
+    e.preventDefault();
+    updateInSummary()
+});
 
 
 document.addEventListener("click", (e) => {

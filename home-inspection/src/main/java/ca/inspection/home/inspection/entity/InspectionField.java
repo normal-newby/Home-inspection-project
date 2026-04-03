@@ -40,19 +40,14 @@ public class InspectionField {
     @JoinColumn(name = "inspection_field_definition_value_id")
     private InspectionFieldDefinitionValue selectedValue;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "inspection_image_id")
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "inspection_field_id")
     @JsonManagedReference("inspectionImage-fields")
-    private InspectionImage inspectionImage; //only used if fieldType is description, limitations
+    private List<InspectionImage> inspectionImages; //only used if fieldType is description, limitations
 
     @OneToOne(mappedBy = "inspectionField")
     @JsonManagedReference("inspectionField-recommendation")
     private InspectionRecommendationField inspectionRecommendationField; //only used if fieldType is recommendations
-
-    @OneToMany(mappedBy = "inspectionField", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference("inspectionField-annotations")
-    private List<ImageAnnotation> annotations = new ArrayList<>();
-
 
     @Column(name = "note")
     private String note;

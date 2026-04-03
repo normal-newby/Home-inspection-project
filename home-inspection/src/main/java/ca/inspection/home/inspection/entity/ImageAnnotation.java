@@ -20,10 +20,10 @@ public class ImageAnnotation {
     @Column(name = "id", columnDefinition = "TEXT")
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "inspection_field_id", nullable = false)
-    @JsonBackReference("inspectionField-annotations")
-    private InspectionField inspectionField;
+    @ManyToOne
+    @JoinColumn(name = "inspection_image_id")
+    @JsonBackReference("inspectionImage-annotations")
+    private InspectionImage inspectionImage;
 
     @Column(name = "image_display_width")
     private Double imageDisplayWidth;
