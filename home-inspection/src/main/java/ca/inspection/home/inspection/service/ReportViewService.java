@@ -5,6 +5,7 @@ import ca.inspection.home.inspection.entity.InspectionReport;
 import lombok.AllArgsConstructor;
 import org.apache.tomcat.util.http.fileupload.ByteArrayOutputStream;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -42,6 +43,9 @@ public class ReportViewService {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Value("${pdf.service.url}")
+    private String pdfServiceUrl;
 
     public Comparator<InspectionField> getComparator(){
         Comparator<InspectionField> fieldComparator = Comparator.comparingInt(f -> {
@@ -129,7 +133,7 @@ public class ReportViewService {
         HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
 
         ResponseEntity<byte[]> response = restTemplate.exchange(
-                "http://localhost:3001/generate-pdf",
+                pdfServiceUrl + "/generate-pdf",
                 HttpMethod.POST,
                 request,
                 byte[].class
