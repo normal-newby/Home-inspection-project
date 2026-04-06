@@ -9,6 +9,7 @@ import ca.inspection.home.inspection.repository.InspectionImagesRepository;
 import ca.inspection.home.inspection.repository.InspectionReportsRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
@@ -41,7 +42,12 @@ public class InspectionImagesService {
     @Autowired
     InspectionBookingsService inspectionBookingsService;
 
-    private static final Path DIRECTORY = Paths.get("D:\\Projects\\Home-inspection-project\\home-inspection\\src\\main\\resources\\assets\\images");
+    @Value("${app.upload-dir}")
+    private String uploadDir;
+
+    private Path getDirectory(){
+        return Paths.get(uploadDir);
+    }
 
     @Transactional
     public void saveImages(
@@ -54,7 +60,7 @@ public class InspectionImagesService {
             InspectionReport inspectionReport = inspectionBookingsService.getReportFromBooking(bookingId);
 
             //make sure path exists
-            Files.createDirectories(DIRECTORY);
+            Files.createDirectories(getDirectory());
 
             //iterate through each image upload and saves to file and database
             for (int i = 0; i < files.size(); i++) {
@@ -63,7 +69,7 @@ public class InspectionImagesService {
 
                 //creates filename
                 String fileName = UUID.randomUUID().toString() + ".jpg";
-                Path path = DIRECTORY.resolve(fileName);
+                Path path = getDirectory().resolve(fileName);
 
                 //saves to folder
                 file.transferTo(path.toFile());
@@ -91,7 +97,7 @@ public class InspectionImagesService {
         try {
             InspectionImage image = inspectionImagesRepository.getById(id);
 
-            Path filePath = DIRECTORY.resolve(image.getImageUrl());
+            Path filePath = getDirectory().resolve(image.getImageUrl());
             Resource resource = new UrlResource(filePath.toUri());
 
             return ResponseEntity.ok()
@@ -105,7 +111,7 @@ public class InspectionImagesService {
     public String toBase64(UUID id, List<ImageAnnotation> annotations){
         try {
             InspectionImage image = inspectionImagesRepository.getById(id);
-            Path filePath = DIRECTORY.resolve(image.getImageUrl());
+            Path filePath = getDirectory().resolve(image.getImageUrl());
             BufferedImage img = ImageIO.read(filePath.toFile());
 
             Graphics2D graphics2D = img.createGraphics();
@@ -180,7 +186,7 @@ public class InspectionImagesService {
             inspectionImagesRepository.delete(image);
 
             //delete from disk
-            Path path = DIRECTORY.resolve(image.getImageUrl());
+            Path path = getDirectory().resolve(image.getImageUrl());
             Files.deleteIfExists(path);
 
             return ResponseEntity.ok().build();

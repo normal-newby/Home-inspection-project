@@ -11,4 +11,4 @@ RUN pip install -r requirements.txt --break-system-packages
 COPY . .
 
 EXPOSE 3001
-CMD ["python", "app.py"]
+CMD ["python", "server.py"]
