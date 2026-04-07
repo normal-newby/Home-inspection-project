@@ -64,7 +64,7 @@ public class InspectionFieldService {
 
             InspectionField saved = inspectionFieldRepository.save(inspectionField);
 
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok(saved);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body(e.getMessage());

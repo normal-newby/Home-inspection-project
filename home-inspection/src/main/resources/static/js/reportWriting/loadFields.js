@@ -277,6 +277,7 @@ function saveNewInspectionField(value, fieldName){
     .then(response => response.json())
     .then(msg => {
         console.log(msg);
+        loadInspectionFieldDefinitions(); // Reload fields to show new input
     })
     .catch(error => console.log(error));
 }
