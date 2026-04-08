@@ -4,14 +4,28 @@ import ca.inspection.home.inspection.entity.InspectorProfile;
 import ca.inspection.home.inspection.repository.InspectorProfileRepository;
 import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Map;
 
 @Service
 public class InspectorProfileService {
 
     @Autowired
     private InspectorProfileRepository inspectorProfileRepository;
+
+    @Value("${app.upload-dir}")
+    private String uploadDir;
+
+    private Path getDirectory(){
+        return Paths.get(uploadDir);
+    }
 
     public InspectorProfile getProfile() {
         return inspectorProfileRepository.findById(1L)
@@ -23,6 +37,24 @@ public class InspectorProfileService {
             profile.setId(1L);
             inspectorProfileRepository.save(profile);
             return ResponseEntity.ok().build();
+        } catch (Exception e){
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    public ResponseEntity<?> uploadAppendixPdf(MultipartFile appendixPdf){
+        try {
+            InspectorProfile profile = getProfile();
+
+            String filename = "appendix.pdf";
+            Path path = getDirectory().resolve(filename);
+            appendixPdf.transferTo(path.toFile());
+
+            profile.setAppendixPdf(filename);
+            inspectorProfileRepository.save(profile);
+
+            return ResponseEntity.ok(Map.of("Saved", true));
         } catch (Exception e){
             e.printStackTrace();
             return ResponseEntity.badRequest().build();

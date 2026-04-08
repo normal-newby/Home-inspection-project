@@ -42,4 +42,6 @@ public class InspectorProfile {
 
     @Column(columnDefinition = "TEXT")
     private String agreementBody;
+
+    private String appendixPdf;
 }

@@ -35,6 +35,14 @@ export async function loadForm(URI, fields){
         if (!res.ok) throw new Error('Failed to load form');
         const form = await res.json();
         populateForm(fields, form);
+
+        if (form.appendixPdf) {
+            const label = document.getElementById("appendixPdfLabel");
+            if (label) {
+                label.textContent = `Current PDF: ${form.appendixPdf}`;
+            }
+        }
+
     } catch (err) {
         console.error('Error loading form:', err);
     }

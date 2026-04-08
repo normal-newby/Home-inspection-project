@@ -5,6 +5,7 @@ import ca.inspection.home.inspection.service.InspectorProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/profile")
@@ -23,5 +24,10 @@ public class InspectorProfileController {
     @PostMapping
     public ResponseEntity<?> saveProfile(@RequestBody InspectorProfile profile) {
         return inspectorProfileService.saveProfile(profile);
+    }
+
+    @PostMapping("/appendix-pdf")
+    public ResponseEntity<?> uploadAppendixPdf(@RequestParam MultipartFile appendixPdf){
+        return inspectorProfileService.uploadAppendixPdf(appendixPdf);
     }
 }
