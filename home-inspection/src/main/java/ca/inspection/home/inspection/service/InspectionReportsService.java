@@ -6,9 +6,16 @@ import ca.inspection.home.inspection.entity.InspectorProfile;
 import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
 import ca.inspection.home.inspection.repository.InspectionReportsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 @Service
 public class InspectionReportsService {
@@ -20,6 +27,13 @@ public class InspectionReportsService {
 
     @Autowired
     private InspectorProfileService inspectorProfileService;
+
+    @Value("${app.upload-dir}")
+    private String uploadDir;
+
+    private Path getDirectory(){
+        return Paths.get(uploadDir);
+    }
 
     public InspectionReport getOrCreateByBooking(UUID bookingId){
         InspectionReport report = inspectionReportsRepository.findByInspectionBooking_Id(bookingId);
@@ -36,5 +50,45 @@ public class InspectionReportsService {
         newReport.setSummary(profile.getSummaryLetterBody());
 
         return inspectionReportsRepository.save(newReport);
+    }
+
+    public ResponseEntity<?> updateReportData(UUID bookingId, Map<String, String> body){
+        try {
+            InspectionReport report = getOrCreateByBooking(bookingId);
+
+            Map<String, Consumer<String>> setters = Map.of(
+                    "summary", report::setSummary
+            );
+
+            setters.forEach((key, setter) ->{
+                if (body.containsKey(key)) {
+                    setter.accept(body.get(key));
+                }
+            });
+
+            inspectionReportsRepository.save(report);
+            return ResponseEntity.ok(report);
+        } catch (Exception e){
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    public ResponseEntity<?> updateAppendixPdf(UUID bookingId, MultipartFile pdf){
+        try {
+            InspectionReport report = getOrCreateByBooking(bookingId);
+
+            String fileName = "appendix_" + bookingId + ".pdf";
+            Path path = getDirectory().resolve(fileName);
+            pdf.transferTo(path.toFile());
+
+            report.setAppendixPdf(fileName);
+            inspectionReportsRepository.save(report);
+
+            return ResponseEntity.ok(report);
+        } catch (Exception e){
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
     }
 }

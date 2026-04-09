@@ -31,6 +31,8 @@ public class InspectionReport {
     @Column(columnDefinition = "TEXT")
     private String summary;
 
+    private String appendixPdf;
+
     @OneToMany(mappedBy = "inspectionReport", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private Set<InspectionImage> images = new HashSet<>();
