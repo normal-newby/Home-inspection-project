@@ -29,7 +29,10 @@ saveImagesButton.addEventListener("click", (e) => {
         method: "POST",
         body: formData
     })
-    .then(response => console.log(response))
+    .then(response => {
+        console.log(response);
+        initialize();
+    })
     .catch(error => {
         console.log(error);
     });
@@ -90,10 +93,14 @@ export async function initImagesSlider(bookingId, container, getUsedForReport = 
 
 let currentImageId = null;
 
-const track = await initImagesSlider(bookingId,bodyDiv)
-track.querySelectorAll("img").forEach(img => {
-    img.addEventListener("dblclick", (e) => imageClickFunction(e));
-});
+async function initialize(){
+    const track = await initImagesSlider(bookingId,bodyDiv);
+    track.querySelectorAll("img").forEach(img => {
+        img.addEventListener("dblclick", (e) => imageClickFunction(e));
+    });
+}
+
+initialize();
 
 function imageClickFunction(e){
     showImagesDiv.hidden = false;

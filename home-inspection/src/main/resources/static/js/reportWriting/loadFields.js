@@ -112,7 +112,8 @@ function createExistingField(parent, field){ // Creates buttons for already inpu
 
     button.addEventListener("contextmenu", (e) => { // Right click to delete
         e.preventDefault();
-        deleteInspectionField(button.dataset.id)
+        deleteInspectionField(button.dataset.id);
+        loadInspectionFieldDefinitions();
     });
 
     button.addEventListener("dblclick", (e) => { // Double click to change image
@@ -126,7 +127,7 @@ function createExistingField(parent, field){ // Creates buttons for already inpu
         showExistingImage(field.inspectionImages, button.dataset.id);
         selectImageDiv.hidden = false;
 
-        addExistingImages(bookingId, selectImageDiv, button.dataset.id); // Add images to select from
+        addExistingImages(bookingId, selectImageDiv, button.dataset.id, field.inspectionImages); // Add images to select from
 
         fetchExisting(`http://localhost:8080/api/fields/${button.dataset.id}/note`, noteTextArea); // Fetch existing note for the field
 
@@ -141,12 +142,12 @@ function createExistingField(parent, field){ // Creates buttons for already inpu
     parent.appendChild(button);
 }
 
-async function addExistingImages(bookingId, selectImageDiv, fieldId){
+async function addExistingImages(bookingId, selectImageDiv, fieldId, images){
     const track = await initImagesSlider(bookingId, selectImageDiv, true); // Initialize slider with only images not used for report
     track.querySelectorAll("img").forEach(img => {
         img.addEventListener("dblclick", (e) => {
             e.preventDefault();
-            selectImageFunction(img.dataset.imageId, fieldId); // If image is double clicked, link it to the field
+            selectImageFunction(bookingId, selectImageDiv, img.dataset.imageId, fieldId, images); // If image is double clicked, link it to the field
         });
     });
 }
@@ -288,11 +289,16 @@ function deleteInspectionField(id){
     );
 }
 
-function selectImageFunction(imageId, fieldId){
+function selectImageFunction(bookingId, selectImageDiv, imageId, fieldId, images){
     fetch(`http://localhost:8080/api/fields/${fieldId}/${imageId}`,
         { method: "PUT" }
     )
-    .then(console.log("Image linked"))
+    .then(() => {
+        console.log("Image linked");
+        images.push({ id: imageId });
+        addExistingImages(bookingId, selectImageDiv, fieldId, images); // Refresh gallery
+        showExistingImage(images, fieldId); // Refresh existing images
+    })
     .catch(error => console.log(error))
 }
 
