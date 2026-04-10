@@ -15,10 +15,7 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -112,7 +109,7 @@ public class ReportViewService {
 
     }
 
-    public byte[] generatePdf(String templateName, Context context){
+    public byte[] generatePdf(String templateName, Context context, UUID bookingId){
         try {
             // Read CSS file and inject into context
             String css = new String(getClass()
@@ -129,8 +126,8 @@ public class ReportViewService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        Map<String, String> body = Map.of("html", html);
-        HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
+        Map<String, Object> body = Map.of("html", html, "bookingId", bookingId);
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
 
         ResponseEntity<byte[]> response = restTemplate.exchange(
                 pdfServiceUrl + "/generate-pdf",

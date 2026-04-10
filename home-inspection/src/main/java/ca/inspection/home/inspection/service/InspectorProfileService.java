@@ -1,5 +1,6 @@
 package ca.inspection.home.inspection.service;
 
+import ca.inspection.home.inspection.entity.InspectionReport;
 import ca.inspection.home.inspection.entity.InspectorProfile;
 import ca.inspection.home.inspection.repository.InspectorProfileRepository;
 import org.apache.coyote.Response;
@@ -13,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class InspectorProfileService {
@@ -58,6 +60,17 @@ public class InspectorProfileService {
         } catch (Exception e){
             e.printStackTrace();
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    public Path getAppendixPdfPath(){
+        try {
+            InspectorProfile profile = getProfile();
+
+            return getDirectory().resolve(profile.getAppendixPdf());
+        } catch (Exception e){
+            e.printStackTrace();
+            return null;
         }
     }
 

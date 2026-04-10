@@ -17,3 +17,5 @@ services:
     build: ./pdf-service
     ports:
       - "3001:3001"
+    environment:
+      - SPRING_BASE_URL=http://backend:8080

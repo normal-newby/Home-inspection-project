@@ -31,4 +31,9 @@ public class InspectionReportsController {
     public ResponseEntity<?> updateAppendixPdf(@PathVariable UUID bookingId, @RequestParam MultipartFile file){
         return inspectionReportsService.updateAppendixPdf(bookingId, file);
     }
+
+    @GetMapping("/reports/{bookingId}/appendix-pdf")
+    public ResponseEntity<?> getAppendixPdf(@PathVariable UUID bookingId){
+        return inspectionReportsService.getAppendixPdf(bookingId);
+    }
 }

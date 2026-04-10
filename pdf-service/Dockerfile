@@ -3,7 +3,8 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
     weasyprint \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install pypdf requests --break-system-packages
 
 COPY requirements.txt .
 RUN pip install -r requirements.txt --break-system-packages

@@ -7,10 +7,15 @@ import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
 import ca.inspection.home.inspection.repository.InspectionReportsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
@@ -88,6 +93,30 @@ public class InspectionReportsService {
             return ResponseEntity.ok(report);
         } catch (Exception e){
             e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    public ResponseEntity<?> getAppendixPdf(UUID bookingId){
+        try {
+            InspectionReport report = getOrCreateByBooking(bookingId);
+
+            Path path = null;
+            if (report.getAppendixPdf() != null) {
+                path = getDirectory().resolve(report.getAppendixPdf());
+            } else {
+                path = inspectorProfileService.getAppendixPdfPath();
+            }
+            Resource resource = new FileSystemResource(path.toFile());
+            String contentType = Files.probeContentType(path);
+            if (contentType == null) contentType = "application/pdf";
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + path.getFileName() + "\"")
+                    .body(resource);
+
+        } catch (Exception e){
             return ResponseEntity.badRequest().build();
         }
     }

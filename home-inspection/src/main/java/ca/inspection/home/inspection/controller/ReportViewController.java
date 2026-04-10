@@ -49,32 +49,6 @@ public class ReportViewController {
 
     @Autowired
     private ReportViewService reportViewService;
-    /*
-    @GetMapping("/{bookingId}")
-    public String viewReport(@PathVariable UUID bookingId, Model model) {
-        InspectorProfile profile = inspectorProfileService.getProfile();
-
-        InspectionBookings booking = inspectionBookingsService.findById(bookingId);
-
-        InspectionReport report = inspectionReportsService.getOrCreateByBooking(bookingId);
-
-        Comparator<InspectionField> fieldComparator = reportViewService.getComparator();
-
-        List<InspectionField> fields = reportViewService.getSortedFields(
-                report, fieldComparator
-        );
-
-        Map<String, Map<String, List<InspectionField>>> allFields = reportViewService.getAllFields(fields);
-
-        Map<String, Map<String, List<InspectionField>>> summaryFields = reportViewService.getSummaryFields(fields);
-
-        model.addAttribute("booking", booking);
-        model.addAttribute("profile", profile);
-        model.addAttribute("summaryFields", summaryFields);
-        model.addAttribute("allFields", allFields);
-        model.addAttribute("report", report);
-        return "report";
-    }*/
 
     @GetMapping(value = "/{bookingId}", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<byte[]> getReport(@PathVariable UUID bookingId){
@@ -98,7 +72,7 @@ public class ReportViewController {
         context.setVariable("allFields", allFields);
         context.setVariable("report", report);
 
-        byte[] pdf = reportViewService.generatePdf("report", context);
+        byte[] pdf = reportViewService.generatePdf("report", context, bookingId);
 
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
                 "inline; filename = report-" + bookingId + ".pdf")
