@@ -1,13 +1,22 @@
 from flask import Flask, request, send_file
 from weasyprint import HTML
 from pypdf import PdfReader, PdfWriter
-import requests
-import io
-import os
+import requests, io, os, fitz, base64
 
 SPRING_BASE_URL = os.getenv("SPRING_BASE_URL", "http://localhost:8080")
 
 app = Flask(__name__)
+
+def pdf_to_svg(pdf_bytes: bytes) -> str:
+    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+    html = ""
+    for page in doc:
+        svg = page.get_svg_image()
+        html += f'''
+        <div class="appendix-page">{svg}</div>
+        '''
+    return html
+
 
 @app.route('/generate-pdf', methods=['POST'])
 def generate_pdf():
@@ -23,18 +32,14 @@ def generate_pdf():
         appendix_response.raise_for_status()
         appendix_pdf_bytes = appendix_response.content
 
-        writer = PdfWriter()
+        appendix_html = pdf_to_svg(appendix_pdf_bytes)
 
-        for reader in [PdfReader(io.BytesIO(pdf_bytes)), PdfReader(io.BytesIO(appendix_pdf_bytes))]:
-            for page in reader.pages:
-                writer.add_page(page)
-        
-        output_pdf_bytes = io.BytesIO()
-        writer.write(output_pdf_bytes)
-        output_pdf_bytes.seek(0)
+        html = html.replace("</body>", f"{appendix_html}</body>")
+
+        output_pdf_bytes = HTML(string=html).write_pdf()
         
         return send_file(
-            output_pdf_bytes,
+            io.BytesIO(output_pdf_bytes),
             mimetype='application/pdf'
         )
     

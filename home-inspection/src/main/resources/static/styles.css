@@ -604,3 +604,15 @@ body {
     color: var(--ink-light);
     line-height: 1.5;
 }
+
+/* Appendix Page */
+
+.appendix-page {
+    break-before: page;
+    display: block;
+}
+
+.appendix-page svg {
+    width: 100%;
+    height: auto;
+}
