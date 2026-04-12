@@ -150,7 +150,54 @@
                 </select>
             </div>
         </div>
-    
+
+        <!-- Invoice -->
+        <div class="card">
+            <div class="card-title">Invoice</div>
+
+            <div class="field">
+                <label>Current Invoices</label>
+                <div class="invoice-list" id="invoice-list"></div>
+                <div class="add-invoice">
+                    <select id="select-from-template">
+                        <option value="" disabled selected>Add from template</option>
+                    </select>
+                    <button type="button" class="btn btn-secondary" id="add-invoice-btn">+ Add Invoice</button>
+                </div>
+
+                <button type="button" class="btn btn-secondary" id="add-template-btn">+ Create Template</button>
+
+                <div class="card" id="template-form">
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="type">Type</label>
+                            <input type="text" id="type" placeholder="Home Inspection">
+                        </div>
+                        <div class="field">
+                            <label for="fee">Fee ($)</label>
+                            <input type="number" id="fee" placeholder="0.00" min="0" step="0.01">
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-primary" id="save-template-btn">Save Template</button>
+                </div>
+
+            </div>
+            
+            <hr class="divider">
+            
+            <div class="total">
+                <label>Total:</label>
+                <span id="totalAmount">$0.00</span>
+            </div>
+
+            <hr class="divider">
+
+            <div class="checkbox-field">
+                <input type="checkbox" id="paidInFull">
+                <label for="paidInFull">Paid in Full</label>
+            </div>
+        </div>
+
         <div class="actions">
             <button type="reset" id="resetBtn" class="btn btn-secondary">Reset</button>
             <button type="submit" id="saveBtn" class="btn btn-primary">Save Profile</button>

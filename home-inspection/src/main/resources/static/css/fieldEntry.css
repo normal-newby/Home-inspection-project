@@ -154,6 +154,108 @@
     color: var(--muted);
 }
 
+/* ── Invoice list ── */
+
+.invoice-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.invoice-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.9rem;
+    font-weight: 300;
+    color: var(--ink);
+}
+
+.invoice-item .invoice-type { flex: 1; }
+
+.invoice-item .invoice-fee {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-right: 1rem;
+}
+
+.remove-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0 0.2rem;
+}
+
+.remove-btn:hover { color: #c0392b; }
+
+/* ── Template builder ── */
+
+.add-invoice {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-end;
+    margin-top: 0.75rem;
+}
+
+.add-invoice select { flex: 1; }
+
+#template-form {
+    display: none;
+}
+
+#template-form.open {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 1.25rem 0;
+}
+
+.total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.total span:last-child {
+    font-size: 1rem;
+    color: var(--ink);
+    font-weight: 400;
+}
+
+.checkbox-field {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.25rem;
+}
+
+.checkbox-field label {
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+}
+
 /* ── Actions ── */
 .actions {
     display: flex;

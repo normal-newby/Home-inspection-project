@@ -11,6 +11,8 @@ import org.hibernate.annotations.Type;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Entity
@@ -47,6 +49,11 @@ public class InspectionBookings {
     // Metadata
     private String referredBy;
     private String bookedBy;
+
+    // Invoice
+    @OneToMany(mappedBy = "bookings", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Invoice> invoices;
+    private Boolean paidInFull;
 
     @OneToOne(mappedBy = "inspectionBooking", cascade = CascadeType.ALL, optional = true)
     @JsonManagedReference("reportBooking")

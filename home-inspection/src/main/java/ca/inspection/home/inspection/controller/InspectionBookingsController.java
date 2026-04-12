@@ -1,6 +1,7 @@
 package ca.inspection.home.inspection.controller;
 
 import ca.inspection.home.inspection.entity.InspectionBookings;
+import ca.inspection.home.inspection.entity.Invoice;
 import ca.inspection.home.inspection.service.InspectionBookingsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -34,5 +35,15 @@ public class InspectionBookingsController {
     @PutMapping("/bookings/{id}")
     public ResponseEntity<?> updateBooking(@PathVariable UUID id, @RequestBody InspectionBookings bookings){
         return inspectionBookingsService.updateBooking(id, bookings);
+    }
+
+    @PostMapping("/bookings/{id}/invoice/{templateId}")
+    public Invoice addInvoiceToBooking(@PathVariable UUID id, @PathVariable UUID templateId){
+        return inspectionBookingsService.addInvoiceToBooking(id, templateId);
+    }
+
+    @DeleteMapping("/bookings/{id}/invoice/{invoiceId}")
+    public ResponseEntity<?> deleteInvoiceFromBooking(@PathVariable UUID id, @PathVariable UUID invoiceId){
+        return inspectionBookingsService.deleteInvoiceFromBooking(id, invoiceId);
     }
 }

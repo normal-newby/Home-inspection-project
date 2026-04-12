@@ -1,7 +1,6 @@
 from flask import Flask, request, send_file
 from weasyprint import HTML
-from pypdf import PdfReader, PdfWriter
-import requests, io, os, fitz, base64
+import requests, io, os, fitz
 
 SPRING_BASE_URL = os.getenv("SPRING_BASE_URL", "http://localhost:8080")
 

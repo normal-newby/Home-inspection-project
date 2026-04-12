@@ -9,7 +9,7 @@ function collectForm(fields) {
     const form = {};
     fields.forEach(f => {
         const el = document.getElementById(f);
-        if (el) form[f] = el.value;
+        if (el) form[f] = el.type === "checkbox" ? el.checked : el.value;
     });
     return form;
 }
@@ -24,6 +24,7 @@ export async function saveForm(URI, fields, method = "POST") {
         });
         console.log(res);
         if (!res.ok) throw new Error('Failed to save form');
+        return await res.json();
     } catch (err) {
         console.error('Error saving form:', err);
     }
