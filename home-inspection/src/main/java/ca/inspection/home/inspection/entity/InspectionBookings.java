@@ -52,7 +52,9 @@ public class InspectionBookings {
 
     // Invoice
     @OneToMany(mappedBy = "bookings", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("invoices")
     private List<Invoice> invoices;
+
     private Boolean paidInFull;
 
     @OneToOne(mappedBy = "inspectionBooking", cascade = CascadeType.ALL, optional = true)

@@ -5,7 +5,7 @@ function populateForm(fields, profile) {
     });
 }
  
-function collectForm(fields) {
+export function collectForm(fields) {
     const form = {};
     fields.forEach(f => {
         const el = document.getElementById(f);
@@ -43,6 +43,8 @@ export async function loadForm(URI, fields){
                 label.textContent = `Current PDF: ${form.appendixPdf}`;
             }
         }
+
+        if (form.invoices) return form.invoices; // Return invoices for further processing
 
     } catch (err) {
         console.error('Error loading form:', err);

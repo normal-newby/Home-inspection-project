@@ -1,5 +1,6 @@
 package ca.inspection.home.inspection.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,5 +24,6 @@ public class Invoice {
 
     @ManyToOne
     @JoinColumn(name = "booking_id")
+    @JsonBackReference("invoices")
     private InspectionBookings bookings;
 }

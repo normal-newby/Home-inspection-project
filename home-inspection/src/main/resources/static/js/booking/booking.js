@@ -1,4 +1,4 @@
-import { saveForm, loadForm } from "../formFactory.js";
+import { collectForm, saveForm, loadForm } from "../formFactory.js";
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
@@ -7,14 +7,42 @@ const fields = ["inspectionAddress", "suite", "city", "postalCode", "province", 
     "clientFirstName", "clientLastName", "email", "phone", // Client
     "month", "day", "year", // Date
     "referredBy", "bookedBy", // Data
-    "invoices", "paidInFull", // Invoice
+    "paidInFull", // Invoice
 ];
 
-// Save
+// Save & Load
 const saveBtn = document.getElementById("saveBtn");
 const method = id ? "PUT" : "POST";
-saveBtn.addEventListener("click", () => {saveForm(URI, fields, method)});
-if (id) loadForm(URI, fields);
+saveBtn.addEventListener("click", () => saveWithInvoices());
+
+async function saveWithInvoices() {
+    const bookingForm = collectForm(fields);
+    const invoices = [];
+    invoiceList.querySelectorAll(".invoice-item").forEach(item => {
+        const id = item.dataset.invoiceId.startsWith("local-") ? null : item.dataset.invoiceId; // Ignore local IDs
+        const type = item.querySelector(".invoice-type").textContent;
+        const fee = parseFloat(item.querySelector(".invoice-fee").textContent.replace("$", ""));
+        invoices.push({ id, type, fee });
+    });
+    bookingForm.invoices = invoices;
+
+    try {
+        const res = await fetch(URI, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bookingForm)
+        });
+        console.log(res);
+        if (!res.ok) throw new Error('Failed to save form');
+    } catch (err) {
+        console.error('Error saving form:', err);
+    }
+}
+
+async function loadWithInvoices() {
+    const invoices = await loadForm(URI, fields);
+    invoices.forEach(invoice => createInvoice(invoice));
+}
 
 // Invoice
 const addInvoiceBtn = document.getElementById("add-invoice-btn");
@@ -46,49 +74,21 @@ function createInvoice(invoice){
 }
 
 addInvoiceBtn.addEventListener("click", () => {
-    const selectedTemplateId = templateSelector.value;
-    fetch(`http://localhost:8080/api/bookings/${id}/invoice/${selectedTemplateId}`, {
-        method: "POST",
-        headers: { 'Content-Type': 'application/json' },
-    })
-    .then(res => {
-        if (!res) throw new Error("Failed to add invoice");
-        return res.json();
-    })
-    .then(invoice => {
+    const selected = templateSelector.options[templateSelector.selectedIndex];
+    if (selected && selected.value) {
+        const [type, fee] = selected.textContent.split(" - $");
+        const invoice = {
+            id: `local-${Date.now()}`, // Temporary ID for client-side management
+            type: type,
+            fee: parseFloat(fee)
+        };
         createInvoice(invoice);
-    })
-    .catch(err => console.error("Failed to add invoice:", err));
+    }
 });
 
 function removeInvoice(invoiceId){
-    fetch(`http://localhost:8080/api/bookings/${id}/invoice/${invoiceId}`, {
-        method: "DELETE",
-        headers: { 'Content-Type': 'application/json' },
-    })
-    .then(res => {
-        if (!res) throw new Error("Failed to remove invoice");
-        const invoiceItem = invoiceList.querySelector(`[data-invoice-id="${invoiceId}"]`);
-        invoiceItem.remove();
-    })
-    .catch(err => console.error("Failed to remove invoice:", err));
-}
-
-function fetchInvoices() {
-    fetch(`http://localhost:8080/api/bookings/${id}/invoices`, {
-        method: "GET",
-        headers: { 'Content-Type': 'application/json' },
-    })
-    .then(res => {
-        if (!res) throw new Error("Failed to fetch invoices");
-        return res.json();
-    })
-    .then(invoices => {
-        invoices.forEach(invoice => {
-            createInvoice(invoice);
-        });
-    })
-    .catch(err => console.error("Failed to fetch invoices:", err));
+    const invoiceItem = invoiceList.querySelector(`[data-invoice-id="${invoiceId}"]`);
+    invoiceItem.remove();
 }
 
 // Templates
@@ -123,5 +123,5 @@ async function loadTemplates() {
     });
 }
 
+if (id) loadWithInvoices();
 loadTemplates();
-if (id) fetchInvoices();
