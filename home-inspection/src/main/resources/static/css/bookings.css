@@ -45,10 +45,10 @@
 }
 
 .booking-right {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 8px;
+    display: grid;
+    grid-template-areas: "view write" ". remove";
+    gap: 4px;
+    justify-items: end;
 }
 
 .booking-link {
@@ -79,3 +79,16 @@
 .booking-link.secondary:hover {
     background: var(--paper);
 }
+
+.booking-link.view-details {
+    justify-self: start;
+}
+
+.booking-link.remove-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+}
+
+.booking-link.remove-btn:hover { color: #c0392b; }

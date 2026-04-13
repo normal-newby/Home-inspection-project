@@ -51,4 +51,15 @@ public class InspectionBookingsService {
             return ResponseEntity.badRequest().build();
         }
     }
+
+    public ResponseEntity<?> deleteBooking(UUID id){
+        try {
+            InspectionBookings bookings = findById(id);
+            inspectionBookingsRepository.delete(bookings);
+            return ResponseEntity.ok().build();
+        } catch (Exception e){
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
 }

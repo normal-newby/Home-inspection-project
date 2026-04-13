@@ -36,4 +36,9 @@ public class InspectionBookingsController {
     public ResponseEntity<?> updateBooking(@PathVariable UUID id, @RequestBody InspectionBookings bookings){
         return inspectionBookingsService.updateBooking(id, bookings);
     }
+
+    @DeleteMapping("/bookings/{id}")
+    public ResponseEntity<?> deleteBooking(@PathVariable UUID id){
+        return inspectionBookingsService.deleteBooking(id);
+    }
 }

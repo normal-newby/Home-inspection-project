@@ -44,7 +44,7 @@ public class InspectionField {
     @JsonManagedReference("inspectionField-images")
     private List<InspectionImage> inspectionImages = new ArrayList<>(); //multiple images per field
 
-    @OneToOne(mappedBy = "inspectionField")
+    @OneToOne(mappedBy = "inspectionField", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference("inspectionField-recommendation")
     private InspectionRecommendationField inspectionRecommendationField; //only used if fieldType is recommendations
 
