@@ -42,12 +42,34 @@ async function saveWithInvoices() {
 async function loadWithInvoices() {
     const invoices = await loadForm(URI, fields);
     invoices.forEach(invoice => createInvoice(invoice));
+    calculateTotals();
 }
 
 // Invoice
 const addInvoiceBtn = document.getElementById("add-invoice-btn");
 const invoiceList = document.getElementById("invoice-list");
 const templateSelector = document.getElementById("select-from-template");
+
+// Amounts
+const subtotalSpan = document.getElementById("subtotalAmount");
+const hstSpan = document.getElementById("hstAmount");
+const gstSpan = document.getElementById("gstAmount");
+const totalSpan = document.getElementById("totalAmount");
+const HST_RATE = 0.13;
+const GST_RATE = 0.05;
+
+function calculateTotals() {
+    let total = 0;
+    invoiceList.querySelectorAll(".invoice-fee").forEach(span => {
+        total += parseFloat(span.textContent.replace("$", ""));
+    });
+    const hst = total * HST_RATE;
+    const gst = total * GST_RATE;
+    subtotalSpan.textContent = `$${total.toFixed(2)}`;
+    hstSpan.textContent = `$${hst.toFixed(2)}`;
+    gstSpan.textContent = `$${gst.toFixed(2)}`;
+    totalSpan.textContent = `$${(total + hst + gst).toFixed(2)}`;
+}
 
 function createInvoice(invoice){
     const invoiceItem = document.createElement("div");
@@ -61,6 +83,8 @@ function createInvoice(invoice){
     const invoiceFee = document.createElement("span");
     invoiceFee.textContent = `$${invoice.fee.toFixed(2)}`;
     invoiceFee.classList.add("invoice-fee");
+
+    calculateTotals();
 
     const removeBtn = document.createElement("button");
     removeBtn.textContent = "✕";
@@ -83,6 +107,7 @@ addInvoiceBtn.addEventListener("click", () => {
             fee: parseFloat(fee)
         };
         createInvoice(invoice);
+        calculateTotals();
     }
 });
 

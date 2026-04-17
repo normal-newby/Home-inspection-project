@@ -223,7 +223,13 @@
     margin: 1.25rem 0;
 }
 
-.total {
+.fee-container {
+    display: flex;
+    gap: 0.75rem;
+    flex-direction: column;
+}
+
+.fee-container > div {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -234,7 +240,7 @@
     text-transform: uppercase;
 }
 
-.total span:last-child {
+.fee-container > div > span {
     font-size: 1rem;
     color: var(--ink);
     font-weight: 400;
