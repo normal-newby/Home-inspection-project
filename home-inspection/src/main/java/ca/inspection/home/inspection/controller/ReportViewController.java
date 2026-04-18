@@ -1,9 +1,7 @@
 package ca.inspection.home.inspection.controller;
 
-import ca.inspection.home.inspection.entity.InspectionBookings;
-import ca.inspection.home.inspection.entity.InspectionField;
-import ca.inspection.home.inspection.entity.InspectionReport;
-import ca.inspection.home.inspection.entity.InspectorProfile;
+import ca.inspection.home.inspection.DTO.InvoiceAmount;
+import ca.inspection.home.inspection.entity.*;
 import ca.inspection.home.inspection.service.InspectionBookingsService;
 import ca.inspection.home.inspection.service.InspectionReportsService;
 import ca.inspection.home.inspection.service.InspectorProfileService;
@@ -56,6 +54,7 @@ public class ReportViewController {
 
         InspectorProfile profile = inspectorProfileService.getProfile();
         InspectionBookings booking = inspectionBookingsService.findById(bookingId);
+        InvoiceAmount amount = inspectionBookingsService.buildInvoiceAmount(booking.getInvoices());
         InspectionReport report = inspectionReportsService.getOrCreateByBooking(bookingId);
 
         Comparator<InspectionField> fieldComparator = reportViewService.getComparator();
@@ -67,6 +66,7 @@ public class ReportViewController {
         Map<String, List<InspectionField>> summaryFields = reportViewService.getSummaryFields(fields);
 
         context.setVariable("booking", booking);
+        context.setVariable("invoiceAmount", amount);
         context.setVariable("profile", profile);
         context.setVariable("summaryFields", summaryFields);
         context.setVariable("allFields", allFields);

@@ -55,7 +55,7 @@ const subtotalSpan = document.getElementById("subtotalAmount");
 const hstSpan = document.getElementById("hstAmount");
 const gstSpan = document.getElementById("gstAmount");
 const totalSpan = document.getElementById("totalAmount");
-const HST_RATE = 0.13;
+const HST_RATE = 0.08;
 const GST_RATE = 0.05;
 
 function calculateTotals() {

@@ -106,6 +106,53 @@
 
 </div>
 
+<!-- ===================== INVOICE PAGE ===================== -->
+<div id="invoice-page" class="page-break-after">
+    <h2 class="invoice-header">INVOICE</h2>
+
+    <div class="invoice-date" th:text="|${booking.month} ${booking.day}, ${booking.year}|"></div>
+    <div class="invoice-client" th:text="|Client: ${booking.clientFirstName} ${booking.clientLastName}|"></div>
+
+    <div class="invoice-info">
+        <span th:text="|Report No. ${booking.inspectionNumber}"></span>
+        <div class="invoice-info-address">
+            <span class="invoice-address-title"></span>
+            <span th:text="${booking.inspectionAddress}"></span>
+            <span th:text="|${booking.city}, ${booking.province}"></span>
+            <span th:text="${booking.postalCode}"></span>
+        </div>
+        <span th:text="|on: ${booking.month} ${booking.day}, ${booking.year}"></span>
+    </div>
+
+    <table class="invoice-table">
+        <thead><tr>
+            <th>Type</th>
+            <th>Fee</th>
+        </tr></thead>
+        <tr th:each="invoice : ${booking.invoices}">
+            <td th:text="${invoice.type}"></td>
+            <td th:text="${invoice.fee}"></td>
+        </tr>
+        <tr>
+            <td>Subtotal</td>
+            <td th:text="${invoiceAmount.subtotal}"></td>
+        </tr>
+        <tr>
+            <td>HST</td>
+            <td th:text="${invoiceAmount.hst}"></td>
+        </tr>
+        <tr>
+            <td>GST</td>
+            <td th:text="${invoiceAmount.gst}"></td>
+        </tr>
+        <tr>
+            <td>Total</td>
+            <td th:text="${invoiceAmount.total}"></td>
+        </tr>
+    </table>
+    <span class="paid-in-full" th:if="${booking.paidInFull}">PAID IN FULL - THANK YOU!</span>
+</div>
+
 <!-- ===================== AGREEMENT PAGE ===================== -->
 <div id="agreement-page" class="page-break-after">
 

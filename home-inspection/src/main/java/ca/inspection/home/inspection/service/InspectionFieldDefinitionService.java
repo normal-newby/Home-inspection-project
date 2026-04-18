@@ -1,8 +1,6 @@
 package ca.inspection.home.inspection.service;
 
-import ca.inspection.home.inspection.entity.InspectionField;
 import ca.inspection.home.inspection.entity.InspectionFieldDefinition;
-import ca.inspection.home.inspection.entity.InspectionFieldDefinitionValue;
 import ca.inspection.home.inspection.repository.InspectionFieldDefinitionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

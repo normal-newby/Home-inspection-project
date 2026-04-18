@@ -2,7 +2,6 @@ package ca.inspection.home.inspection.service;
 
 import ca.inspection.home.inspection.entity.*;
 import ca.inspection.home.inspection.repository.*;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -15,13 +14,7 @@ public class InspectionFieldService {
     private InspectionFieldRepository inspectionFieldRepository;
 
     @Autowired
-    private InspectionBookingsRepository inspectionBookingsRepository;
-
-    @Autowired
     private InspectionFieldDefinitionRepository inspectionFieldDefinitionRepository;
-
-    @Autowired
-    private InspectionFieldDefinitionValueRepository inspectionFieldDefinitionValueRepository;
 
     @Autowired
     private InspectionBookingsService inspectionBookingsService;

@@ -1,12 +1,15 @@
 package ca.inspection.home.inspection.service;
 
+import ca.inspection.home.inspection.DTO.InvoiceAmount;
 import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectionReport;
+import ca.inspection.home.inspection.entity.Invoice;
 import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -61,5 +64,15 @@ public class InspectionBookingsService {
             e.printStackTrace();
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    public InvoiceAmount buildInvoiceAmount(List<Invoice> invoices){
+        BigDecimal subtotal = invoices.stream()
+                .map(invoice -> BigDecimal.valueOf(invoice.getFee()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal hst = subtotal.multiply(new BigDecimal("0.08"));
+        BigDecimal gst = subtotal.multiply(new BigDecimal("0.05"));
+        BigDecimal total = subtotal.add(hst).add(gst);
+        return new InvoiceAmount(subtotal, hst, gst, total);
     }
 }
