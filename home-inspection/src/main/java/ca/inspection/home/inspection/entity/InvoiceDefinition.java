@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
@@ -19,5 +20,5 @@ public class InvoiceDefinition {
     private UUID id;
 
     private String type;
-    private Double fee;
+    private BigDecimal fee;
 }

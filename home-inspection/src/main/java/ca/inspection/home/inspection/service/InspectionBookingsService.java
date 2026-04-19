@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.UUID;
 
@@ -68,11 +69,16 @@ public class InspectionBookingsService {
 
     public InvoiceAmount buildInvoiceAmount(List<Invoice> invoices){
         BigDecimal subtotal = invoices.stream()
-                .map(invoice -> BigDecimal.valueOf(invoice.getFee()))
+                .map(Invoice::getFee)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal hst = subtotal.multiply(new BigDecimal("0.08"));
         BigDecimal gst = subtotal.multiply(new BigDecimal("0.05"));
         BigDecimal total = subtotal.add(hst).add(gst);
-        return new InvoiceAmount(subtotal, hst, gst, total);
+        return new InvoiceAmount(
+                subtotal.setScale(2, RoundingMode.HALF_UP),
+                hst.setScale(2, RoundingMode.HALF_UP),
+                gst.setScale(2, RoundingMode.HALF_UP),
+                total.setScale(2, RoundingMode.HALF_UP)
+        );
     }
 }

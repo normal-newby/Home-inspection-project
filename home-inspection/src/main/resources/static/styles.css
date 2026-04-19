@@ -329,6 +329,158 @@ body {
     color: var(--ink-light);
 }
 
+/* ── Invoice Page ── */
+
+#invoice-page {
+    padding: 10mm 0;
+}
+
+.invoice-header {
+    font-size: 18pt;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-bottom: 1mm;
+}
+
+.invoice-date {
+    font-size: 9pt;
+    color: var(--muted);
+    margin-bottom: 1mm;
+}
+
+.invoice-client {
+    font-size: 11pt;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 8mm;
+}
+
+/* ── Invoice info block ── */
+
+.invoice-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 3px;
+    padding: 5mm 6mm;
+    margin-bottom: 8mm;
+    font-size: 9.5pt;
+    color: var(--ink);
+}
+
+.invoice-info > span {
+    display: block;
+    color: var(--muted);
+    font-size: 9pt;
+}
+
+.invoice-info-address {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.invoice-address-title {
+    font-size: 7.5pt;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 2px;
+}
+
+/* ── Invoice table ── */
+
+.invoice-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+    margin-bottom: 6mm;
+}
+
+.invoice-table thead tr {
+    background-color: var(--bg-header);
+}
+
+.invoice-table thead th {
+    padding: 5px 10px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 8pt;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--card);
+}
+
+.invoice-table thead th:last-child {
+    text-align: right;
+}
+
+.invoice-table td {
+    padding: 5px 10px;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink);
+    vertical-align: middle;
+}
+
+.invoice-table td:last-child {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.invoice-table tbody tr:nth-child(even) {
+    background-color: var(--bg-subtle);
+}
+
+/* Subtotal / HST / GST rows */
+.invoice-table tr:nth-last-child(4),
+.invoice-table tr:nth-last-child(3),
+.invoice-table tr:nth-last-child(2) {
+    background: none;
+}
+
+.invoice-table tr:nth-last-child(4) td,
+.invoice-table tr:nth-last-child(3) td,
+.invoice-table tr:nth-last-child(2) td {
+    color: var(--muted);
+    font-size: 9pt;
+    border-bottom: 1px solid var(--border);
+}
+
+/* Total row */
+.invoice-table tr:last-child td {
+    font-size: 11pt;
+    font-weight: 700;
+    color: var(--ink);
+    border-top: 2px solid var(--ink);
+    border-bottom: none;
+    padding-top: 4mm;
+}
+
+/* ── Paid in full stamp ── */
+
+.paid-in-full {
+    display: inline-block;
+    margin-top: 6mm;
+    padding: 3mm 8mm;
+    border: 3px solid #2e7d48;
+    border-radius: 3px;
+    font-size: 12pt;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #2e7d48;
+    transform: rotate(-3deg);
+    opacity: 0.85;
+}
+
 /* ── Agreement page ── */
 
 .agreement-parties {

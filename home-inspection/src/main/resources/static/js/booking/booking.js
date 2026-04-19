@@ -13,7 +13,10 @@ const fields = ["inspectionAddress", "suite", "city", "postalCode", "province", 
 // Save & Load
 const saveBtn = document.getElementById("saveBtn");
 const method = id ? "PUT" : "POST";
-saveBtn.addEventListener("click", () => saveWithInvoices());
+saveBtn.addEventListener("click", () => {
+    await saveWithInvoices();
+    window.location.href = "index.html";
+});
 
 async function saveWithInvoices() {
     const bookingForm = collectForm(fields);

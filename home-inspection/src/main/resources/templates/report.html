@@ -55,7 +55,7 @@
             </tr>
             <tr>
                 <td class="label">Inspection Date</td>
-                <td class="value" th:text="|${booking.month} ${booking.day}. ${booking.year}|"></td>
+                <td class="value" th:text="|${booking.month} ${booking.day}, ${booking.year}|"></td>
             </tr>
             <tr>
                 <td class="label">Prepared By</td>
@@ -131,7 +131,7 @@
         </tr></thead>
         <tr th:each="invoice : ${booking.invoices}">
             <td th:text="${invoice.type}"></td>
-            <td th:text="${invoice.fee}"></td>
+            <td th:text="${#numbers.formatDecimal(invoice.fee, 1, 2)}"></td>
         </tr>
         <tr>
             <td>Subtotal</td>
