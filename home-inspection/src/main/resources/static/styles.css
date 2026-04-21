@@ -657,7 +657,6 @@ body {
     background: var(--card);
     padding: 0.75rem 1rem;
     margin-bottom: 0.65rem;
-    page-break-inside: avoid;
 }
 
 .report-field-header {
@@ -683,6 +682,12 @@ body {
     letter-spacing: 0.06em;
 }
 
+.images-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .report-field-image-wrap {
     position: relative;
     display: inline-block;
@@ -692,7 +697,8 @@ body {
 
 .report-field-image {
     display: block;
-    max-height: 500px;
+    max-width: 300px;
+    max-height: 300px;
     border-radius: 3px;
     border: 1px solid var(--border);
 }

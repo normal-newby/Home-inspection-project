@@ -114,20 +114,26 @@ public class InspectionImagesService {
             Path filePath = getDirectory().resolve(image.getImageUrl());
             BufferedImage img = ImageIO.read(filePath.toFile());
 
+            //resize
+            double imgWidth = img.getWidth();
+            double imgHeight = img.getHeight();
+
             Graphics2D graphics2D = img.createGraphics();
             graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            graphics2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 
             if (annotations != null) {
                 for (ImageAnnotation annotation : annotations){
-                    Color color = Color.decode(annotation.getColor() == null ? "ff0000" : annotation.getColor());
+                    Color color = Color.decode(annotation.getColor() == null ? "#ff0000" : annotation.getColor());
                     graphics2D.setColor(color);
 
-                    float stroke = 5 * Float.parseFloat(
+                    float stroke = 8 * Float.parseFloat(
                             annotation.getStrokeWidth() == null ? "1" : annotation.getStrokeWidth());
                     graphics2D.setStroke(new BasicStroke(stroke));
 
-                    double scaleX = img.getWidth() / annotation.getImageDisplayWidth();
-                    double scaleY = img.getHeight() / annotation.getImageDisplayHeight();
+                    double scaleX = imgWidth / annotation.getImageDisplayWidth();
+                    double scaleY = imgHeight / annotation.getImageDisplayHeight();
 
                     int x = (int)(annotation.getX() * scaleX);
                     int y = (int)(annotation.getY() * scaleY);

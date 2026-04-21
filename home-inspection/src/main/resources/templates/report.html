@@ -233,7 +233,7 @@
 
 <!-- Report Sections -->
 <div id="report-sections">
-    <div th:each="placeEntry : ${allFields}" class="report-place-section page-break-before">
+    <div th:each="placeEntry : ${allFields}" class="report-place-section">
 
         <!-- Place Header -->
         <div class="report-place-header">
@@ -258,7 +258,7 @@
                 </div>
 
                 <!-- Image + Annotations -->
-                <div th:if="${field.inspectionImages != null and !#lists.isEmpty(field.inspectionImages)}">
+                <div th:if="${field.inspectionImages != null and !#lists.isEmpty(field.inspectionImages)}" class="images-wrapper">
                     <div th:each="img : ${field.inspectionImages}" class="report-field-image-wrap">
                         <img class="report-field-image"
                              th:src="${img.base64}"
