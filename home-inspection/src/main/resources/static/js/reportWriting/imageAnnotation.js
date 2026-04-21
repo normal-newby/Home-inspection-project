@@ -50,6 +50,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
     function redrawAnnotations() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         annotations.forEach(ann => {
+            console.log(ann);
             ctx.strokeStyle = ann.color || "#ff0000";
             ctx.fillStyle = ann.color || "#ff0000";
             ctx.lineWidth = ann.strokeWidth || 1;
@@ -90,8 +91,8 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
     function checkArrowClick(clickX, clickY, ann) {
         const x1 = ann.x;
         const y1 = ann.y;
-        const x2 = ann.x2;
-        const y2 = ann.y2;
+        const x2 = x1 + ann.width;
+        const y2 = y1 + ann.height;
         const dx = x2 - x1;
         const dy = y2 - y1;
         const lengthSq = dx * dx + dy * dy;
@@ -108,24 +109,27 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
     }
 
     function drawArrow(ctx, ann) {
-        const startX = ann.x;
-        const startY = ann.y;
-        const endX = ann.x2;
-        const endY = ann.y2;
-        const strokeWidth = ann.strokeWidth*3 || 6;
-        const color = ann.color || "#ff0000";
+        const x = ann.x;
+        const y = ann.y;
+        const endX = ann.width + x;
+        const endY = ann.height + y;
 
-        const dx = endX - startX;
-        const dy = endY - startY;
-        const length = Math.hypot(dx, dy);
-        if (length < 2) return;
-
-        const headLength = Math.max(5, strokeWidth * 2);
-        const shaftLength = Math.max(0, length - headLength);
+        const dx = endX - x;
+        const dy = endY - y;
         const angle = Math.atan2(dy, dx);
 
+        const width = Math.abs(ann.width);
+        const height = Math.abs(ann.height);
+
+        const length = Math.max(width, height);
+        const headLength = length/2;
+        const shaftLength = length/2;
+
+        const strokeWidth = length/3;
+        const color = ann.color || "#ff0000";
+
         ctx.save();
-        ctx.translate(startX, startY);
+        ctx.translate(x, y);
         ctx.rotate(angle);
 
         // Shaft
@@ -155,11 +159,14 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
                 redrawAnnotations();
             })
             .catch(error => console.error("Error deleting annotation:", error));
+        } else {
+            annotations = annotations.filter(a => a != ann);
+            redrawAnnotations();
         }
     }
 
     canvas.addEventListener("mousedown", (e) => {
-    e.preventDefault();
+        e.preventDefault();
 
         const clickX = e.offsetX;
         const clickY = e.offsetY;
@@ -226,8 +233,8 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
             const preview = {
                 x: startX,
                 y: startY,
-                x2: e.offsetX,
-                y2: e.offsetY,
+                width: e.offsetX - startX,
+                height: e.offsetY - startY,
                 color: colourPicker.value,
                 strokeWidth: strokeSize
             };
@@ -266,8 +273,8 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
                     type: "arrow",
                     x: startX,
                     y: startY,
-                    x2: e.offsetX,
-                    y2: e.offsetY,
+                    width: e.offsetX - startX,
+                    height: e.offsetY - startY,
                     color: colourPicker.value,
                     strokeWidth: strokeSize
                 };

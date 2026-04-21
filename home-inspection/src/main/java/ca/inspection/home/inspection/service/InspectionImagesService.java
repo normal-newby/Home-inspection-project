@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -148,7 +149,7 @@ public class InspectionImagesService {
                             graphics2D.setFont(new Font("Arial", Font.PLAIN, (int) stroke));
                             graphics2D.drawString(annotation.getContent(), x, y);
                         }
-                        case "arrow" -> drawArrow(graphics2D, annotation, stroke);
+                        case "arrow" -> drawArrow(graphics2D, x, y, width, height);
                     }
                 }
             }
@@ -167,21 +168,37 @@ public class InspectionImagesService {
         }
     }
 
-    private void drawArrow(Graphics2D graphics2D, ImageAnnotation annotation, float stroke){
-        int x1 = annotation.getX().intValue(), y1 = annotation.getY().intValue(),
-                x2 = x1 + annotation.getWidth().intValue(), y2 = y1 + annotation.getHeight().intValue();
-        graphics2D.drawLine(x1, y1, x2, y2);
+    private void drawArrow(Graphics2D graphics2D, int x, int y, int width, int height){
+        double endX = x + width;
+        double endY = y + height;
 
-        double angle = Math.atan2(y2-y1, x2-x1);
-        int headLen = Math.max(5, (int)stroke * 2);
+        double dx = endX - x;
+        double dy = endY - y;
+        double angle = Math.atan2(dy, dx);
 
-        int[] xPoints = {x2,
-                (int)(x2 - headLen * Math.cos(angle - Math.PI / 6)),
-                (int)(x2 - headLen * Math.cos(angle + Math.PI / 6))};
-        int[] yPoints = {y2,
-                (int)(y2 - headLen * Math.sin(angle - Math.PI / 6)),
-                (int)(y2 - headLen * Math.sin(angle + Math.PI / 6))};
+        width = Math.abs(width);
+        height = Math.abs(height);
+
+        double length = Math.max(width, height);
+        double shaftLength = length / 2;
+        double strokeWidth = length / 3;
+
+        AffineTransform original = graphics2D.getTransform();
+
+        graphics2D.translate(x, y);
+        graphics2D.rotate(angle);
+
+        // Shaft
+        graphics2D.fill(new java.awt.geom.Rectangle2D.Double(
+                0, -strokeWidth / 2, shaftLength, strokeWidth
+        ));
+
+        // Head (triangle)
+        int[] xPoints = {(int) shaftLength, (int) length, (int) shaftLength};
+        int[] yPoints = {(int) -strokeWidth, 0, (int) strokeWidth};
         graphics2D.fillPolygon(xPoints, yPoints, 3);
+
+        graphics2D.setTransform(original);
     }
 
     public ResponseEntity<Void> deleteImage(UUID id){
