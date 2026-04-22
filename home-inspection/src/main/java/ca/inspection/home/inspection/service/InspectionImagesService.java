@@ -129,7 +129,7 @@ public class InspectionImagesService {
                     Color color = Color.decode(annotation.getColor() == null ? "#ff0000" : annotation.getColor());
                     graphics2D.setColor(color);
 
-                    float stroke = 8 * Float.parseFloat(
+                    float stroke = 10 * Float.parseFloat(
                             annotation.getStrokeWidth() == null ? "1" : annotation.getStrokeWidth());
                     graphics2D.setStroke(new BasicStroke(stroke));
 
@@ -147,7 +147,12 @@ public class InspectionImagesService {
                         case "ellipse" -> graphics2D.drawOval(x, y, width, height);
                         case "circle" -> graphics2D.drawOval(x, y, width, height);
                         case "text" -> {
-                            graphics2D.setFont(new Font("Arial", Font.PLAIN, (int) stroke));
+                            int fontSize = (int)(stroke * scaleX);
+                            Font font = new Font("Arial Unicode MS", Font.PLAIN, fontSize);
+                            if (font.canDisplayUpTo(annotation.getContent()) != -1){
+                                font = new Font("SansSerif", Font.PLAIN, fontSize);
+                            }
+                            graphics2D.setFont(font);
                             graphics2D.drawString(annotation.getContent(), x, y);
                         }
                         case "arrow" -> drawArrow(graphics2D, x, y, width, height);

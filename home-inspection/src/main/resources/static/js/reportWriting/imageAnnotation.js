@@ -302,7 +302,9 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
                         y: e.offsetY,
                         content: text,
                         color: colourPicker.value,
-                        strokeWidth: strokeSize
+                        strokeWidth: strokeSize,
+                        height: 1,
+                        width: 1,
                     };
                     annotations.push(ann);
                 }
