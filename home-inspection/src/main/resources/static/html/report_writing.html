@@ -78,17 +78,27 @@
                         <img class="existing-image-image" alt="">
                     </div>
                     <div class="annotation-tools" hidden>
+                        <!-- Base shapes -->
                         <button id="rect-tool">Rectangle</button>
+                        <button id="circle-tool">Circle</button>
                         <button id="ellipse-tool">Ellipse</button>
                         <button id="arrow-tool">Arrow</button>
-                        <button id="delete-mode">Delete Mode</button>
-                        <button id="save-annotations">Save</button>
+
+                        <!-- Text -->
                         <label for="text-tool">Text:</label>
                         <input type="text" id="text-tool" placeholder="Enter text…">
-                        <button id="add-text">Add</button>
+                        <button id="add-text">Add Text</button>
+
+                        <!-- Commands -->
+                        <button id="delete-mode">Delete Mode</button>
+                        <button id="save-annotations">Save</button>
+
+                        <!-- Other -->
                         <input type="color" id="color-picker" value="#ff0000">
                         <label for="stroke-size" class="stroke-label">Stroke: <span id="stroke-size-value">1</span>px</label>
                         <input type="range" id="stroke-size" min="1" max="10" value="1">
+
+                        <span id="success-message"></span>
                     </div>
                 </div>
             

@@ -145,6 +145,7 @@ public class InspectionImagesService {
                     switch (type) {
                         case "rectangle" -> graphics2D.drawRect(x, y, width, height);
                         case "ellipse" -> graphics2D.drawOval(x, y, width, height);
+                        case "circle" -> graphics2D.drawOval(x, y, width, height);
                         case "text" -> {
                             graphics2D.setFont(new Font("Arial", Font.PLAIN, (int) stroke));
                             graphics2D.drawString(annotation.getContent(), x, y);

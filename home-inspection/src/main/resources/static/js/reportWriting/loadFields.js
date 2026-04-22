@@ -156,7 +156,9 @@ async function addExistingImages(bookingId, selectImageDiv, fieldId, images){
 const sharedState = { currentTool: null, deleteMode: false }; // Shared state for annotation tools
 
 const toolsDiv = existingImageDiv.querySelector(".annotation-tools");
+
 const rectTool = toolsDiv.querySelector("#rect-tool");
+const circleTool = toolsDiv.querySelector("#circle-tool");
 const ellipseTool = toolsDiv.querySelector("#ellipse-tool");
 const arrowTool = toolsDiv.querySelector("#arrow-tool");
 const textTool = toolsDiv.querySelector("#add-text");
@@ -195,6 +197,7 @@ function handleClick(button, tool) {
 }
 
 rectTool.addEventListener("click", () => handleClick(rectTool, "rectangle"));
+circleTool.addEventListener("click", () => handleClick(circleTool, "circle"));
 ellipseTool.addEventListener("click", () => handleClick(ellipseTool, "ellipse"));
 arrowTool.addEventListener("click", () => handleClick(arrowTool, "arrow"));
 textTool.addEventListener("click", () => handleClick(textTool, "text"));

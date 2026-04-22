@@ -69,7 +69,8 @@
     color: #c0392b;
 }
 
-.annotation-tools label {
+.annotation-tools label,
+.annotation-tools span{
     font-size: 0.72rem;
     font-weight: 500;
     letter-spacing: 0.04em;

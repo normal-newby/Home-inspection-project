@@ -16,6 +16,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
     const strokeSizeValue = toolsDiv.querySelector("#stroke-size-value");
     const textInput = toolsDiv.querySelector("#text-tool");
 
+    const successMessage = toolsDiv.querySelector("#success-message");
 
     let startX, startY, isDrawing = false;
     let strokeSize = parseInt(strokeSlider?.value || "1", 10);
@@ -57,10 +58,8 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
             
             if (ann.type === "rectangle") {
                 ctx.strokeRect(ann.x, ann.y, ann.width, ann.height);
-            } else if (ann.type === "ellipse") {
-                ctx.beginPath();
-                ctx.ellipse(ann.x, ann.y, ann.width, ann.height, 0, 0, 2 * Math.PI);
-                ctx.stroke();
+            } else if (ann.type === "ellipse" || ann.type === "circle") {
+                drawEllipse(ann.x, ann.y, ann.width, ann.height);
             } else if (ann.type === "arrow") {
                 drawArrow(ctx, ann);
             } else if (ann.type === "text") {
@@ -106,6 +105,12 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
 
         const tolerance = Math.max(6, (ann.strokeWidth || 1) * 1.5);
         return distance <= tolerance;
+    }
+
+    function drawEllipse(x, y, width, height){
+        ctx.beginPath();
+        ctx.ellipse(x, y, width, height, 0, 0, 2 * Math.PI);
+        ctx.stroke();
     }
 
     function drawArrow(ctx, ann) {
@@ -180,7 +185,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
                         deleteAnnotation(ann);
                         break;
                     }
-                } else if (ann.type === "ellipse") {
+                } else if (ann.type === "ellipse" || ann.type === "circle") {
                     if (checkEllipseClick(clickX, clickY, ann)) {
                         deleteAnnotation(ann);
                         break;
@@ -200,52 +205,53 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
             return; // don't start drawing when deleting
         }
 
-        if (sharedState.currentTool === "rectangle" || sharedState.currentTool === "ellipse" || sharedState.currentTool === "arrow" || sharedState.currentTool === "text") {
-            e.preventDefault();
-            isDrawing = true;
-            startX = clickX;
-            startY = clickY;
-        }
+        isDrawing = true;
+        startX = clickX;
+        startY = clickY;
     });
 
     canvas.addEventListener("mousemove", (e) => {
-        if (isDrawing && sharedState.currentTool === "rectangle") {
+        if (isDrawing){
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             redrawAnnotations();
+
             ctx.strokeStyle = colourPicker.value;
             ctx.lineWidth = strokeSize;
-            ctx.strokeRect(startX, startY, e.offsetX - startX, e.offsetY - startY);
-        } else if (isDrawing && sharedState.currentTool === "ellipse") {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            redrawAnnotations();
-            ctx.strokeStyle = colourPicker.value;
-            ctx.lineWidth = strokeSize;
-            const centerX = (startX + e.offsetX) / 2;
-            const centerY = (startY + e.offsetY) / 2;
-            const radiusX = Math.abs(e.offsetX - startX) / 2;
-            const radiusY = Math.abs(e.offsetY - startY) / 2;
-            ctx.beginPath();
-            ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, 2 * Math.PI);
-            ctx.stroke();
-        } else if (isDrawing && sharedState.currentTool === "arrow") {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            redrawAnnotations();
-            const preview = {
-                x: startX,
-                y: startY,
-                width: e.offsetX - startX,
-                height: e.offsetY - startY,
-                color: colourPicker.value,
-                strokeWidth: strokeSize
-            };
-            drawArrow(ctx, preview);
+
+            const curTool = sharedState.currentTool;
+
+            if (curTool === "rectangle") {
+                ctx.strokeRect(startX, startY, e.offsetX - startX, e.offsetY - startY);
+            } else if (curTool === "ellipse" || curTool === "circle") {
+                const x = (startX + e.offsetX) / 2;
+                const y = (startY + e.offsetY) / 2;
+                let width = Math.abs(e.offsetX - startX) / 2;
+                let height = Math.abs(e.offsetY - startY) / 2;
+                if (curTool === "circle"){
+                    width = Math.max(width, height);
+                    height = Math.max(width, height);
+                }
+                drawEllipse(x, y, width, height);
+            } else if (isDrawing && curTool === "arrow") {
+                const preview = {
+                    x: startX,
+                    y: startY,
+                    width: e.offsetX - startX,
+                    height: e.offsetY - startY,
+                    color: colourPicker.value,
+                    strokeWidth: strokeSize
+                };
+                drawArrow(ctx, preview);
+            }
         }
     });
 
     canvas.addEventListener("mouseup", (e) => {
         if (isDrawing) {
             isDrawing = false;
-            if (sharedState.currentTool === "rectangle") {
+            const curTool = sharedState.currentTool;
+
+            if (curTool === "rectangle") {
                 const ann = {
                     type: "rectangle",
                     x: startX,
@@ -257,18 +263,26 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
                 };
                 normalizeRectangle(ann);
                 annotations.push(ann);
-            } else if (sharedState.currentTool === "ellipse") {
+            } else if (curTool === "ellipse" || curTool === "circle") {
+                let width = Math.abs(e.offsetX - startX) / 2;
+                let height = Math.abs(e.offsetY - startY) / 2;
+
+                if (curTool === "circle"){
+                    width = Math.max(width, height);
+                    height = Math.max(width, height);
+                }
+
                 const ann = {
                     type: "ellipse",
                     x: (startX + e.offsetX) / 2,
                     y: (startY + e.offsetY) / 2,
-                    width: Math.abs(e.offsetX - startX) / 2,
-                    height: Math.abs(e.offsetY - startY) / 2,
+                    width: width,
+                    height: height,
                     color: colourPicker.value,
                     strokeWidth: strokeSize
                 };
                 annotations.push(ann);
-            } else if (sharedState.currentTool === "arrow") {
+            } else if (curTool === "arrow") {
                 const ann = {
                     type: "arrow",
                     x: startX,
@@ -279,7 +293,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
                     strokeWidth: strokeSize
                 };
                 annotations.push(ann);
-            } else if (sharedState.currentTool === "text") {
+            } else if (curTool === "text") {
                 const text = textInput.value.trim();
                 if (text) {
                     const ann = {
@@ -327,7 +341,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
                 body: JSON.stringify(ann)
             }).then(response => {
                 if (response.ok) {
-                    console.log("Annotation saved successfully");
+                    successMessage.textContent = "Saved successfully!";
                 }
             }).catch(error => {
                 console.error("Error saving annotation:", error);
