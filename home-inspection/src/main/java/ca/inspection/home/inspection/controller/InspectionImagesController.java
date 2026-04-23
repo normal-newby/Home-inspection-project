@@ -22,12 +22,11 @@ public class InspectionImagesController {
     private InspectionImagesService inspectionImagesService;
 
     @PostMapping("/images/{id}/upload")
-    public ResponseEntity<String> uploadImages(@PathVariable UUID id,
-                             @RequestParam("files") List<MultipartFile> files,
-                             @RequestParam("descriptions") List<String> descriptions
+    public ResponseEntity<String> uploadImage(@PathVariable UUID id,
+                             @RequestParam("file") MultipartFile file
     ) throws IOException {
         try {
-            inspectionImagesService.saveImages(files, id, descriptions);
+            inspectionImagesService.saveImages(file, id);
             return ResponseEntity.ok("Saved");
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error: " + e.getMessage());

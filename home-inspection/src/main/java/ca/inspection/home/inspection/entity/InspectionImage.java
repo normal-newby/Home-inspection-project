@@ -35,7 +35,6 @@ public class InspectionImage {
 
     @Column(name = "image_url")
     private String ImageUrl;
-    private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonBackReference("inspectionField-images")

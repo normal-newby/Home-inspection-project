@@ -13,7 +13,7 @@ const fields = ["inspectionAddress", "suite", "city", "postalCode", "province", 
 // Save & Load
 const saveBtn = document.getElementById("saveBtn");
 const method = id ? "PUT" : "POST";
-saveBtn.addEventListener("click", () => {
+saveBtn.addEventListener("click", async () => {
     await saveWithInvoices();
     window.location.href = "index.html";
 });

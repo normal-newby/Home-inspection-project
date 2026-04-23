@@ -6,10 +6,41 @@ const bodyDiv = document.querySelector(".body_content");
 const showImagesDiv = document.querySelector(".show-image-box");
 const imageContainer = document.querySelector(".image-container");
 
-saveImagesButton.addEventListener("click", (e) => {
+const progressBox = document.querySelector(".upload-progress");
+const progressBar = document.querySelector(".upload-progress-bar");
+const progressPercentage = document.querySelector(".upload-progress-percentage");
+
+function saveImage(image) {
+    const formData = new FormData();
+    formData.append("file", image);
+
+    return fetch(`http://localhost:8080/api/images/${bookingId}/upload`, {
+        method: "POST",
+        body: formData
+    })
+    .then(response => {
+        console.log(response);
+    })
+    .catch(error => {
+        console.log(error);
+    });
+}
+
+function setProgressBar(hide, percent) {
+    progressBox.hidden = hide;
+    progressBar.style.width = percent + "%";
+    progressPercentage.textContent = percent;
+}
+
+function resetProgressBar() {
+    setProgressBar(true, 0);
+}
+
+saveImagesButton.addEventListener("click", async (e) => {
     e.preventDefault();
 
-    console.log("hi");
+    resetProgressBar();
+
     const input = document.getElementById("image-input");
     const files = input.files;
 
@@ -18,24 +49,17 @@ saveImagesButton.addEventListener("click", (e) => {
         return;
     }
 
-    const formData = new FormData();
+    const numberOfFiles = files.length;
 
-    Array.from(files).forEach(image => {
-        formData.append("files", image);
-        formData.append("descriptions", "hi");
-    });
+    for (let i = 0; i < numberOfFiles; i++){
+        await saveImage(files[i]);
 
-    fetch(`http://localhost:8080/api/images/${bookingId}/upload`, {
-        method: "POST",
-        body: formData
-    })
-    .then(response => {
-        console.log(response);
-        initialize();
-    })
-    .catch(error => {
-        console.log(error);
-    });
+        const percent = Math.round(((i+1) / numberOfFiles) * 100);
+        console.log(percent);
+        setProgressBar(false, percent);
+    }
+
+    initialize();
 });
 
 export async function initImagesSlider(bookingId, container, getUsedForReport = false){

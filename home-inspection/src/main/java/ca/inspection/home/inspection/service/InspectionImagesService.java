@@ -38,10 +38,7 @@ public class InspectionImagesService {
     private InspectionImagesRepository inspectionImagesRepository;
 
     @Autowired
-    private InspectionReportsRepository inspectionReportsRepository;
-
-    @Autowired
-    InspectionBookingsService inspectionBookingsService;
+    InspectionReportsService inspectionReportsService;
 
     @Value("${app.upload-dir}")
     private String uploadDir;
@@ -52,37 +49,29 @@ public class InspectionImagesService {
 
     @Transactional
     public void saveImages(
-            List<MultipartFile> files,
-            UUID bookingId,
-            List<String> descriptions
+            MultipartFile file,
+            UUID bookingId
     ) throws IOException {
         try {
             //Find the report it belongs to
-            InspectionReport inspectionReport = inspectionBookingsService.getReportFromBooking(bookingId);
+            InspectionReport inspectionReport = inspectionReportsService.getOrCreateByBooking(bookingId);
 
             //make sure path exists
             Files.createDirectories(getDirectory());
 
-            //iterate through each image upload and saves to file and database
-            for (int i = 0; i < files.size(); i++) {
-                MultipartFile file = files.get(i);
-                String description = i < descriptions.size() ? descriptions.get(i) : "N/A";
+            //creates filename
+            String fileName = UUID.randomUUID().toString() + ".jpg";
+            Path path = getDirectory().resolve(fileName);
 
-                //creates filename
-                String fileName = UUID.randomUUID().toString() + ".jpg";
-                Path path = getDirectory().resolve(fileName);
+            //saves to folder
+            file.transferTo(path.toFile());
 
-                //saves to folder
-                file.transferTo(path.toFile());
+            //saves to db
+            InspectionImage inspectionImage = new InspectionImage();
+            inspectionImage.setInspectionReport(inspectionReport);
+            inspectionImage.setImageUrl(fileName);
 
-                //saves to db
-                InspectionImage inspectionImage = new InspectionImage();
-                inspectionImage.setInspectionReport(inspectionReport);
-                inspectionImage.setImageUrl(fileName);
-                inspectionImage.setDescription(description);
-
-                inspectionImagesRepository.save(inspectionImage);
-            }
+            inspectionImagesRepository.save(inspectionImage);
         } catch (Exception e){
             e.printStackTrace();
             throw e;
@@ -90,7 +79,7 @@ public class InspectionImagesService {
     }
 
     public Set<InspectionImage> getImages(UUID id){
-        InspectionReport inspectionReport = inspectionBookingsService.getReportFromBooking(id);
+        InspectionReport inspectionReport = inspectionReportsService.getOrCreateByBooking(id);
         return inspectionReport.getImages();
     }
 
