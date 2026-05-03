@@ -221,6 +221,11 @@ function submitRecommendations(fieldId) {
         return response.json();
     })
     .then(saved => {
+        const messageSpan = document.querySelector(".recommendations-display-message");
+        messageSpan.textContent = "Recommendations saved successfully!";
+        setTimeout(() => {
+            messageSpan.textContent = "";
+        }, 5000);
         highlightExistingValues(saved);
     })
     .catch(error => {
@@ -232,7 +237,9 @@ function submitRecommendations(fieldId) {
 export function setUpRecommendationsPanel(fieldId) {
     renderSections();
 
-    submitButton.addEventListener("click", () => submitRecommendations(fieldId));
+    submitButton.addEventListener("click", () => {
+        submitRecommendations(fieldId);
+    });
 
     fetch(`http://localhost:8080/api/fields/${fieldId}/recommendations`)
     .then(response => {
