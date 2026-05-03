@@ -30,17 +30,27 @@ let currentRecommendationFieldId = null;
 
 let curField = null;
 
-function loadInspectionFieldDefinitions(){
+async function loadInspectionFieldDefinitions(){
     console.log(`Loading fields for place: ${place}, type: ${type}`);
-    fetch(`http://localhost:8080/api/fields/definition/${encodeURIComponent(place)}/${encodeURIComponent(type)}/get`)
-    .then(response => response.json())
-    .then(fields => {
-        contentFields.innerHTML=""; //clear previous
-        fields.forEach(field => createField(field));
-    });
+    const response = await fetch(`http://localhost:8080/api/fields/definition/${encodeURIComponent(place)}/${encodeURIComponent(type)}/get`);
+    const fields = await response.json();
+
+    const fieldsWithExisting = await Promise.all(fields.map(async field => {
+        const existingFields = await getAlreadyExistingFields(field.fieldName);
+        return {
+            field,
+            existingFields: existingFields || [],
+            existingCount: Array.isArray(existingFields) ? existingFields.length : 0,
+        };
+    }));
+
+    fieldsWithExisting.sort((a, b) => b.existingCount - a.existingCount || a.field.fieldName.localeCompare(b.field.fieldName));
+
+    contentFields.innerHTML = ""; //clear previous
+    fieldsWithExisting.forEach(({ field, existingFields }) => createField(field, existingFields));
 }
 
-function createField(field){
+function createField(field, existingFields = []){
     //Create the div
     const fieldDiv = document.createElement("div");
     fieldDiv.classList.add("inspection-field");
@@ -54,7 +64,7 @@ function createField(field){
     const valuesDiv = document.createElement("div");
     valuesDiv.classList.add("values");
 
-    renderFields(valuesDiv, field);
+    renderFields(valuesDiv, field, existingFields);
 
     //Add everything to their parent container
     fieldDiv.appendChild(fieldHeader);
@@ -63,12 +73,12 @@ function createField(field){
     contentFields.appendChild(fieldDiv);
 }
 
-async function renderFields(valuesDiv, field){
-    //Fetch user existing inputs
-    const existingFields = await getAlreadyExistingFields(field.fieldName);
+async function renderFields(valuesDiv, field, existingFields = null){
+    //Fetch user existing inputs if they were not already loaded
+    const existing = existingFields ?? await getAlreadyExistingFields(field.fieldName);
 
-    if (existingFields) {
-        existingFields.forEach(existingField => {
+    if (existing) {
+        existing.forEach(existingField => {
             createExistingField(valuesDiv, existingField); // For already inputted fields
         });
     }
