@@ -64,12 +64,38 @@ saveImagesButton.addEventListener("click", async (e) => {
 });
 
 const imageCache = new Map();
+const actualImageCache = new Map();
+
+async function preloadImages(images){
+    const uncached = images.filter(img => !actualImageCache.has(img.id));
+    
+    await Promise.all(uncached.map(async (image) => {
+        const response = await fetch(`http://localhost:8080/api/images/file/${image.id}`);
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        actualImageCache.set(image.id, blobUrl);
+    }));
+}
+
+function getBlobUrl(imageId){
+    return actualImageCache.get(imageId) ?? `http://localhost:8080/api/images/file/${imageId}`;
+}
+
+function invalidateImageCache(){
+    const images = imageCache.get(bookingId) ?? [];
+    images.forEach(img => {
+        const blobUrl = actualImageCache.get(img.id);
+        if (blobUrl) URL.revokeObjectURL(blobUrl); // free memory
+        actualImageCache.delete(img.id);
+    });
+    imageCache.delete(bookingId);
+}
+
 
 export async function initImagesSlider(bookingId, container, getUsedForReport = false){
     const imagesTrack = container.querySelector(".images-track");
     const nextButton = container.querySelector(".next");
     const prevButton = container.querySelector(".prev");
-    console.log("hi");
 
     let currentSlide = 0;
     let totalSlides = 0;
@@ -85,7 +111,7 @@ export async function initImagesSlider(bookingId, container, getUsedForReport = 
 
             images.slice(i, i+6).forEach(image => {
                 const img = document.createElement("img");
-                img.src = `http://localhost:8080/api/images/file/${image.id}`
+                img.src = getBlobUrl(image.id);
                 img.dataset.imageId = image.id;
                 slide.appendChild(img);
             });
@@ -116,15 +142,14 @@ export async function initImagesSlider(bookingId, container, getUsedForReport = 
         const response = await fetch(`http://localhost:8080/api/images/${bookingId}/get`);
         const images = await response.json();
         imageCache.set(bookingId, images);
+        console.log("fetched");
     }
+
+    await preloadImages(imageCache.get(bookingId));
 
     loopImages(imageCache.get(bookingId));
 
     return imagesTrack;
-}
-
-export function invalidateImageCache(){
-    imageCache.delete(bookingId);
 }
 
 let currentImageId = null;

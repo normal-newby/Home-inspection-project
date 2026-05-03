@@ -5,10 +5,10 @@ import { setUpRecommendationsPanel } from "./recommendations.js";
 import { fetchExisting, saveFunction } from "../fetchExisting.js";
 
 const params = new URLSearchParams(window.location.search);
-const place = params.get("place");
-const type = params.get("type");
+let place = params.get("place");
+let type = params.get("type");
 
-export const buttons = document.querySelectorAll('.component_button');
+export const buttons = document.querySelectorAll('.component_button:not(.component_button_lower)');
 export const lowerButtons = document.querySelectorAll('.component_button_lower');
 
 const searchBar = document.querySelector(".field-search");
@@ -364,15 +364,29 @@ buttons.forEach(button => { //place buttons
     if (button.getAttribute("data-target") === place) button.classList.add("active");
     button.addEventListener("click", () => {
         const newPlace = button.getAttribute("data-target");
-        window.location.href = `report_writing.html?id=${bookingId}&place=${newPlace}&type=${type}`;
+
+        buttons.forEach(b => b.classList.remove("active"));
+        button.classList.add("active");
+
+        place = newPlace;
+        history.pushState(null, "", `report_writing.html?id=${bookingId}&place=${place}&type=${type}`);
+        
+        loadInspectionFieldDefinitions();
     });
 });
 
 lowerButtons.forEach(button => { //type buttons
     if (button.getAttribute("data-target") === type) button.classList.add("active");
     button.addEventListener("click", () => {
-        const newType = button.getAttribute("data-target")
-        window.location.href = `report_writing.html?id=${bookingId}&place=${place}&type=${newType}`
+        const newType = button.getAttribute("data-target");
+
+        lowerButtons.forEach(b => b.classList.remove("active"));
+        button.classList.add("active");
+
+        type = newType;
+        history.pushState(null, "", `report_writing.html?id=${bookingId}&place=${place}&type=${type}`);
+
+        loadInspectionFieldDefinitions();
     });
 });
 
