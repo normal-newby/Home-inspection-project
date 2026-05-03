@@ -19,6 +19,7 @@ function saveImage(image) {
         body: formData
     })
     .then(response => {
+        invalidateImageCache();
         console.log(response);
     })
     .catch(error => {
@@ -61,6 +62,8 @@ saveImagesButton.addEventListener("click", async (e) => {
 
     initialize();
 });
+
+const imageCache = new Map();
 
 export async function initImagesSlider(bookingId, container, getUsedForReport = false){
     const imagesTrack = container.querySelector(".images-track");
@@ -108,11 +111,20 @@ export async function initImagesSlider(bookingId, container, getUsedForReport = 
         updateSlider();
     });
 
-    const response = await fetch(`http://localhost:8080/api/images/${bookingId}/get`);
-    const images = await response.json();
-    loopImages(images);
+    //Use cached images if available, otherwise fetch from server
+    if (!imageCache.has(bookingId)){
+        const response = await fetch(`http://localhost:8080/api/images/${bookingId}/get`);
+        const images = await response.json();
+        imageCache.set(bookingId, images);
+    }
+
+    loopImages(imageCache.get(bookingId));
 
     return imagesTrack;
+}
+
+export function invalidateImageCache(){
+    imageCache.delete(bookingId);
 }
 
 let currentImageId = null;
@@ -153,6 +165,7 @@ deleteImageButton.addEventListener("click", (e) => {
     })
     .then(res => {
         if (res.ok){
+            invalidateImageCache();
             console.log("Deleted");
             showImagesDiv.hidden = true;
         } else console.log("failed");
