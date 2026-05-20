@@ -27,10 +27,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Base64;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class InspectionImagesService {
@@ -60,7 +59,7 @@ public class InspectionImagesService {
             Files.createDirectories(getDirectory());
 
             //creates filename
-            String fileName = UUID.randomUUID().toString() + ".jpg";
+            String fileName = System.currentTimeMillis() + "_" + UUID.randomUUID().toString() + ".jpg";
             Path path = getDirectory().resolve(fileName);
 
             //saves to folder
@@ -80,7 +79,9 @@ public class InspectionImagesService {
 
     public Set<InspectionImage> getImages(UUID id){
         InspectionReport inspectionReport = inspectionReportsService.getOrCreateByBooking(id);
-        return inspectionReport.getImages();
+        return inspectionReport.getImages().stream()
+                .sorted(Comparator.comparing(InspectionImage::getImageUrl))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     public ResponseEntity<Resource> getImageFile(UUID id){

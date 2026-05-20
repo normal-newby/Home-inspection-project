@@ -66,14 +66,25 @@ saveImagesButton.addEventListener("click", async (e) => {
 const imageCache = new Map();
 const actualImageCache = new Map();
 
-async function preloadImages(images){
+async function preloadImages(images, maxWidth = 200){
     const uncached = images.filter(img => !actualImageCache.has(img.id));
     
     await Promise.all(uncached.map(async (image) => {
         const response = await fetch(`http://localhost:8080/api/images/file/${image.id}`);
         const blob = await response.blob();
         const blobUrl = URL.createObjectURL(blob);
-        actualImageCache.set(image.id, blobUrl);
+
+        const imgElement = new Image();
+        imgElement.src = blobUrl;
+        await imgElement.decode().catch(() => {}); // Wait for image to load
+
+        const scale = Math.min(1, maxWidth / imgElement.naturalWidth);
+        const canvas = document.createElement("canvas");
+        canvas.width = imgElement.naturalWidth * scale;
+        canvas.height = imgElement.naturalHeight * scale;
+        canvas.getContext("2d").drawImage(imgElement, 0, 0, canvas.width, canvas.height);
+
+        actualImageCache.set(image.id, canvas.toDataURL("image/jpeg", 0.6));
     }));
 }
 
@@ -81,7 +92,7 @@ function getBlobUrl(imageId){
     return actualImageCache.get(imageId) ?? `http://localhost:8080/api/images/file/${imageId}`;
 }
 
-function invalidateImageCache(){
+function invalidateImageCache(id = bookingId){
     const images = imageCache.get(bookingId) ?? [];
     images.forEach(img => {
         const blobUrl = actualImageCache.get(img.id);
@@ -92,10 +103,12 @@ function invalidateImageCache(){
 }
 
 
-export async function initImagesSlider(bookingId, container, getUsedForReport = false){
+export async function initImagesSlider(bookingId, container, getUsedForReport = false, rows = 1){
     const imagesTrack = container.querySelector(".images-track");
     const nextButton = container.querySelector(".next");
     const prevButton = container.querySelector(".prev");
+
+    const imagesPerSlide = rows * 6;
 
     let currentSlide = 0;
     let totalSlides = 0;
@@ -105,20 +118,23 @@ export async function initImagesSlider(bookingId, container, getUsedForReport = 
         
         if (getUsedForReport) images = images.filter(image => !image.used); // If we only want images not used for report, filter them out
 
-        for (let i = 0; i < images.length; i += 6){
+        for (let i = 0; i < images.length; i += imagesPerSlide){
             const slide = document.createElement("div");
+            slide.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
             slide.className = "image-slide";
 
-            images.slice(i, i+6).forEach(image => {
+            images.slice(i, i + imagesPerSlide).forEach(image => {
                 const img = document.createElement("img");
                 img.src = getBlobUrl(image.id);
                 img.dataset.imageId = image.id;
+                img.loading = "eager";
+                img.decoding = "async";
                 slide.appendChild(img);
             });
 
             imagesTrack.appendChild(slide);
         }
-        totalSlides = Math.ceil(images.length/6);
+        totalSlides = Math.ceil(images.length/imagesPerSlide);
     }
 
     function updateSlider() {

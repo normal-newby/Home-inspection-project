@@ -1,7 +1,7 @@
 const sectionsConfig = {
     direction: {
         selector: ".recommendations-section:nth-of-type(1)",
-        options: ["Various", "Throughout", "North", "South", "East", "West"],
+        options: ["Various", "Throughout", "North", "South", "East", "West", "Front", "Rear", "Left", "Right"],
     },
     floorLevel: {
         selector: ".recommendations-section:nth-of-type(2)",
@@ -9,15 +9,28 @@ const sectionsConfig = {
     },
     room: {
         selector: ".recommendations-section:nth-of-type(3)",
-        options: ["Kitchen", "Bathroom", "Bedroom", "Living Room", "Roof", "Garage", "Other"],
+        options: ["Living room", "Dining room", "Kitchen", "Bathroom", "Master Bathroom",
+            "Hallway Bathroom", "Ensuite Bathroom", "Powder Room",
+            "Bedroom", "Master Bedroom", "Family Room", "Sunroom",
+            "Laundry Area", "Office", "Utility Room", "Furnace Room",
+            "Garage", "Carport", "Porch", "Hall", "Foyer", "Staircase", "Panel",
+            "Balcony", "Deck", "Cold Room", "Roof", "Addition", "Dinette", "Washroom", "Half Bathroom"
+        ],
     },
     task: {
         selector: ".recommendations-section:nth-of-type(4)",
-        options: ["Repair", "Replace", "Inspect", "Maintain", "Correct", "Monitor"],
+        options: ["Repair", "Replace", "Repair or replace", "Futher evaluation", "Provide",
+            "Improve", "Monitor", "Service", "Clean", "Correct", "Request Disclosure",
+            "Request Demo", "Service Annually", "Inspect Annually", "Demolish", "Remodel",
+            "Upgrade", "Remove", "Protect", "Patch", "Paint", "Seal", "Patch and Paint"
+        ],
     },
     time: {
         selector: ".recommendations-section:nth-of-type(5)",
-        options: ["Immediate", "Within 1 year", "Within 2 years", "Within 3 years", "Discretionary", "Unpredictable"],
+        options: ["Immediate", "Within 1 year", "Within 2 years", "Within 3 years",
+            "Within 4 years", "Within 5 years", "Unpredictable", "Unknown", "Discretionary",
+        "Ongoing", "Regular Maintenance", "If Necessary", "When Remodelling", "When Necessary",
+    "As soon as possible", "As soon as practical", "Before Use"],
     },
     cost: {
         selector: ".recommendations-section:nth-of-type(6)",

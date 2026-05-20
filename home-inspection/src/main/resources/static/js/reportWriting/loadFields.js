@@ -153,7 +153,7 @@ function createExistingField(parent, field){ // Creates buttons for already inpu
 }
 
 async function addExistingImages(bookingId, selectImageDiv, fieldId, images){
-    const track = await initImagesSlider(bookingId, selectImageDiv, true); // Initialize slider with only images not used for report
+    const track = await initImagesSlider(bookingId, selectImageDiv, true, 4); // Initialize slider with only images not used for report
     track.querySelectorAll("img").forEach(img => {
         img.addEventListener("dblclick", (e) => {
             e.preventDefault();
