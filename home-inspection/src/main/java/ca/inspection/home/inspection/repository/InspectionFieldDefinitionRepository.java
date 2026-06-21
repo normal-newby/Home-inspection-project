@@ -17,6 +17,7 @@ public interface InspectionFieldDefinitionRepository extends JpaRepository<Inspe
         LEFT JOIN FETCH d.possibleValues
         WHERE d.fieldPlace = :place
           AND d.fieldType = :type
+        ORDER BY d.fieldName
     """)
     List<InspectionFieldDefinition> findAllWithValues(
             @Param("place") String place,

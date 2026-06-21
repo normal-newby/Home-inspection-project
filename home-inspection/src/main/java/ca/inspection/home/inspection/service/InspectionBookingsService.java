@@ -1,6 +1,7 @@
 package ca.inspection.home.inspection.service;
 
 import ca.inspection.home.inspection.DTO.InvoiceAmount;
+import ca.inspection.home.inspection.entity.BookingSummary;
 import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectionReport;
 import ca.inspection.home.inspection.entity.Invoice;
@@ -27,8 +28,8 @@ public class InspectionBookingsService {
         return inspectionBookingsRepository.save(booking);
     }
 
-    public List<InspectionBookings> findAll(){
-        return inspectionBookingsRepository.findAllByOrderByCreatedAtDesc();
+    public List<BookingSummary> findAll(){
+        return inspectionBookingsRepository.findBookingSummariesByOrderByCreatedAtDesc();
     }
 
     public InspectionBookings findById(UUID id){

@@ -1,4 +1,2 @@
-Referred by buyer agent: add name
-
-Things to refresh:
-- 
+Image able to cut and edit on command
+change blank item

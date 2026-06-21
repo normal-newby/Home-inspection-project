@@ -31,5 +31,6 @@ public class InspectionFieldDefinition {
 
     @JsonManagedReference
     @OneToMany(mappedBy = "inspectionFieldDefinition", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("value ASC")
     private List<InspectionFieldDefinitionValue> possibleValues = new ArrayList<>();
 }

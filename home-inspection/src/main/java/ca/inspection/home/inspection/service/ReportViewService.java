@@ -39,6 +39,9 @@ public class ReportViewService {
     private InspectionImagesService inspectionImagesService;
 
     @Autowired
+    private InspectionReportsService inspectionReportsService;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     @Value("${pdf.service.url}")
@@ -126,7 +129,15 @@ public class ReportViewService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        Map<String, Object> body = Map.of("html", html, "bookingId", bookingId);
+        Map<String, Object> body = new HashMap<>();
+        body.put("html", html);
+        body.put("bookingId", bookingId);
+
+        byte[] appendixBytes = inspectionReportsService.readAppendixPdfBytes(bookingId);
+        if (appendixBytes != null){
+            body.put("appendixBase64", Base64.getEncoder().encodeToString(appendixBytes));
+        }
+
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
 
         ResponseEntity<byte[]> response = restTemplate.exchange(

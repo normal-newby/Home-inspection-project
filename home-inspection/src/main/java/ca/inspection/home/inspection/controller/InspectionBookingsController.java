@@ -1,5 +1,6 @@
 package ca.inspection.home.inspection.controller;
 
+import ca.inspection.home.inspection.entity.BookingSummary;
 import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.Invoice;
 import ca.inspection.home.inspection.service.InspectionBookingsService;
@@ -23,7 +24,7 @@ public class InspectionBookingsController {
     }
 
     @GetMapping("/get/bookings")
-    public List<InspectionBookings> getAllBookings(){
+    public List<BookingSummary> getAllBookings(){
         return inspectionBookingsService.findAll();
     }
 

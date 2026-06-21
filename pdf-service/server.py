@@ -1,8 +1,6 @@
 from flask import Flask, request, send_file
 from weasyprint import HTML
-import requests, io, os, fitz
-
-SPRING_BASE_URL = os.getenv("SPRING_BASE_URL", "http://localhost:8080")
+import base64, io, fitz
 
 app = Flask(__name__)
 
@@ -22,26 +20,20 @@ def generate_pdf():
     try:
         data = request.json
         html = data.get('html')
-        bookingId = data.get("bookingId")
 
-        pdf_bytes = HTML(string=html).write_pdf()
-
-        appendix_url = f"{SPRING_BASE_URL}/api/reports/{bookingId}/appendix-pdf"
-        appendix_response = requests.get(appendix_url)
-        appendix_response.raise_for_status()
-        appendix_pdf_bytes = appendix_response.content
-
-        appendix_html = pdf_to_svg(appendix_pdf_bytes)
-
-        html = html.replace("</body>", f"{appendix_html}</body>")
-
-        output_pdf_bytes = HTML(string=html).write_pdf()
+        appendix_base64 = data.get('appendixBase64')
+        if appendix_base64:
+            appendix_pdf_bytes = io.BytesIO(base64.b64decode(appendix_base64)).read()
+            appendix_html = pdf_to_svg(appendix_pdf_bytes)
+            html = html.replace("</body>", f"{appendix_html}</body>")
         
+        output_pdf_bytes = HTML(string=html).write_pdf()
+
         return send_file(
             io.BytesIO(output_pdf_bytes),
             mimetype='application/pdf'
         )
-    
+
     except Exception as e:
         return {'error': str(e)}, 500
     

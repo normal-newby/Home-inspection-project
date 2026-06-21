@@ -106,6 +106,9 @@ public class InspectionReportsService {
                 path = getDirectory().resolve(report.getAppendixPdf());
             } else {
                 path = inspectorProfileService.getAppendixPdfPath();
+                if (path == null){
+                    return ResponseEntity.noContent().build();
+                }
             }
             Resource resource = new FileSystemResource(path.toFile());
             String contentType = Files.probeContentType(path);
@@ -118,6 +121,26 @@ public class InspectionReportsService {
 
         } catch (Exception e){
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    public byte[] readAppendixPdfBytes(UUID bookingId){
+        try {
+            InspectionReport report = getOrCreateByBooking(bookingId);
+
+            Path path;
+            if (report.getAppendixPdf() != null){
+                path = getDirectory().resolve(report.getAppendixPdf());
+            } else {
+                Path profilePath = inspectorProfileService.getAppendixPdfPath();
+                if (profilePath == null) return null;
+                path = profilePath;
+            }
+            if (!Files.exists(path)) return null;
+            return Files.readAllBytes(path);
+        } catch (Exception e){
+            e.printStackTrace();
+            return null;
         }
     }
 }

@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface InspectionFieldDefinitionValueRepository extends
-        JpaRepository<InspectionFieldDefinitionValue, UUID> {
+public interface InspectionFieldDefinitionValueRepository extends JpaRepository<InspectionFieldDefinitionValue, UUID> {
     InspectionFieldDefinitionValue findByValue(String value);
 }
