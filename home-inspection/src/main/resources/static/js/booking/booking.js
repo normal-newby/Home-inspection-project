@@ -153,3 +153,35 @@ async function loadTemplates() {
 
 if (id) loadWithInvoices();
 loadTemplates();
+
+// Google Maps Autocomplete
+function initAddressAutocomplete() {
+    const input = document.getElementById("inspectionAddress");
+    const autocomplete = new google.maps.places.Autocomplete(input, {
+        types: ["address"],
+        componentRestrictions: { country: "ca" }  // restrict to Canada
+    });
+
+    autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+        if (!place.address_components) return;
+
+        const get = (type) =>
+            place.address_components.find(c => c.types.includes(type))?.long_name || "";
+        
+        const getShort = (type) =>
+            place.address_components.find(c => c.types.includes(type))?.short_name || "";
+
+        document.getElementById("inspectionAddress").value =
+            `${get("street_number")} ${get("route")}`.trim();
+        document.getElementById("city").value =
+            get("locality") || get("sublocality");
+        document.getElementById("postalCode").value =
+            get("postal_code");
+        document.getElementById("province").value =
+            getShort("administrative_area_level_1"); // "ON", "BC", etc.
+    });
+}
+
+// Call after DOM loads
+initAddressAutocomplete();
