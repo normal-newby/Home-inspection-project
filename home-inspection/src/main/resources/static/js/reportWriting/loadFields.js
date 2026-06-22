@@ -36,10 +36,10 @@ async function loadInspectionFieldDefinitions(){
     const fields = await response.json();
 
     const fieldsWithExisting = await Promise.all(fields.map(async field => {
-        const existingFields = await getAlreadyExistingFields(field.fieldName);
+        const existingFields = await getAlreadyExistingFields(field.id) || []; // Fetch existing fields for each definition to determine sorting and default expansion
         return {
             field,
-            existingFields: existingFields || [],
+            existingFields: existingFields,
             existingCount: Array.isArray(existingFields) ? existingFields.length : 0,
         };
     }));
@@ -47,51 +47,124 @@ async function loadInspectionFieldDefinitions(){
     fieldsWithExisting.sort((a, b) => b.existingCount - a.existingCount || a.field.fieldName.localeCompare(b.field.fieldName));
 
     contentFields.innerHTML = ""; //clear previous
-    fieldsWithExisting.forEach(({ field, existingFields }) => createField(field, existingFields));
+    fieldsWithExisting.forEach(({ field, existingFields, existingCount }) => {
+        if (existingCount > 0) {
+            field.expandedByDefault = true; // Expand fields with existing inputs by default
+        }
+        createField(field, existingFields)
+    });
 }
 
 function createField(field, existingFields = []){
     //Create the div
     const fieldDiv = document.createElement("div");
     fieldDiv.classList.add("inspection-field");
+    fieldDiv.dataset.id = field.id;
 
     //Create header
-    const fieldHeader = document.createElement("h3");
-    fieldHeader.classList.add("field-header");
-    fieldHeader.textContent = field.fieldName;
+    const fieldHeader = document.createElement("div");
+    fieldHeader.classList.add("field-header-row");
+
+    const fieldTitle = document.createElement("h3");
+    fieldTitle.classList.add("field-header");
+    fieldTitle.textContent = field.fieldName;
+
+    //show and hide
+    const controls = document.createElement("div");
+    controls.classList.add("field-controls");
+
+    const showButton = document.createElement("button");
+    showButton.textContent = field.expandedByDefault ? "Hide" : "Show";
+    showButton.classList.add("show-button");
+
+    const keepShowButton = document.createElement("button");
+    keepShowButton.textContent = field.expandedByDefault ? "Unpin" : "Pin";
+    keepShowButton.classList.add("keep-show-button");
+
+    controls.appendChild(showButton);
+    controls.appendChild(keepShowButton);
+    fieldHeader.appendChild(fieldTitle);
+    fieldHeader.appendChild(controls);
 
     //Place to store buttons
     const valuesDiv = document.createElement("div");
     valuesDiv.classList.add("values");
 
-    renderFields(valuesDiv, field, existingFields);
-
-    //Add everything to their parent container
     fieldDiv.appendChild(fieldHeader);
     fieldDiv.appendChild(valuesDiv);
-
     contentFields.appendChild(fieldDiv);
+    valuesDiv.hidden = !field.expandedByDefault;
+
+    let loaded = false;
+
+    async function expand(){
+        if (!loaded) {
+            await renderFields(valuesDiv, field, existingFields);
+            loaded = true;
+        }
+        valuesDiv.hidden = false;
+        showButton.textContent = "Hide";
+    }
+
+    function collapse(){
+        valuesDiv.hidden = true;
+        showButton.textContent = "Show";
+    }
+
+    showButton.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (valuesDiv.hidden) {
+            expand();
+        } else {
+            collapse();
+        }
+    });
+
+    keepShowButton.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const newState = !field.expandedByDefault;
+        field.expandedByDefault = newState;
+        keepShowButton.textContent = newState ? "Unpin" : "Pin";
+        keepShowButton.classList.toggle("active", newState);
+        
+        await fetch(`http://localhost:8080/api/fields/definition/${field.id}/expanded`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(newState),
+        });
+
+        if (newState) {
+            expand();
+        } 
+    });
+
+    if (field.expandedByDefault) {
+        expand();
+    }
 }
 
 async function renderFields(valuesDiv, field, existingFields = null){
-    //Fetch user existing inputs if they were not already loaded
-    const existing = existingFields ?? await getAlreadyExistingFields(field.fieldName);
+    const response = await fetch(`http://localhost:8080/api/fields/definition/${field.id}/values`);
+    const fullField = await response.json();
 
-    if (existing) {
-        existing.forEach(existingField => {
-            createExistingField(valuesDiv, existingField); // For already inputted fields
-        });
-    }
+    //Fetch user existing inputs if they were not already loaded
+    const existing = (existingFields && existingFields.length > 0)
+    ? existingFields
+    : await getAlreadyExistingFields(field.id) ?? [];
+
+    existing.forEach(existingField => {
+        createExistingField(valuesDiv, existingField); // For already inputted fields
+    });
 
     //Create buttons
-    field.possibleValues.forEach(value => {
-        createButton(valuesDiv, value, field.fieldName); // For possible values to choose from
+    fullField.possibleValues.forEach(value => {
+        createButton(valuesDiv, value, field.id); // For possible values to choose from
     });
 }
 
-async function getAlreadyExistingFields(name){ //fetches user past stored data
+async function getAlreadyExistingFields(fieldId){ //fetches user past stored data
     try {
-        const url = `http://localhost:8080/api/fields/${bookingId}/${encodeURIComponent(place)}/${encodeURIComponent(type)}?name=${encodeURIComponent(name)}`;
+        const url = `http://localhost:8080/api/fields/${bookingId}/${fieldId}`;
         const result = await fetch(url);
         if (!result.ok) {
             const text = await result.text();
@@ -105,11 +178,11 @@ async function getAlreadyExistingFields(name){ //fetches user past stored data
     }
 }
 
-function createButton(parent, value, fieldName){ //Creates buttons for possible values in each field
+function createButton(parent, value, fieldId){ //Creates buttons for possible values in each field
     const button = document.createElement("button");
     button.classList.add("value-button");
     button.textContent = value.value;
-    button.addEventListener("click", () => saveNewInspectionField(value.value, fieldName));
+    button.addEventListener("click", () => saveNewInspectionField(value.value, fieldId));
     parent.appendChild(button);
 }
 
@@ -283,8 +356,8 @@ function showExistingImage(images, fieldId){
 
 // Endpoints for fields and images
 
-function saveNewInspectionField(value, fieldName){
-    const url = `http://localhost:8080/api/fields/${bookingId}/${encodeURIComponent(place)}/${encodeURIComponent(type)}?name=${encodeURIComponent(fieldName)}&value=${encodeURIComponent(value)}`;
+function saveNewInspectionField(value, fieldDefinitionId){
+    const url = `http://localhost:8080/api/fields/${bookingId}/${fieldDefinitionId}/${value}`;
     fetch(url,
         {method : "POST"}
     )

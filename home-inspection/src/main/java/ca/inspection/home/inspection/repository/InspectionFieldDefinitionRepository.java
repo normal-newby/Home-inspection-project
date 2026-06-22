@@ -11,30 +11,25 @@ import java.util.UUID;
 
 @Repository
 public interface InspectionFieldDefinitionRepository extends JpaRepository<InspectionFieldDefinition, UUID> {
+
     @Query("""
-        SELECT d
+        SELECT d 
         FROM InspectionFieldDefinition d
-        LEFT JOIN FETCH d.possibleValues
         WHERE d.fieldPlace = :place
-          AND d.fieldType = :type
+        AND d.fieldType = :type
         ORDER BY d.fieldName
-    """)
-    List<InspectionFieldDefinition> findAllWithValues(
+            """)
+    List<InspectionFieldDefinition> findAllWithoutValues(
             @Param("place") String place,
             @Param("type") String type
     );
-    List<InspectionFieldDefinition> findByFieldPlaceAndFieldType(String place, String type);
 
     @Query("""
             SELECT d FROM InspectionFieldDefinition d
             LEFT JOIN FETCH d.possibleValues v
-            WHERE d.fieldPlace = :place
-            AND d.fieldType = :type
-            AND d.fieldName = :name
+            WHERE d.id = :id
             """)
     InspectionFieldDefinition findWithValues(
-            @Param("place") String place,
-            @Param("type") String type,
-            @Param("name") String name
+            @Param("id") UUID id
     );
 }

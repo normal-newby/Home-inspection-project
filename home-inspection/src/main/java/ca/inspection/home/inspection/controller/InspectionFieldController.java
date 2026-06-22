@@ -16,60 +16,38 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/fields")
 @CrossOrigin(origins = "*")
 public class InspectionFieldController {
     @Autowired
     private InspectionFieldService inspectionFieldService;
 
-    @PostMapping("/fields/{id}/{place}/{type}/{name}/{value}")
+    @PostMapping("{id}/{fieldDefinitionId}/{value}")
     public ResponseEntity<?> createNewInspectionField(@PathVariable UUID id,
-                                                   @PathVariable String place,
-                                                   @PathVariable String type,
-                                                   @PathVariable String name,
+                                                   @PathVariable UUID fieldDefinitionId,
                                                    @PathVariable String value){
-        return inspectionFieldService.createNewInspectionField(id, place, type, name, value);
+        return inspectionFieldService.createNewInspectionField(id, fieldDefinitionId, value);
     }
 
-    // Support names/values that may contain characters like '/' by using query parameters.
-    @PostMapping("/fields/{id}/{place}/{type}")
-    public ResponseEntity<?> createNewInspectionFieldQuery(@PathVariable UUID id,
-                                                           @PathVariable String place,
-                                                           @PathVariable String type,
-                                                           @RequestParam String name,
-                                                           @RequestParam String value){
-        return inspectionFieldService.createNewInspectionField(id, place, type, name, value);
-    }
-
-    @GetMapping("/fields/{id}/{place}/{type}/{name}")
+    @GetMapping("/{id}/{fieldId}")
     public List<InspectionField> getInspectionFields(@PathVariable UUID id,
-                                                                  @PathVariable String place,
-                                                                  @PathVariable String type,
-                                                                  @PathVariable String name){
-        return inspectionFieldService.getInspectionFields(id, place, type, name);
+                                                      @PathVariable UUID fieldId){
+        return inspectionFieldService.getInspectionFields(id, fieldId);
     }
 
-    @GetMapping("/fields/{id}/{place}/{type}")
-    public List<InspectionField> getInspectionFieldsQuery(@PathVariable UUID id,
-                                                          @PathVariable String place,
-                                                          @PathVariable String type,
-                                                          @RequestParam String name){
-        return inspectionFieldService.getInspectionFields(id, place, type, name);
-    }
-
-    @DeleteMapping("/fields/{id}")
+    @DeleteMapping("/{id}")
     public void deleteInspectionField(@PathVariable UUID id){
         inspectionFieldService.deleteInspectionField(id);
     }
 
     //Images
 
-    @PutMapping("/fields/{fieldId}/{imageId}")
+    @PutMapping("/{fieldId}/{imageId}")
     public ResponseEntity<?> addImageToField(@PathVariable UUID fieldId, @PathVariable UUID imageId){
         return inspectionFieldService.addImageToField(fieldId, imageId);
     }
 
-    @DeleteMapping("/fields/{fieldId}/{imageId}")
+    @DeleteMapping("/{fieldId}/{imageId}")
     public ResponseEntity<?> deleteImageFromField(@PathVariable UUID fieldId, @PathVariable UUID imageId){
         return inspectionFieldService.deleteImageFromField(fieldId, imageId);
     }

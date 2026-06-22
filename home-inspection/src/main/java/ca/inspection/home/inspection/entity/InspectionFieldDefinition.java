@@ -29,6 +29,8 @@ public class InspectionFieldDefinition {
     private String fieldPlace; //heating
     private String fieldType; //limitations and stuff
 
+    private Boolean expandedByDefault = false; //setting to show in fields
+
     @JsonManagedReference
     @OneToMany(mappedBy = "inspectionFieldDefinition", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("value ASC")

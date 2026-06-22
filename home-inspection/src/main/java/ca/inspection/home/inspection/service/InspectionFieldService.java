@@ -29,9 +29,7 @@ public class InspectionFieldService {
     private InspectionRecommendationFieldRepository inspectionRecommendationFieldRepository;
 
     public ResponseEntity<?> createNewInspectionField(UUID id,
-                                                   String place,
-                                                   String type,
-                                                   String name,
+                                                   UUID fieldDefinitionId,
                                                    String value){
         try {
             //report
@@ -39,7 +37,7 @@ public class InspectionFieldService {
 
             //definition
             InspectionFieldDefinition definition = inspectionFieldDefinitionRepository
-                    .findWithValues(place, type, name);
+                    .findWithValues(fieldDefinitionId);
 
             //create value
             InspectionFieldDefinitionValue definitionValue = definition.getPossibleValues().stream()
@@ -64,20 +62,18 @@ public class InspectionFieldService {
         }
     }
 
-    public List<InspectionField> getInspectionFields(UUID id,
-                                                                  String place,
-                                                                  String type,
-                                                                  String name){
+    public List<InspectionField> getInspectionFields(UUID id, UUID fieldId){
         try {
             //report
             UUID reportId = inspectionBookingsService.getReportFromBooking(id).getId();
 
             //Get
-           return inspectionFieldRepository.getInspectionFields(reportId, place, type, name);
+           List<InspectionField> fields = inspectionFieldRepository.getInspectionFields(reportId, fieldId);
+           return fields == null ? List.of() : fields;
 
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
+            return List.of();
         }
     }
 
