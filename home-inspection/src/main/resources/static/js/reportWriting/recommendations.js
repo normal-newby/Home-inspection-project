@@ -137,7 +137,6 @@ function renderSections() {
 }
 
 function highlightExistingValues(recommendations) {
-    console.log("Highlighting existing values:", recommendations);
     if (!recommendations) return;
 
     const keys = ["direction", "floorLevel", "room", "task", "time"];
@@ -173,12 +172,9 @@ function highlightExistingValues(recommendations) {
         }
     }
 
-    console.log(recommendations.implication, recommendations.defaultImplication);
     const implicationSection = document.querySelector('[data-implication-key="implication"]');
-    if (implicationSection) {
-        implicationSection.value = recommendations.implication
-        ?? recommendations.defaultImplication
-        ?? "";
+    if (implicationSection && recommendations.implication) {
+        implicationSection.value = recommendations.implication;
     }
 }
 
@@ -260,9 +256,12 @@ export function setUpRecommendationsPanel(fieldId) {
 
     fetch(`http://localhost:8080/api/fields/${fieldId}/recommendations`)
     .then(response => {
-        console.log(response);
-        if (!response.ok || response.status === 204) return null;
-        response.text().then(text => text ? JSON.parse(text) : null);
+        if (!response.ok) {
+            return response.text().then(text => {
+                throw new Error(`Failed to load recommendations: ${response.status} ${text}`);
+            });
+        }
+        return response.json();
     })
     .then(recommendations => {
         highlightExistingValues(recommendations);

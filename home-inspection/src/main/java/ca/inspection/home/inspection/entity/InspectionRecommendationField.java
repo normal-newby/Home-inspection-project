@@ -35,7 +35,4 @@ public class InspectionRecommendationField {
 
     @Column(columnDefinition = "text")
     private String implication;
-
-    @Transient
-    private String defaultImplication;
 }
