@@ -54,24 +54,24 @@ public class InspectionFieldController {
 
     //Notes
 
-    @PostMapping("/fields/{fieldId}/note")
+    @PostMapping("/{fieldId}/note")
     public ResponseEntity<?> addNoteToField(@PathVariable UUID fieldId, @RequestBody String note){
         return inspectionFieldService.addNoteToField(fieldId, note);
     }
 
-    @GetMapping("/fields/{fieldId}/note")
+    @GetMapping("/{fieldId}/note")
     public String getNoteFromField(@PathVariable UUID fieldId){
         return inspectionFieldService.getNoteFromField(fieldId);
     }
 
-    @PutMapping("/fields/{fieldId}/note")
+    @PutMapping("/{fieldId}/note")
     public ResponseEntity<?> updateNoteToField(@PathVariable UUID fieldId, @RequestBody String note){
         return  inspectionFieldService.addNoteToField(fieldId, note);
     }
 
     // Annotations
 
-    @PostMapping("/images/{imageId}/annotations/save")
+    @PostMapping("/images/{imageId}/annotations")
     public ResponseEntity<?> addAnnotation(@PathVariable UUID imageId, @RequestBody ImageAnnotation annotation){
         return inspectionFieldService.addAnnotation(imageId, annotation);
     }
@@ -81,31 +81,31 @@ public class InspectionFieldController {
         return inspectionFieldService.getAnnotations(imageId);
     }
 
-    @DeleteMapping("/annotations/{annotationId}/delete")
+    @DeleteMapping("/annotations/{annotationId}")
     public ResponseEntity<?> deleteAnnotation(@PathVariable UUID annotationId){
         return inspectionFieldService.deleteAnnotation(annotationId);
     }
 
     // include in summary
 
-    @PutMapping("/fields/{fieldId}/summary")
+    @PutMapping("/{fieldId}/summary")
     public ResponseEntity<?> checkPutInSummary(@PathVariable UUID fieldId, @RequestBody Boolean checked){
         return inspectionFieldService.updateFieldInSummary(fieldId, checked);
     }
 
-    @GetMapping("/fields/{fieldId}/summary")
+    @GetMapping("/{fieldId}/summary")
     public Boolean checkInSummary(@PathVariable UUID fieldId){
         return inspectionFieldService.checkInSummary(fieldId);
     }
 
     // Recommendations
 
-    @GetMapping("/fields/{fieldId}/recommendations")
+    @GetMapping("/{fieldId}/recommendations")
     public InspectionRecommendationField getRecommendationField(@PathVariable UUID fieldId){
         return inspectionFieldService.getRecommendationField(fieldId);
     }
 
-    @PostMapping("/fields/{fieldId}/recommendations")
+    @PostMapping("/{fieldId}/recommendations")
     public ResponseEntity<?> addRecommendationField(@PathVariable UUID fieldId, @RequestBody InspectionRecommendationField recommendationField){
         return inspectionFieldService.addRecommendationField(fieldId, recommendationField);
     }

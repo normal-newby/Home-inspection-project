@@ -28,7 +28,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
     });
 
     // Load existing annotations
-    fetch(`http://localhost:8080/api/images/${imageId}/annotations`)
+    fetch(`http://localhost:8080/api/fields/images/${imageId}/annotations`)
         .then(response => {
             if (response.status === 404 || response.status === 204) {
                 annotations = [];
@@ -156,7 +156,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
 
     function deleteAnnotation(ann) {
         if (ann.id) {
-            fetch(`http://localhost:8080/api/annotations/${ann.id}/delete`, { method: "DELETE" })
+            fetch(`http://localhost:8080/api/fields/annotations/${ann.id}`, { method: "DELETE" })
             .then(response => response.text())
             .then(data => {
                 console.log(data);
@@ -337,7 +337,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
 
             console.log('displayWidth:', ann.imageDisplayWidth, 'displayHeight:', ann.imageDisplayHeight);
             
-            fetch(`http://localhost:8080/api/images/${imageId}/annotations/save`, {
+            fetch(`http://localhost:8080/api/fields/images/${imageId}/annotations`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(ann)
