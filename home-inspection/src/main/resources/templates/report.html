@@ -241,7 +241,7 @@
         </div>
 
         <!-- Types within Place -->
-        <div th:each="typeEntry : ${placeEntry.value}" class="report-type-section">
+        <div th:each="typeEntry : ${placeEntry.value}" class="report-type-card">
 
             <!-- Type Subheader -->
             <div class="report-type-header">
@@ -249,10 +249,14 @@
             </div>
 
             <!-- Field Cards -->
-            <div th:each="field : ${typeEntry.value}" class="report-field-card">
+            <div th:each="field : ${typeEntry.value}" class="report-field-entry">
 
                 <!-- Card Header: Field Name + Value -->
-                <div class="report-field-header">
+                <div th:class="${field.inspectionRecommendationField != null or
+                    (field.note != null and !#strings.isEmpty(field.note) and field.selectedValue.value != 'blank item') or
+                    (field.inspectionImages != null and !#lists.isEmpty(field.inspectionImages))}
+                ? 'report-field-header'
+                : 'report-field-header report-field-header--no-border'">
                     <span class="report-field-name" th:text="${field.inspectionFieldDefinition.fieldName}"></span>
                     <span class="report-field-value" th:if="${field.selectedValue.value} != 'blank item'" th:text="${field.selectedValue.value}"></span>
                     <span class="report-field-value" th:if="${field.selectedValue.value} == 'blank item'" th:text="${field.note}"></span>
