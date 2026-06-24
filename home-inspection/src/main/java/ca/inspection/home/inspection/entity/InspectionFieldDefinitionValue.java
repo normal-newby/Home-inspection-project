@@ -28,4 +28,5 @@ public class InspectionFieldDefinitionValue {
     private InspectionFieldDefinition inspectionFieldDefinition;
 
     private String value;
+    private String defaultImplication;
 }

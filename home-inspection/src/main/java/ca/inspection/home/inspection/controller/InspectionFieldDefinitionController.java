@@ -10,25 +10,25 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/fields")
+@RequestMapping("/api/fields/definition")
 @CrossOrigin(origins = "*")
 public class InspectionFieldDefinitionController {
     @Autowired
     private InspectionFieldDefinitionService inspectionFieldDefinitionService;
 
-    @PutMapping("/definition/{id}/expanded")
+    @PutMapping("/{id}/expanded")
     public ResponseEntity<?> setExpandedByDefault(
             @PathVariable UUID id,
             @RequestBody Boolean value){
         return inspectionFieldDefinitionService.setExpandedByDefault(id, value);
     }
 
-    @GetMapping("/definition/{id}/values")
+    @GetMapping("/{id}/values")
     public InspectionFieldDefinition getFieldWithValues(@PathVariable UUID id){
         return inspectionFieldDefinitionService.getFieldWithValues(id);
     }
 
-    @GetMapping("/definition/{place}/{type}/get")
+    @GetMapping("/{place}/{type}/get")
     public List<InspectionFieldDefinition> getAllFields(@PathVariable String place, @PathVariable String type){
         return inspectionFieldDefinitionService.getAllFields(place, type);
     }
