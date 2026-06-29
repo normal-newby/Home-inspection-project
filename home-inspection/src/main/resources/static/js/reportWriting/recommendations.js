@@ -143,7 +143,6 @@ function highlightExistingValues(recommendations) {
 
     keys.forEach(key => {
         const value = recommendations[key];
-        console.log(value);
         if (value === null || value === undefined) return;
 
         const section = sectionsConfig[key];
@@ -215,12 +214,12 @@ function collectRecommendationsFromUI() {
     return payload;
 }
 
-function submitRecommendations(fieldId) {
+function submitRecommendations(fieldId, saveAsDefault = false) {
     const payload = collectRecommendationsFromUI();
 
     console.log(payload);
 
-    fetch(`http://localhost:8080/api/fields/${fieldId}/recommendations`, {
+    fetch(`http://localhost:8080/api/fields/${fieldId}/recommendations?saveAsDefaultImplication=${saveAsDefault}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -251,7 +250,8 @@ export function setUpRecommendationsPanel(fieldId) {
     renderSections();
 
     submitButton.addEventListener("click", () => {
-        submitRecommendations(fieldId);
+        const saveAsDefault = document.getElementById("default-implication-checkbox").checked;
+        submitRecommendations(fieldId, saveAsDefault);
     });
 
     fetch(`http://localhost:8080/api/fields/${fieldId}/recommendations`)

@@ -28,4 +28,7 @@ public class InspectionFieldDefinitionValue {
     private InspectionFieldDefinition inspectionFieldDefinition;
 
     private String value;
+
+    private String defaultImplication; // For all fields which are recommendations, if there is default
+    // implication, use it.
 }

@@ -48,7 +48,6 @@ public class InspectionField {
     @JsonManagedReference("inspectionField-recommendation")
     private InspectionRecommendationField inspectionRecommendationField; //only used if fieldType is recommendations
 
-
     @Column(name = "note")
     private String note;
 

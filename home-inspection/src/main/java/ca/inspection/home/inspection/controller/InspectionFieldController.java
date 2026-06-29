@@ -106,7 +106,8 @@ public class InspectionFieldController {
     }
 
     @PostMapping("/{fieldId}/recommendations")
-    public ResponseEntity<?> addRecommendationField(@PathVariable UUID fieldId, @RequestBody InspectionRecommendationField recommendationField){
-        return inspectionFieldService.addRecommendationField(fieldId, recommendationField);
+    public ResponseEntity<?> addRecommendationField(@PathVariable UUID fieldId, @RequestBody InspectionRecommendationField recommendationField,
+                                                    @RequestParam Boolean saveAsDefaultImplication){
+        return inspectionFieldService.addRecommendationField(fieldId, recommendationField, saveAsDefaultImplication);
     }
 }

@@ -28,6 +28,9 @@ public class InspectionFieldService {
     @Autowired
     private InspectionRecommendationFieldRepository inspectionRecommendationFieldRepository;
 
+    @Autowired
+    private InspectionFieldDefinitionValueRepository inspectionFieldDefinitionValueRepository;
+
     public ResponseEntity<?> createNewInspectionField(UUID id,
                                                    UUID fieldDefinitionId,
                                                    String value){
@@ -214,19 +217,37 @@ public class InspectionFieldService {
         try {
             InspectionField field = inspectionFieldRepository.findById(fieldId)
                     .orElseThrow(() -> new RuntimeException("Field not found"));
-            return field.getInspectionRecommendationField();
+            InspectionRecommendationField recommendationField = field.getInspectionRecommendationField();
+            InspectionFieldDefinitionValue definitionValue = field.getSelectedValue();
+
+            if (recommendationField == null && definitionValue.getDefaultImplication() != null){
+                InspectionRecommendationField newField = new InspectionRecommendationField();
+                newField.setImplication(definitionValue.getDefaultImplication());
+                return newField;
+            }
+
+            return recommendationField;
         } catch (Exception e){
             e.printStackTrace();
             return null;
         }
     }
 
-    public ResponseEntity<?> addRecommendationField(UUID fieldId, InspectionRecommendationField recommendationField){
+    public ResponseEntity<?> addRecommendationField(UUID fieldId, InspectionRecommendationField recommendationField,
+                                                    Boolean saveAsDefaultImplication){
         try {
             InspectionField field = inspectionFieldRepository.findById(fieldId)
                     .orElseThrow(() -> new RuntimeException("Field not found"));
-
             InspectionRecommendationField existing = field.getInspectionRecommendationField();
+            InspectionFieldDefinitionValue definitionValue = field.getSelectedValue();
+
+            // Default Implication
+            if (saveAsDefaultImplication && recommendationField.getImplication() != null){
+                if (definitionValue != null){
+                    definitionValue.setDefaultImplication(recommendationField.getImplication());
+                    inspectionFieldDefinitionValueRepository.save(definitionValue);
+                }
+            }
 
             InspectionRecommendationField saved;
             if (existing == null) {
