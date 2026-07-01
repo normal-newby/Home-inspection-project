@@ -35,8 +35,10 @@ async function loadInspectionFieldDefinitions(){
     const response = await fetch(`http://localhost:8080/api/fields/definition/${encodeURIComponent(place)}/${encodeURIComponent(type)}`);
     const fields = await response.json();
 
+    const existingFieldsCombined = await fetchExistingFieldsCombined();
+
     const fieldsWithExisting = await Promise.all(fields.map(async field => {
-        const existingFields = await getAlreadyExistingFields(field.id) || [];
+        const existingFields = existingFieldsCombined[field.id] || [];
         return {
             field,
             existingFields,
@@ -148,37 +150,25 @@ function createField(field, existingFields = []){
 }
 
 async function renderFields(valuesDiv, field, existingFields = null){
-    const response = await fetch(`http://localhost:8080/api/fields/definition/${field.id}/values`);
-    const fullField = await response.json();
-
-    //Fetch user existing inputs if they were not already loaded
-    const existing = (existingFields && existingFields.length > 0)
-    ? existingFields
-    : await getAlreadyExistingFields(field.id) ?? [];
-
-    existing.forEach(existingField => {
+    existingFields.forEach(existingField => {
         createExistingField(valuesDiv, existingField); // For already inputted fields
     });
 
     //Create buttons
-    fullField.possibleValues.forEach(value => {
+    field.possibleValues.forEach(value => {
         createButton(valuesDiv, value, field.id); // For possible values to choose from
     });
 }
 
-async function getAlreadyExistingFields(fieldId){ //fetches user past stored data
+async function fetchExistingFieldsCombined(){
     try {
-        const url = `http://localhost:8080/api/fields/${bookingId}/${fieldId}`;
+        const url = `http://localhost:8080/api/fields/${bookingId}/${encodeURIComponent(place)}/${encodeURIComponent(type)}/combined`;
         const result = await fetch(url);
-        if (!result.ok) {
-            const text = await result.text();
-            throw new Error(`Fetch failed (${result.status}): ${text}`);
-        }
-        const fields = await result.json();
-        return fields;
+        if (!result.ok) return {};
+        return await result.json();
     } catch (error){
         console.log(error);
-        return null;
+        return {};
     }
 }
 

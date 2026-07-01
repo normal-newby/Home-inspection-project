@@ -3,6 +3,7 @@ package ca.inspection.home.inspection.repository;
 import ca.inspection.home.inspection.entity.InspectionField;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -15,9 +16,15 @@ public interface InspectionFieldRepository extends JpaRepository<InspectionField
             FROM InspectionField f
             JOIN FETCH f.inspectionFieldDefinition d
             LEFT JOIN FETCH f.selectedValue
-            LEFT JOIN FETCH f.inspectionImages i
-            WHERE f.inspectionReport.id = :report
-            AND d.id = :id
+            LEFT JOIN FETCH f.inspectionImages
+            LEFT JOIN FETCH f.inspectionRecommendationField
+            WHERE f.inspectionReport.id = :reportId
+            AND d.fieldPlace = :place
+            AND d.fieldType = :type
             """)
-    List<InspectionField> getInspectionFields(UUID report, UUID id);
+    List<InspectionField> getExistingFieldsForPlaceAndType(
+            @Param("reportId") UUID reportId,
+            @Param("place") String place,
+            @Param("type") String type
+    );
 }

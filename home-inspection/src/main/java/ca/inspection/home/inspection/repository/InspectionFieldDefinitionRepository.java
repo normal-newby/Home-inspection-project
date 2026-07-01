@@ -15,11 +15,12 @@ public interface InspectionFieldDefinitionRepository extends JpaRepository<Inspe
     @Query("""
         SELECT d 
         FROM InspectionFieldDefinition d
+        LEFT JOIN FETCH d.possibleValues
         WHERE d.fieldPlace = :place
         AND d.fieldType = :type
         ORDER BY d.fieldName
             """)
-    List<InspectionFieldDefinition> findAllWithoutValues(
+    List<InspectionFieldDefinition> findAllWithValues(
             @Param("place") String place,
             @Param("type") String type
     );

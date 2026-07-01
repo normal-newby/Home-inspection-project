@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class InspectionFieldService {
@@ -65,19 +66,14 @@ public class InspectionFieldService {
         }
     }
 
-    public List<InspectionField> getInspectionFields(UUID id, UUID fieldId){
-        try {
-            //report
-            UUID reportId = inspectionBookingsService.getReportFromBooking(id).getId();
-
-            //Get
-           List<InspectionField> fields = inspectionFieldRepository.getInspectionFields(reportId, fieldId);
-           return fields == null ? List.of() : fields;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return List.of();
-        }
+    public Map<UUID, List<InspectionField>> getAlreadyExistingFieldsCombined(
+            UUID bookingId, String place, String type
+    ){
+        InspectionReport report = inspectionBookingsService.getReportFromBooking(bookingId);
+        List<InspectionField> fields = inspectionFieldRepository
+                .getExistingFieldsForPlaceAndType(report.getId(), place, type);
+        return fields.stream()
+                .collect(Collectors.groupingBy(field -> field.getInspectionFieldDefinition().getId()));
     }
 
     public void deleteInspectionField(UUID id){

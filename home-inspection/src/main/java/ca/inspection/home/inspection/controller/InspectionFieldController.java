@@ -29,10 +29,13 @@ public class InspectionFieldController {
         return inspectionFieldService.createNewInspectionField(id, fieldDefinitionId, value);
     }
 
-    @GetMapping("/{id}/{fieldId}")
-    public List<InspectionField> getInspectionFields(@PathVariable UUID id,
-                                                      @PathVariable UUID fieldId){
-        return inspectionFieldService.getInspectionFields(id, fieldId);
+    @GetMapping("/{bookingId}/{place}/{type}/combined")
+    public Map<UUID, List<InspectionField>> getAlreadyExistingFieldsCombined(
+            @PathVariable UUID bookingId,
+            @PathVariable String place,
+            @PathVariable String type
+    ){
+        return inspectionFieldService.getAlreadyExistingFieldsCombined(bookingId, place, type);
     }
 
     @DeleteMapping("/{id}")
