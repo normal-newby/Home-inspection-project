@@ -223,7 +223,14 @@
                 <td th:text="${field.inspectionRecommendationField.floorLevel}"></td>
                 <td th:text="${field.inspectionRecommendationField.task}"></td>
                 <td th:text="${field.inspectionRecommendationField.time}"></td>
-                <td th:text="|$${field.inspectionRecommendationField.lower_cost} – $${field.inspectionRecommendationField.upper_cost}|"></td>
+                <td th:if="${field.inspectionRecommendationField != null 
+                            and field.inspectionRecommendationField.lower_cost != null 
+                            and field.inspectionRecommendationField.upper_cost != null}"
+                    th:text="|$${field.inspectionRecommendationField.lower_cost} – $${field.inspectionRecommendationField.upper_cost}|"></td>
+                <td th:unless="${field.inspectionRecommendationField != null 
+                                and field.inspectionRecommendationField.lower_cost != null 
+                                and field.inspectionRecommendationField.upper_cost != null}"
+                    th:text="'N/A'"></td>
             </tr>
             </tbody>
         </table>
