@@ -57,6 +57,8 @@ public class ReportViewController {
         InvoiceAmount amount = inspectionBookingsService.buildInvoiceAmount(booking.getInvoices());
         InspectionReport report = inspectionReportsService.getOrCreateByBooking(bookingId);
 
+        reportViewService.getOtherFields(report);
+
         Comparator<InspectionField> fieldComparator = reportViewService.getComparator();
 
         List<InspectionField> fields = reportViewService.getSortedFields(
@@ -72,7 +74,7 @@ public class ReportViewController {
         context.setVariable("allFields", allFields);
         context.setVariable("report", report);
 
-        byte[] pdf = reportViewService.generatePdf("report", context, bookingId);
+        byte[] pdf = reportViewService.generatePdf("report", context, bookingId, report);
 
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
                 "inline; filename = report-" + bookingId + ".pdf")

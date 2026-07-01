@@ -4,8 +4,10 @@ import ca.inspection.home.inspection.entity.InspectionImage;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
 public interface InspectionImagesRepository extends JpaRepository<InspectionImage, UUID> {
+    List<InspectionImage> findByInspectionField_IdIn(List<UUID> fieldId);
 }

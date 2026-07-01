@@ -1,7 +1,9 @@
 package ca.inspection.home.inspection.service;
 
-import ca.inspection.home.inspection.entity.InspectionField;
-import ca.inspection.home.inspection.entity.InspectionReport;
+import ca.inspection.home.inspection.entity.*;
+import ca.inspection.home.inspection.repository.ImageAnnotationRepository;
+import ca.inspection.home.inspection.repository.InspectionImagesRepository;
+import ca.inspection.home.inspection.repository.InspectionRecommendationFieldRepository;
 import lombok.AllArgsConstructor;
 import org.apache.tomcat.util.http.fileupload.ByteArrayOutputStream;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +48,44 @@ public class ReportViewService {
 
     @Value("${pdf.service.url}")
     private String pdfServiceUrl;
+
+    @Autowired
+    private InspectionImagesRepository inspectionImagesRepository;
+
+    @Autowired
+    private ImageAnnotationRepository imageAnnotationRepository;
+
+    public void getOtherFields(InspectionReport report){
+        List<UUID> fieldIds = report.getFields().stream().map(InspectionField::getId).toList();
+        if (fieldIds.isEmpty()) return;
+
+        //Field images
+        Map<UUID, List<InspectionImage>> imagesMap = inspectionImagesRepository
+                .findByInspectionField_IdIn(fieldIds).stream()
+                .collect(Collectors.groupingBy(img -> img.getInspectionField().getId()));
+
+        //Image Ids
+        List<UUID> imageIds = imagesMap.values().stream()
+                .flatMap(List::stream).map(InspectionImage::getId).toList();
+
+        //Annotations
+        Map<UUID, List<ImageAnnotation>> annotationMap;
+        if (imageIds.isEmpty()){
+            annotationMap = Map.of();
+        } else {
+            annotationMap = imageAnnotationRepository.findByInspectionImageIdIn(imageIds).stream()
+                    .collect(Collectors.groupingBy(ann -> ann.getInspectionImage().getId()));
+        }
+
+        //Put into report
+        report.getFields().forEach(field -> {
+            List<InspectionImage> images = imagesMap.getOrDefault(field.getId(), new ArrayList<>());
+            images.forEach(img -> {
+                img.setAnnotations(annotationMap.getOrDefault(img.getId(), new ArrayList<>()));
+            });
+            field.setInspectionImages(images);
+        });
+    }
 
     public Comparator<InspectionField> getComparator(){
         Comparator<InspectionField> fieldComparator = Comparator.comparingInt(f -> {
@@ -112,7 +152,7 @@ public class ReportViewService {
 
     }
 
-    public byte[] generatePdf(String templateName, Context context, UUID bookingId){
+    public byte[] generatePdf(String templateName, Context context, UUID bookingId, InspectionReport report){
         try {
             // Read CSS file and inject into context
             String css = new String(getClass()
@@ -133,7 +173,7 @@ public class ReportViewService {
         body.put("html", html);
         body.put("bookingId", bookingId);
 
-        byte[] appendixBytes = inspectionReportsService.readAppendixPdfBytes(bookingId);
+        byte[] appendixBytes = inspectionReportsService.readAppendixPdfBytes(report);
         if (appendixBytes != null){
             body.put("appendixBase64", Base64.getEncoder().encodeToString(appendixBytes));
         }

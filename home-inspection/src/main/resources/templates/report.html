@@ -311,11 +311,14 @@
 
                 <!-- Image + Annotations -->
                 <div th:if="${field.inspectionImages != null and !#lists.isEmpty(field.inspectionImages)}" class="images-wrapper">
-                    <div th:each="img : ${field.inspectionImages}" class="report-field-image-wrap">
+                    <div th:each="img, iterStat : ${field.inspectionImages}" class="report-field-image-wrap">
                         <img class="report-field-image"
                              th:src="${img.base64}"
                              th:id="'img-' + ${field.id} + '-' + ${img.id}"
                              onerror="this.closest('.report-field-image-wrap').style.display='none'"/>
+                        <div class="report-field-image-caption"
+                             th:text="|${iterStat.count}. ${(field.selectedValue != null and !#strings.isEmpty(field.selectedValue.value)) ? field.selectedValue.value : field.note}|">
+                        </div>
                     </div>
                 </div>
 

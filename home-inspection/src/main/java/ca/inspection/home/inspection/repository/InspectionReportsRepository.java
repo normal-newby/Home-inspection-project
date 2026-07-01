@@ -15,6 +15,7 @@ public interface InspectionReportsRepository extends JpaRepository<InspectionRep
         LEFT JOIN FETCH r.fields f
         LEFT JOIN FETCH f.inspectionFieldDefinition
         LEFT JOIN FETCH f.selectedValue
+        LEFT JOIN FETCH f.inspectionRecommendationField
         LEFT JOIN FETCH r.images
         LEFT JOIN FETCH r.inspectionBooking
         WHERE r.inspectionBooking.id = :bookingId

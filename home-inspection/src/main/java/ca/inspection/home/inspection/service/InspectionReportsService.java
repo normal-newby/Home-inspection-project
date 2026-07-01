@@ -124,10 +124,8 @@ public class InspectionReportsService {
         }
     }
 
-    public byte[] readAppendixPdfBytes(UUID bookingId){
+    public byte[] readAppendixPdfBytes(InspectionReport report){
         try {
-            InspectionReport report = getOrCreateByBooking(bookingId);
-
             Path path;
             if (report.getAppendixPdf() != null){
                 path = getDirectory().resolve(report.getAppendixPdf());

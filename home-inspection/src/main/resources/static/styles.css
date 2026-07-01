@@ -727,6 +727,14 @@ body {
     border: 1px solid var(--border);
 }
 
+.report-field-image-caption {
+    font-size: 0.72rem;
+    font-weight: 400;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 0.25rem;
+}
+
 .report-field-canvas {
     position: absolute;
     top: 0;
