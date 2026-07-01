@@ -1,7 +1,7 @@
 package ca.inspection.home.inspection.service;
 
+import ca.inspection.home.inspection.DTO.BookingDetails;
 import ca.inspection.home.inspection.DTO.InvoiceAmount;
-import ca.inspection.home.inspection.entity.BookingSummary;
 import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectionReport;
 import ca.inspection.home.inspection.entity.Invoice;
@@ -28,13 +28,16 @@ public class InspectionBookingsService {
         return inspectionBookingsRepository.save(booking);
     }
 
-    public List<BookingSummary> findAll(){
-        return inspectionBookingsRepository.findBookingSummariesByOrderByCreatedAtDesc();
+    public List<BookingDetails> findAll(){
+        return inspectionBookingsRepository.findBookingDetailsByOrderByCreatedAtDesc();
     }
 
     public InspectionBookings findById(UUID id){
-        return inspectionBookingsRepository.findById(id)
-                .orElseThrow();
+        return inspectionBookingsRepository.findById(id).orElseThrow();
+    }
+
+    public BookingDetails getBookingDetails(UUID id){
+        return inspectionBookingsRepository.getBookingDetails(id);
     }
 
     public InspectionReport getReportFromBooking(UUID bookingId){
@@ -59,7 +62,8 @@ public class InspectionBookingsService {
 
     public ResponseEntity<?> deleteBooking(UUID id){
         try {
-            InspectionBookings bookings = findById(id);
+            InspectionBookings bookings = inspectionBookingsRepository.findById(id)
+                            .orElseThrow();
             inspectionBookingsRepository.delete(bookings);
             return ResponseEntity.ok().build();
         } catch (Exception e){

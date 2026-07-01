@@ -1,8 +1,7 @@
 package ca.inspection.home.inspection.controller;
 
-import ca.inspection.home.inspection.entity.BookingSummary;
+import ca.inspection.home.inspection.DTO.BookingDetails;
 import ca.inspection.home.inspection.entity.InspectionBookings;
-import ca.inspection.home.inspection.entity.Invoice;
 import ca.inspection.home.inspection.service.InspectionBookingsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,13 +23,13 @@ public class InspectionBookingsController {
     }
 
     @GetMapping("/get/bookings")
-    public List<BookingSummary> getAllBookings(){
+    public List<BookingDetails> getAllBookings(){
         return inspectionBookingsService.findAll();
     }
 
     @GetMapping("/bookings/{id}")
-    public InspectionBookings getBooking(@PathVariable UUID id){
-        return inspectionBookingsService.findById(id);
+    public BookingDetails getBooking(@PathVariable UUID id){
+        return inspectionBookingsService.getBookingDetails(id);
     }
 
     @PutMapping("/bookings/{id}")
