@@ -28,7 +28,7 @@ public class InspectionFieldDefinitionController {
         return inspectionFieldDefinitionService.getFieldWithValues(id);
     }
 
-    @GetMapping("/definition/{place}/{type}/get")
+    @GetMapping("/definition/{place}/{type}")
     public List<InspectionFieldDefinition> getAllFields(@PathVariable String place, @PathVariable String type){
         return inspectionFieldDefinitionService.getAllFields(place, type);
     }

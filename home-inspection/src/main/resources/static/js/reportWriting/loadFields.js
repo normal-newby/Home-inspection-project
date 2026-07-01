@@ -32,26 +32,29 @@ let curField = null;
 
 async function loadInspectionFieldDefinitions(){
     console.log(`Loading fields for place: ${place}, type: ${type}`);
-    const response = await fetch(`http://localhost:8080/api/fields/definition/${encodeURIComponent(place)}/${encodeURIComponent(type)}/get`);
+    const response = await fetch(`http://localhost:8080/api/fields/definition/${encodeURIComponent(place)}/${encodeURIComponent(type)}`);
     const fields = await response.json();
 
     const fieldsWithExisting = await Promise.all(fields.map(async field => {
-        const existingFields = await getAlreadyExistingFields(field.id) || []; // Fetch existing fields for each definition to determine sorting and default expansion
+        const existingFields = await getAlreadyExistingFields(field.id) || [];
         return {
             field,
-            existingFields: existingFields,
+            existingFields,
             existingCount: Array.isArray(existingFields) ? existingFields.length : 0,
-        };
+            pinned: field.expandedByDefault ?? false, 
+        }; // return number of existing fields and number of pinned fields for sorting
     }));
 
-    fieldsWithExisting.sort((a, b) => b.existingCount - a.existingCount || a.field.fieldName.localeCompare(b.field.fieldName));
+    fieldsWithExisting.sort((a, b) => { // propagates existing, pinned to front
+        if (b.existingCount !== a.existingCount) return b.existingCount - a.existingCount;
+        if (b.pinned !== a.pinned) return (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0);
+        return a.field.fieldName.localeCompare(b.field.fieldName);
+    });
 
-    contentFields.innerHTML = ""; //clear previous
-    fieldsWithExisting.forEach(({ field, existingFields, existingCount }) => {
-        if (existingCount > 0) {
-            field.expandedByDefault = true; // Expand fields with existing inputs by default
-        }
-        createField(field, existingFields)
+    contentFields.innerHTML = "";
+    fieldsWithExisting.forEach(({ field, existingFields, existingCount, pinned }) => {
+        field.isShowing = existingCount > 0 || pinned; // Show if there are existing fields or if pinned
+        createField(field, existingFields);
     });
 }
 
@@ -74,7 +77,7 @@ function createField(field, existingFields = []){
     controls.classList.add("field-controls");
 
     const showButton = document.createElement("button");
-    showButton.textContent = field.expandedByDefault ? "Hide" : "Show";
+    showButton.textContent = field.isShowing ? "Hide" : "Show";
     showButton.classList.add("show-button");
 
     const keepShowButton = document.createElement("button");
@@ -93,7 +96,8 @@ function createField(field, existingFields = []){
     fieldDiv.appendChild(fieldHeader);
     fieldDiv.appendChild(valuesDiv);
     contentFields.appendChild(fieldDiv);
-    valuesDiv.hidden = !field.expandedByDefault;
+    valuesDiv.hidden = !field.isShowing;
+    console.log(valuesDiv.hidden);
 
     let loaded = false;
 
@@ -138,7 +142,7 @@ function createField(field, existingFields = []){
         } 
     });
 
-    if (field.expandedByDefault) {
+    if (field.isShowing) {
         expand();
     }
 }
