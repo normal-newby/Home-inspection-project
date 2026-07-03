@@ -43,7 +43,7 @@ public class InspectionImagesController {
         return inspectionImagesService.getImageFile(filename);
     }
 
-    @DeleteMapping("/images/{id}/delete")
+    @DeleteMapping("/images/{id}")
     public ResponseEntity<Void> deleteImage(@PathVariable UUID id) {
         return inspectionImagesService.deleteImage(id);
     }

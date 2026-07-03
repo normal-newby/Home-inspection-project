@@ -3,9 +3,6 @@ import { bookingId } from "./getReport.js";
 const saveImagesButton = document.getElementById("save-images-button");
 const bodyDiv = document.querySelector(".body_content");
 
-const showImagesDiv = document.querySelector(".show-image-box");
-const imageContainer = document.querySelector(".image-container");
-
 const progressBox = document.querySelector(".upload-progress");
 const progressBar = document.querySelector(".upload-progress-bar");
 const progressPercentage = document.querySelector(".upload-progress-percentage");
@@ -178,48 +175,24 @@ let currentImageId = null;
 async function initialize(){
     const track = await initImagesSlider(bookingId, bodyDiv, true);
     track.querySelectorAll("img").forEach(img => {
-        img.addEventListener("dblclick", (e) => imageClickFunction(e));
+        img.addEventListener("contextmenu", (e) => deleteImage(e, img.dataset.imageId));
     });
 }
 
 initialize();
 
-function imageClickFunction(e){
-    showImagesDiv.hidden = false;
-    const img = document.createElement("img");
-    img.src = e.target.src;
-    imageContainer.innerHTML = "";
-    imageContainer.appendChild(img);
-    currentImageId = img.src;
-}
+function deleteImage(e, imageId){
+    e.preventDefault();
+    if (!confirm("Are you sure you want to delete this image?")) return;
 
-const closeButton = document.querySelector(".close-button");
-
-closeButton.addEventListener("click", () => {
-    showImagesDiv.hidden = true;
-});
-
-const deleteImageButton = document.querySelector(".delete-image-button");
-
-deleteImageButton.addEventListener("click", (e) => {
-    const parts = currentImageId.split("/");
-    const imageUrl = parts[parts.length-1];
-    console.log(imageUrl);
-
-    fetch(`http://localhost:8080/api/images/${imageUrl}/delete`, {
+    fetch(`http://localhost:8080/api/images/${imageId}`, {
         method: "DELETE"
     })
     .then(res => {
         if (res.ok){
             invalidateImageCache();
             console.log("Deleted");
-            showImagesDiv.hidden = true;
         } else console.log("failed");
     });
-});
+}
 
-document.addEventListener("click", (e) => {
-    if (!showImagesDiv.contains(e.target)) {
-        showImagesDiv.hidden = true;
-    }
-});
