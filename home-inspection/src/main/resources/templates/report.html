@@ -260,20 +260,28 @@
 
                 <!-- Card Header: Field Name + Value -->
                 <div th:class="${field.inspectionRecommendationField != null or
-                    (field.note != null and !#strings.isEmpty(field.note) and field.selectedValue.value != 'blank item') or
+                    (field.note != null and !#strings.isEmpty(field.note) and (field.selectedValue == null or field.selectedValue.value != 'blank item')) or
                     (field.inspectionImages != null and !#lists.isEmpty(field.inspectionImages))}
                 ? 'report-field-header'
                 : 'report-field-header report-field-header--no-border'">
                     <span class="report-field-name" th:text="${field.inspectionFieldDefinition.fieldName}"></span>
-                    <span class="report-field-value" th:if="${field.selectedValue.value} != 'blank item'" th:text="${field.selectedValue.value}"></span>
-                    <span class="report-field-value" th:if="${field.selectedValue.value} == 'blank item'" th:text="${field.note}"></span>
+                    <div class="report-field-value report-field-value--right"
+                        th:if="${field.inspectionFieldDefinition.fieldType != 'recommendations' and field.selectedValue != null and field.selectedValue.value != 'blank item'}"
+                        th:text="${field.selectedValue.value}"></div>
+                    <div class="report-field-value report-field-value--right"
+                        th:if="${field.inspectionFieldDefinition.fieldType != 'recommendations' and field.selectedValue != null and field.selectedValue.value == 'blank item'}"
+                        th:text="${field.note}"></div>
                 </div>
 
-                <!-- Note -->
-                <div class="report-field-note"
-                     th:if="${field.note != null and !#strings.isEmpty(field.note) and field.selectedValue.value != 'blank item'}">
-                    <span class="report-meta-label">Note</span>
-                    <span th:text="${field.note}"></span>
+                <div class="report-field-condition"
+                     th:if="${field.inspectionFieldDefinition.fieldType == 'recommendations'}">
+                    <span class="report-meta-label">Condition</span>
+                    <span class="report-field-value-text"
+                          th:if="${field.selectedValue != null and field.selectedValue.value != 'blank item'}"
+                          th:text="${field.selectedValue.value}"></span>
+                    <span class="report-field-value-text"
+                          th:if="${field.selectedValue == null or field.selectedValue.value == 'blank item'}"
+                          th:text="${field.note}"></span>
                 </div>
 
                 <!-- Meta Row: Floor Level + Location -->
@@ -314,6 +322,13 @@
                      th:if="${field.inspectionRecommendationField != null and field.inspectionRecommendationField.implication != null}">
                     <span class="report-meta-label">Implication</span>
                     <span th:text="${field.inspectionRecommendationField.implication}"></span>
+                </div>
+
+                <!-- Note -->
+                <div class="report-field-note"
+                     th:if="${field.note != null and !#strings.isEmpty(field.note) and (field.selectedValue == null or field.selectedValue.value != 'blank item')}">
+                    <span class="report-meta-label">Note</span>
+                    <span th:text="${field.note}"></span>
                 </div>
 
                 <!-- Image + Annotations -->

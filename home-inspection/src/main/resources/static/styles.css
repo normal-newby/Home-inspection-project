@@ -5,6 +5,7 @@
 }
 
 :root {
+    /* Color palette */
     --ink: #1a1a18;
     --paper: #f5f2eb;
     --accent: #b5470b;
@@ -16,6 +17,14 @@
     --ink-subtle: #666660;
     --bg-subtle: #f9f7f4;
     --bg-header: #2a2a28;
+    /* Sizes */
+    --label-size: 0.7rem;
+    --value-size: 0.8rem;
+    --title-size: 0.9rem;
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 0.75rem;
+    --space-lg: 1rem;
 }
 
 body {
@@ -627,7 +636,7 @@ body {
     background-color: var(--bg-subtle);
 }
 
-/* ── Report sections ── */
+/* Report Sections */
 
 .report-place-header {
     font-size: 1.2rem;
@@ -635,37 +644,35 @@ body {
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--ink);
-    padding-bottom: 0.5rem;
-    margin-bottom: 0.75rem;
+    padding-bottom: var(--space-sm);
+    margin-bottom: var(--space-md);
     border-bottom: 3px solid var(--accent);
 }
 
 .report-type-header {
-    font-size: 0.68rem;
-    font-weight: 500;
+    font-size: var(--label-size);
+    font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--accent);
     border-bottom: 1px solid var(--accent);
-    padding-bottom: 0.25rem;
-    margin: 0.85rem 0 0.6rem;
+    padding-bottom: var(--space-xs);
+    margin: var(--space-lg) 0 var(--space-sm);
 }
 
-/* One card per subheader group */
 .report-type-card {
     border: 1px solid var(--border);
     border-radius: 4px;
     background: var(--card);
-    padding: 0.75rem 1rem;
-    margin-bottom: 0.65rem;
+    padding: var(--space-md) var(--space-lg);
+    margin-bottom: var(--space-sm);
     overflow: hidden;
     -weasyprint-box-decoration-break: clone;
     box-decoration-break: clone;
 }
 
-/* Individual field rows inside the card — no border, just a divider */
 .report-field-entry {
-    padding: 0.6rem 0;
+    padding: var(--space-md) 0;
     border-bottom: 1px solid var(--border);
     page-break-inside: avoid;
     break-inside: avoid;
@@ -676,13 +683,14 @@ body {
     padding-bottom: 0;
 }
 
+/* ── Header row ── */
 .report-field-header {
     display: flex;
-    font-weight: bold;
+    justify-content: space-between;
     align-items: baseline;
-    gap: 0.65rem;
-    padding-bottom: 0.5rem;
-    margin-bottom: 0.5rem;
+    gap: var(--space-md);
+    padding-bottom: var(--space-sm);
+    margin-bottom: var(--space-sm);
     border-bottom: 1px solid var(--border);
 }
 
@@ -693,30 +701,104 @@ body {
 }
 
 .report-field-name {
-    font-size: 0.82rem;
-    font-weight: 500;
+    font-size: var(--title-size);
+    font-weight: 600;
     color: var(--ink);
+    min-width: 0;
 }
 
 .report-field-value {
-    font-size: 0.75rem;
+    font-size: var(--value-size);
     font-weight: 400;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+    color: var(--ink);
+    min-width: 0;
 }
 
+.report-field-value--right {
+    display: block;
+    margin-left: auto;
+    text-align: right;
+}
+
+/* ── Condition block ── */
+.report-field-condition {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-sm);
+}
+
+.report-field-value-text {
+    font-size: var(--value-size);
+    font-weight: 400;
+    color: var(--ink);
+}
+
+.report-meta-label {
+    font-size: var(--label-size);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.report-meta-label::after {
+    content: ":";
+}
+
+/* ── Meta row (Floor / Room / Task / Time / Cost) ── */
+.report-field-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs) var(--space-lg);
+    margin-bottom: var(--space-sm);
+}
+
+.report-meta-item {
+    display: flex;
+    gap: var(--space-xs);
+    align-items: baseline;
+}
+
+.report-meta-value {
+    font-size: var(--value-size);
+    font-weight: 400;
+    color: var(--ink);
+}
+
+/* ── Implication / Note ── */
+.report-field-implication,
+.report-field-note {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-xs);
+    font-size: var(--value-size);
+    font-weight: 400;
+    color: var(--ink);
+    line-height: 1.5;
+}
+
+.report-field-note {
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--border);
+}
+
+/* ── Images ── */
 .images-wrapper {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
-    align-items: center;
+    gap: var(--space-md);
 }
 
 .report-field-image-wrap {
     position: relative;
     display: inline-block;
-    width: 100%;
-    margin-bottom: 0.6rem;
+    margin-bottom: var(--space-sm);
 }
 
 .report-field-image {
@@ -728,11 +810,11 @@ body {
 }
 
 .report-field-image-caption {
-    font-size: 0.72rem;
+    font-size: var(--label-size);
     font-weight: 400;
     color: var(--muted);
     text-align: center;
-    margin-top: 0.25rem;
+    margin-top: var(--space-xs);
 }
 
 .report-field-canvas {
@@ -742,57 +824,6 @@ body {
     width: 100%;
     height: 100%;
     pointer-events: none;
-}
-
-.report-field-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem 1.25rem;
-    margin-bottom: 0.45rem;
-}
-
-.report-meta-item {
-    display: flex;
-    gap: 0.35rem;
-    align-items: baseline;
-}
-
-.report-meta-label {
-    font-size: 0.65rem;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-    white-space: nowrap;
-}
-
-.report-meta-value {
-    font-size: 0.8rem;
-    font-weight: 400;
-    color: var(--ink);
-}
-
-.report-field-implication {
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-    margin-bottom: 0.4rem;
-    font-size: 0.8rem;
-    font-weight: 300;
-    color: var(--ink-light);
-    line-height: 1.5;
-}
-
-.report-field-note {
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-    padding-top: 0.45rem;
-    border-top: 1px solid var(--border);
-    font-size: 0.8rem;
-    font-weight: 300;
-    color: var(--ink-light);
-    line-height: 1.5;
 }
 
 /* Appendix Page */

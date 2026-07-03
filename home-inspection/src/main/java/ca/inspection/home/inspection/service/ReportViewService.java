@@ -167,6 +167,9 @@ public class ReportViewService {
 
         String html = templateEngine.process(templateName, context);
 
+        String debugHtml = html.replaceAll("data:image/[^;]+;base64,[A-Za-z0-9+/=]+", "data:image/[TRUNCATED]");
+        System.out.println(debugHtml);
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
