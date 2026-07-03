@@ -22,10 +22,10 @@ public class InspectionFieldController {
     @Autowired
     private InspectionFieldService inspectionFieldService;
 
-    @PostMapping("{id}/{fieldDefinitionId}/{value}")
+    @PostMapping("{id}/{fieldDefinitionId}")
     public ResponseEntity<?> createNewInspectionField(@PathVariable UUID id,
                                                    @PathVariable UUID fieldDefinitionId,
-                                                   @PathVariable String value){
+                                                   @RequestBody String value){
         return inspectionFieldService.createNewInspectionField(id, fieldDefinitionId, value);
     }
 

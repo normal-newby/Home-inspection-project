@@ -7,9 +7,7 @@ import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "inspection_image")
@@ -18,7 +16,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString(exclude = {"inspectionReport", "fields"})
-@EqualsAndHashCode(exclude = {"inspectionReport", "fields"})
+@EqualsAndHashCode(exclude = {"inspectionReport", "inspectionField", "annotations"})
 public class InspectionImage {
     @Id
     @GeneratedValue
@@ -28,7 +26,7 @@ public class InspectionImage {
     @Transient
     private String base64;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JsonBackReference
     @JoinColumn(name = "inspection_report_id", nullable = false)
     private InspectionReport inspectionReport;
@@ -43,7 +41,7 @@ public class InspectionImage {
 
     @OneToMany(mappedBy = "inspectionImage", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference("inspectionImage-annotations")
-    private List<ImageAnnotation> annotations = new ArrayList<>();
+    private Set<ImageAnnotation> annotations = new HashSet<>();
 
     private Boolean used = false;
 }

@@ -86,7 +86,8 @@ public class InspectionImagesService {
 
     public ResponseEntity<Resource> getImageFile(UUID id){
         try {
-            InspectionImage image = inspectionImagesRepository.getById(id);
+            InspectionImage image = inspectionImagesRepository.findById(id)
+                    .orElseThrow();
 
             Path filePath = getDirectory().resolve(image.getImageUrl());
             Resource resource = new UrlResource(filePath.toUri());
@@ -99,9 +100,10 @@ public class InspectionImagesService {
         }
     }
 
-    public String toBase64(UUID id, List<ImageAnnotation> annotations){
+    public String toBase64(UUID id, Set<ImageAnnotation> annotations){
         try {
-            InspectionImage image = inspectionImagesRepository.getById(id);
+            InspectionImage image = inspectionImagesRepository.findById(id)
+                    .orElseThrow();
             Path filePath = getDirectory().resolve(image.getImageUrl());
             BufferedImage img = ImageIO.read(filePath.toFile());
 
@@ -199,7 +201,8 @@ public class InspectionImagesService {
 
     public ResponseEntity<Void> deleteImage(UUID id){
         try {
-            InspectionImage image = inspectionImagesRepository.getById(id);
+            InspectionImage image = inspectionImagesRepository.findById(id)
+                    .orElseThrow();
 
             //delete from database
             inspectionImagesRepository.delete(image);

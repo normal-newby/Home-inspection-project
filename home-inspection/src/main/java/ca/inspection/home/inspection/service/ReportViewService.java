@@ -69,19 +69,20 @@ public class ReportViewService {
                 .flatMap(List::stream).map(InspectionImage::getId).toList();
 
         //Annotations
-        Map<UUID, List<ImageAnnotation>> annotationMap;
+        Map<UUID, Set<ImageAnnotation>> annotationMap;
         if (imageIds.isEmpty()){
             annotationMap = Map.of();
         } else {
             annotationMap = imageAnnotationRepository.findByInspectionImageIdIn(imageIds).stream()
-                    .collect(Collectors.groupingBy(ann -> ann.getInspectionImage().getId()));
+                    .collect(Collectors.groupingBy(ann -> ann.getInspectionImage().getId(),
+                            Collectors.toSet()));
         }
 
         //Put into report
         report.getFields().forEach(field -> {
             List<InspectionImage> images = imagesMap.getOrDefault(field.getId(), new ArrayList<>());
             images.forEach(img -> {
-                img.setAnnotations(annotationMap.getOrDefault(img.getId(), new ArrayList<>()));
+                img.setAnnotations(annotationMap.getOrDefault(img.getId(), new HashSet<>()));
             });
             field.setInspectionImages(images);
         });

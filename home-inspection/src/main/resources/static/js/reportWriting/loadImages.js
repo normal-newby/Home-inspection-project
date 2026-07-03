@@ -115,15 +115,20 @@ export async function initImagesSlider(bookingId, container, getUsedForReport = 
 
     function loopImages(images){ //appends images by 6s to a container
         imagesTrack.innerHTML = "";
-        
-        if (getUsedForReport) images = images.filter(image => !image.used); // If we only want images not used for report, filter them out
 
-        for (let i = 0; i < images.length; i += imagesPerSlide){
+        // Filter images if needed
+        let imagesToRender = images;
+        if (getUsedForReport) {
+            imagesToRender = images.filter(image => !image.used);
+            console.log(`Filtering images: ${images.length} total, ${imagesToRender.length} after filter (used=${getUsedForReport})`);
+        }
+
+        for (let i = 0; i < imagesToRender.length; i += imagesPerSlide){
             const slide = document.createElement("div");
             slide.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
             slide.className = "image-slide";
 
-            images.slice(i, i + imagesPerSlide).forEach(image => {
+            imagesToRender.slice(i, i + imagesPerSlide).forEach(image => {
                 const img = document.createElement("img");
                 img.src = getBlobUrl(image.id);
                 img.dataset.imageId = image.id;
@@ -134,7 +139,7 @@ export async function initImagesSlider(bookingId, container, getUsedForReport = 
 
             imagesTrack.appendChild(slide);
         }
-        totalSlides = Math.ceil(images.length/imagesPerSlide);
+        totalSlides = Math.ceil(imagesToRender.length/imagesPerSlide);
     }
 
     function updateSlider() {
@@ -171,7 +176,7 @@ export async function initImagesSlider(bookingId, container, getUsedForReport = 
 let currentImageId = null;
 
 async function initialize(){
-    const track = await initImagesSlider(bookingId,bodyDiv);
+    const track = await initImagesSlider(bookingId, bodyDiv, true);
     track.querySelectorAll("img").forEach(img => {
         img.addEventListener("dblclick", (e) => imageClickFunction(e));
     });

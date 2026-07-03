@@ -338,7 +338,7 @@ function showExistingImage(images, fieldId){
         thumb.addEventListener("contextmenu", (e) => {
             e.preventDefault();
             if (confirm("Are you sure you want to remove this image from the field?")) {
-                deleteImageFromField(image.id, fieldId);
+                deleteImageFromField(thumb, image.id, fieldId);
             }
         });
                     
@@ -351,16 +351,23 @@ function showExistingImage(images, fieldId){
 // Endpoints for fields and images
 
 function saveNewInspectionField(value, fieldDefinitionId){
-    const url = `http://localhost:8080/api/fields/${bookingId}/${fieldDefinitionId}/${value}`;
-    fetch(url,
-        {method : "POST"}
-    )
-    .then(response => response.json())
+    const url = `http://localhost:8080/api/fields/${bookingId}/${fieldDefinitionId}`;
+    fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: value
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(msg => {
         console.log(msg);
         loadInspectionFieldDefinitions(); // Reload fields to show new input
     })
-    .catch(error => console.log(error));
+    .catch(error => console.error("Error saving inspection field:", error));
 }
 
 function deleteInspectionField(id){
@@ -382,7 +389,7 @@ function selectImageFunction(bookingId, selectImageDiv, imageId, fieldId, images
     .catch(error => console.log(error))
 }
 
-function deleteImageFromField(imageId, fieldId){
+function deleteImageFromField(thumb, imageId, fieldId){
     fetch(`http://localhost:8080/api/fields/${fieldId}/${imageId}`,
             { method: "DELETE" }
         )
