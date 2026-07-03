@@ -123,8 +123,8 @@ function renderSections() {
             //Create buttons
             config.options.forEach(option => {
                 const button = createOptionButton(option, () => {
-                    optionsContainer.querySelectorAll("button").forEach(b => b.classList.remove("selected"));
-                    button.classList.add("selected");
+                    // Allow multiple selections by toggling instead of replacing
+                    button.classList.toggle("selected");
                 });
                 optionsContainer.appendChild(button);
             });
@@ -152,8 +152,12 @@ function highlightExistingValues(recommendations) {
         if (!sectionRoot) return;
 
         const buttons = sectionRoot.querySelectorAll(".recommendations-options button");
+        
+        // Handle both single values and arrays of values
+        const valuesToMatch = Array.isArray(value) ? value : [value];
+        
         buttons.forEach(btn => {
-            btn.classList.toggle("selected", btn.dataset.value === value);
+            btn.classList.toggle("selected", valuesToMatch.includes(btn.dataset.value));
         });
     });
 
@@ -186,9 +190,14 @@ function collectRecommendationsFromUI() {
         const sectionRoot = document.querySelector(sectionsConfig[sectionKey].selector);
         if (!sectionRoot) return;
 
-        const selected = sectionRoot.querySelector(".recommendations-options button.selected");
-        if (selected) {
-            payload[sectionKey] = selected.dataset.value;
+        // For the multi-select fields, collect all selected buttons as an array
+        const multiSelectKeys = ["direction", "floorLevel", "room", "task", "time"];
+        
+        if (multiSelectKeys.includes(sectionKey)) {
+            const selectedButtons = sectionRoot.querySelectorAll(".recommendations-options button.selected");
+            if (selectedButtons.length > 0) {
+                payload[sectionKey] = Array.from(selectedButtons).map(btn => btn.dataset.value);
+            }
         }
     });
 
