@@ -78,6 +78,24 @@
     </div>
 </div>
 
+<!-- ===================== REPORT NAV + HEADER ===================== -->
+<div class="report-header-block">
+    <div class="report-header-row">
+        <div>
+            <div th:text="|${booking.inspectionAddress}, ${booking.city}, ${booking.province}|"></div>
+            <div th:text="|${booking.month} ${booking.day}, ${booking.year}|"></div>
+        </div>
+        <div class="header-right">
+            <div th:text="${profile.company}"></div>
+            <div th:text="|${profile.address}, ${profile.city}|"></div>
+            <div th:text="|${profile.phone} · ${profile.email}|"></div>
+        </div>
+    </div>
+    <div class="report-nav">
+        <a th:each="section : ${navSections}" th:href="'#' + ${section.anchor}" th:text="${section.label}"></a>
+    </div>
+</div>
+
 <!-- ===================== LETTER PAGE ===================== -->
 <div id="letter-page" class="page-break-after">
 
@@ -195,7 +213,7 @@
 </div>
 
 <!-- SUMMARY -->
-<div id="summary-page" class="page-break-after">
+<div id="summary-page" class="page-break-after report-nav-page">
 
     <div class="summary-title">Summary</div>
 
@@ -240,7 +258,9 @@
 
 <!-- Report Sections -->
 <div id="report-sections">
-    <div th:each="placeEntry : ${allFields}" class="report-place-section">
+    <div th:each="placeEntry : ${allFields}"
+         th:id="'place-' + ${placeEntry.key}"
+         class="report-place-section report-nav-page">
 
         <!-- Place Header -->
         <div class="report-place-header">

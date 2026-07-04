@@ -153,6 +153,32 @@ public class ReportViewService {
 
     }
 
+    public List<Map<String, String>> getNavSections(
+            Map<String, Map<String, List<InspectionField>>> allFields,
+            boolean hasAppendix){
+        List<Map<String, String>> nav = new ArrayList<>();
+        nav.add(Map.of("label", "Summary", "anchor", "summary-page"));
+
+        for (String place : allFields.keySet()){
+            boolean exists = allFields.get(place).values().stream()
+                    .anyMatch(list -> list != null && !list.isEmpty());
+            if (exists){
+                nav.add(Map.of("label", capitalizeFirstLetter(place), "anchor", "place-" + place));
+            }
+        }
+
+        if (hasAppendix){
+            nav.add(Map.of("label", "Appendix", "anchor", "appendix-page"));
+        }
+
+        return nav;
+    }
+
+    public String capitalizeFirstLetter(String s){
+        if (s == null || s.isEmpty()) return s;
+        return Character.toUpperCase(s.charAt(0)) + s.substring(1);
+    }
+
     public byte[] generatePdf(String templateName, Context context, UUID bookingId, InspectionReport report){
         try {
             // Read CSS file and inject into context
@@ -166,9 +192,6 @@ public class ReportViewService {
         }
 
         String html = templateEngine.process(templateName, context);
-
-        String debugHtml = html.replaceAll("data:image/[^;]+;base64,[A-Za-z0-9+/=]+", "data:image/[TRUNCATED]");
-        System.out.println(debugHtml);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

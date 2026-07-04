@@ -59,6 +59,11 @@ public class ReportViewController {
         Map<String, Map<String, List<InspectionField>>> allFields = reportViewService.getAllFields(fields);
         Map<String, List<InspectionField>> summaryFields = reportViewService.getSummaryFields(fields);
 
+        boolean hasAppendix = inspectionReportsService.readAppendixPdfBytes(report) != null;
+        List<Map<String, String>> navSections = reportViewService.getNavSections(allFields, hasAppendix);
+
+        context.setVariable("navSections", navSections);
+
         context.setVariable("booking", booking);
         context.setVariable("invoiceAmount", amount);
         context.setVariable("profile", profile);

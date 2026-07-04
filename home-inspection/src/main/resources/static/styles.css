@@ -133,6 +133,74 @@ body {
     }
 }
 
+/* ── Report nav page combined header + navbar ── */
+@page report-nav-page {
+    size: A4 portrait;
+    margin: 36mm 15mm 20mm 15mm;
+
+    @top-left {
+        content: element(report-header-block);
+        width: 100%;
+    }
+
+    @top-right {
+        content: none;
+    }
+
+    @bottom-center {
+        content: element(running-footer);
+    }
+}
+
+.report-nav-page {
+    page: report-nav-page;
+}
+
+.report-header-block {
+    position: running(report-header-block);
+    width: 100%;
+}
+
+.report-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 4px;
+    margin-bottom: 3mm;
+    font-size: 8pt;
+    color: var(--muted);
+}
+
+.report-header-row > div {
+    line-height: 1.4;
+}
+
+.report-header-row .header-right {
+    text-align: right;
+}
+
+.report-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-xs) var(--space-sm);
+    margin-bottom: 2mm;
+    font-size: 7.5pt;
+}
+
+.report-nav a {
+    flex: 1;
+    text-align: center;
+    text-decoration: none;
+    color: var(--muted);
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    padding: 1.5mm 2mm;
+    background: var(--bg-subtle);
+}
+
 /* ── Utilities ── */
 
 .page-break-after {
