@@ -7,29 +7,48 @@
 </head>
 <body>
 
+<!-- ===================== HEADER AND FOOTER ===================== -->
+
+<div id="page-header-left">
+    <div th:text="|${booking.inspectionAddress}, ${booking.city}, ${booking.province}|"></div>
+    <div th:text="|${booking.month} ${booking.day}, ${booking.year}|"></div>
+</div>
+<div id="page-header-right">
+    <div class="header-company" th:text="${profile.company}"></div>
+    <div class="header-website" th:text="${profile.website}"></div>
+    <div class="header-contact" th:text="|${profile.phone} · ${profile.email}|"></div>
+</div>
+
+<div id="page-footer">
+    <span>Something here</span>
+    <span id="footer-right">
+        Page <span class="page-number"></span> of <span class="total-pages"></span>
+    </span>
+</div>
+
+<!-- ===================== END HEADER AND FOOTER ===================== -->
+
+<!-- ===================== REPORT NAV + HEADER ===================== -->
+<div class="report-header-block">
+    <div class="report-header-row">
+        <div class="header-left">
+            <div th:text="|${booking.inspectionAddress}, ${booking.city}, ${booking.province}|"></div>
+            <div th:text="|${booking.month} ${booking.day}, ${booking.year}|"></div>
+        </div>
+        <div class="header-right">
+            <div th:text="${profile.company}"></div>
+            <div th:text="|${profile.address}, ${profile.city}|"></div>
+            <div th:text="|${profile.phone} · ${profile.email}|"></div>
+        </div>
+    </div>
+
+    <div class="report-nav">
+        <a th:each="section : ${navSections}" th:href="'#' + ${section.anchor}" th:text="${section.label}"></a>
+    </div>
+</div>
+
 <!-- ===================== COVER PAGE ===================== -->
 <div id="cover-page">
-
-    <!-- ===================== HEADER AND FOOTER ===================== -->
-
-    <div id="page-header-left">
-        <div th:text="|${booking.inspectionAddress}, ${booking.city}, ${booking.province}|"></div>
-        <div th:text="|${booking.month} ${booking.day}, ${booking.year}|"></div>
-    </div>
-    <div id="page-header-right">
-        <div class="header-company" th:text="${profile.company}"></div>
-        <div class="header-address" th:text="|${profile.address}, ${profile.city}|"></div>
-        <div class="header-contact" th:text="|${profile.phone} · ${profile.email}|"></div>
-    </div>
-
-    <div id="page-footer">
-        <span>Something here</span>
-        <span id="footer-right">
-            Page <span class="page-number"></span> of <span class="total-pages"></span>
-        </span>
-    </div>
-
-    <!-- ===================== END HEADER AND FOOTER ===================== -->
 
     <div id="cover-logo">
         <img th:src="profile.logoPath">
@@ -75,24 +94,6 @@
         <a th:href="'mailto:' + ${profile.email}" th:text="${profile.email}"></a>
         <span class="separator">|</span>
         <a th:href="${profile.website}" th:text="${profile.website}"></a>
-    </div>
-</div>
-
-<!-- ===================== REPORT NAV + HEADER ===================== -->
-<div class="report-header-block">
-    <div class="report-header-row">
-        <div>
-            <div th:text="|${booking.inspectionAddress}, ${booking.city}, ${booking.province}|"></div>
-            <div th:text="|${booking.month} ${booking.day}, ${booking.year}|"></div>
-        </div>
-        <div class="header-right">
-            <div th:text="${profile.company}"></div>
-            <div th:text="|${profile.address}, ${profile.city}|"></div>
-            <div th:text="|${profile.phone} · ${profile.email}|"></div>
-        </div>
-    </div>
-    <div class="report-nav">
-        <a th:each="section : ${navSections}" th:href="'#' + ${section.anchor}" th:text="${section.label}"></a>
     </div>
 </div>
 
@@ -260,20 +261,16 @@
 <div id="report-sections">
     <div th:each="placeEntry : ${allFields}"
          th:id="'place-' + ${placeEntry.key}"
-         class="report-place-section report-nav-page">
+         class="report-place-section report-nav-page page-break-after">
 
-        <!-- Place Header -->
-        <div class="report-place-header">
-            <span th:text="${placeEntry.key}"></span>
-        </div>
+        <!-- Doesn't actually display, job went to the header-->
+        <div class="report-place-header" th:text="${placeEntry.key}"></div>
 
         <!-- Types within Place -->
         <div th:each="typeEntry : ${placeEntry.value}" class="report-type-card">
 
             <!-- Type Subheader -->
-            <div class="report-type-header">
-                <span th:text="${typeEntry.key}"></span>
-            </div>
+            <div class="report-type-header" th:text="${typeEntry.key}"></div>
 
             <!-- Field Cards -->
             <div th:each="field : ${typeEntry.value}" class="report-field-entry">

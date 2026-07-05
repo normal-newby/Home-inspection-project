@@ -36,7 +36,7 @@ body {
 /* ── Page setup ── */
 
 @page {
-    size: A4 portrait;
+    size: Letter portrait;
     margin: 28mm 15mm 20mm 15mm;
 
     @top-left {
@@ -103,39 +103,9 @@ body {
     text-align: right;
 }
 
-/* ── Pages ── */
-
-@page cover {
-    margin: 0;
-    border: none;
-    @top-left {
-        content: none;
-    }
-    @top-right {
-        content: none;
-    }
-    @bottom-center {
-        content: none;
-    }
-}
-
-@page letter {
-    margin: 0;
-    border: none;
-    @top-left {
-        content: none;
-    }
-    @top-right {
-        content: none;
-    }
-    @bottom-center {
-        content: none;
-    }
-}
-
 /* ── Report nav page combined header + navbar ── */
 @page report-nav-page {
-    size: A4 portrait;
+    size: Letter portrait;
     margin: 36mm 15mm 20mm 15mm;
 
     @top-left {
@@ -158,16 +128,26 @@ body {
 
 .report-header-block {
     position: running(report-header-block);
+    border-bottom: 1px solid var(--border);
     width: 100%;
+}
+
+.header-left::after {
+    content: string(current-section, first);
+    display: block;
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-top: 4px;
+    text-transform: uppercase;
 }
 
 .report-header-row {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    border-bottom: 1px solid var(--border);
     padding-bottom: 4px;
-    margin-bottom: 3mm;
     font-size: 8pt;
     color: var(--muted);
 }
@@ -197,8 +177,10 @@ body {
     font-weight: 700;
     letter-spacing: 0.03em;
     text-transform: uppercase;
-    padding: 1.5mm 2mm;
+    padding: 1.5mm 1.5mm;
     background: var(--bg-subtle);
+    max-width: 100px;
+    width: 100px;
 }
 
 /* ── Utilities ── */
@@ -220,6 +202,20 @@ body {
 }
 
 /* ── Cover Page ── */
+
+@page cover {
+    margin: 0;
+    border: none;
+    @top-left {
+        content: none;
+    }
+    @top-right {
+        content: none;
+    }
+    @bottom-center {
+        content: element(cover-footer);
+    }
+}
 
 #cover-page {
     width: 100%;
@@ -343,6 +339,7 @@ body {
     align-items: center;
     font-size: 9pt;
     margin-top: auto;
+    position: running(cover-footer);
 }
 
 #cover-footer a {
@@ -356,6 +353,20 @@ body {
 }
 
 /* ── Letter page ── */
+
+@page letter {
+    margin: 0;
+    border: none;
+    @top-left {
+        content: none;
+    }
+    @top-right {
+        content: none;
+    }
+    @bottom-center {
+        content: none;
+    }
+}
 
 #letter-page {
     padding: 20mm;
@@ -639,7 +650,6 @@ body {
 /* ── Summary page ── */
 
 #summary-page {
-    padding: 10mm;
     display: block;
     min-height: 100px;
 }
@@ -652,7 +662,6 @@ body {
 }
 
 .summary-letter {
-    padding: 0 1.5rem;
     font-size: 0.82rem;
     font-weight: 300;
     color: var(--ink-light);
@@ -679,6 +688,7 @@ body {
 
 .summary-table thead tr {
     background-color: var(--bg-subtle);
+    text-transform: uppercase;
 }
 
 .summary-table th {
@@ -707,14 +717,13 @@ body {
 /* Report Sections */
 
 .report-place-header {
-    font-size: 1.2rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--ink);
-    padding-bottom: var(--space-sm);
-    margin-bottom: var(--space-md);
-    border-bottom: 3px solid var(--accent);
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    font-size: 0;
+    line-height: 0;
+    string-set: current-section content();
 }
 
 .report-type-header {
