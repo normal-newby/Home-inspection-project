@@ -60,9 +60,6 @@ public class ReportViewController {
         Map<String, List<InspectionField>> summaryFields = reportViewService.getSummaryFields(fields);
 
         boolean hasAppendix = inspectionReportsService.readAppendixPdfBytes(report) != null;
-        List<Map<String, String>> navSections = reportViewService.getNavSections(allFields, hasAppendix);
-
-        context.setVariable("navSections", navSections);
 
         context.setVariable("booking", booking);
         context.setVariable("invoiceAmount", amount);
@@ -70,11 +67,14 @@ public class ReportViewController {
         context.setVariable("summaryFields", summaryFields);
         context.setVariable("allFields", allFields);
         context.setVariable("report", report);
+        context.setVariable("navSections", reportViewService.getPopulatedNavSections(
+                allFields, summaryFields, hasAppendix
+        ));
 
         byte[] pdf = reportViewService.generatePdf("report", context, bookingId, report);
 
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
-                "inline; filename = report-" + bookingId + ".pdf")
+                "inline; filename=report-" + bookingId + ".pdf")
                 .body(pdf);
     }
 }

@@ -31,6 +31,20 @@ public class ReportViewService {
             "description", "limitations", "recommendations"
     );
 
+    private static final Map<String, String> navSectionColours = new LinkedHashMap<>() {{
+        put("summary",     "#943b08");
+        put("roofing",     "#a68368");
+        put("exterior",    "#7BB369");
+        put("structure",   "#777777");
+        put("electrical",  "#FFA500");
+        put("heating",     "#ff6d4d");
+        put("cooling",     "#399cff");
+        put("insulation",  "#ffb6c1");
+        put("plumbing",    "#ADD8E6");
+        put("interior",    "#D2D1CD");
+        put("appendix",    "#5c5a52");
+    }};
+
     @Autowired
     private SpringTemplateEngine templateEngine;
 
@@ -153,31 +167,67 @@ public class ReportViewService {
 
     }
 
-    public List<Map<String, String>> getNavSections(
-            Map<String, Map<String, List<InspectionField>>> allFields,
-            boolean hasAppendix){
-        List<Map<String, String>> nav = new ArrayList<>();
-        nav.add(Map.of("label", "Summary", "anchor", "summary-page"));
-
-        for (String place : allFields.keySet()){
-            boolean exists = allFields.get(place).values().stream()
-                    .anyMatch(list -> list != null && !list.isEmpty());
-            if (exists){
-                nav.add(Map.of("label", capitalizeFirstLetter(place), "anchor", "place-" + place));
-            }
-        }
-
-        if (hasAppendix){
-            nav.add(Map.of("label", "Appendix", "anchor", "appendix-page"));
-        }
-
-        return nav;
-    }
-
     public String capitalizeFirstLetter(String s){
         if (s == null || s.isEmpty()) return s;
         return Character.toUpperCase(s.charAt(0)) + s.substring(1);
     }
+
+    // Nav section colours
+
+    public record NavSection(String key, String label, String anchor, String colour){}
+
+    public List<NavSection> getPopulatedNavSections(
+            Map<String, Map<String, List<InspectionField>>> allFields,
+            Map<String, List<InspectionField>> summaryFields,
+            boolean hasAppendix
+    ){
+        List<NavSection> sections = new ArrayList<>();
+
+        if (summaryFields != null && !summaryFields.isEmpty()){
+            sections.add(new NavSection("summary", "Summary", "summary-page", navSectionColours.get("summary")));
+        }
+
+        navSectionColours.forEach((key, colour) -> {
+            if (allFields.containsKey(key)) {
+                sections.add(new NavSection(key, capitalizeFirstLetter(key), "place-" + key, colour));
+            }
+        });
+
+        if (hasAppendix){
+            sections.add(new NavSection("appendix", "Appendix", "appendix-page", navSectionColours.get("appendix")));
+        }
+
+        return sections;
+    }
+
+    public String buildColourVariablesCSS() {
+        StringBuilder sb = new StringBuilder(":root {\n");
+        navSectionColours.forEach((key, colour) -> {
+            sb.append("\t--place-").append(key).append(": ").append(colour).append(";\n");
+        });
+        sb.append("}\n");
+        return sb.toString();
+    }
+
+    public String buildNavPageCSS(){
+        StringBuilder sb = new StringBuilder();
+        navSectionColours.keySet().forEach(key -> {
+            sb.append("@page ").append(key).append("-page { ") //page stuff
+                    .append("size: Letter portrait;\n")
+                    .append("margin: 36mm 15mm 20mm 15mm;\n")
+                    .append("@top-left { content: element(nav-").append(key).append("); width: 100% }")
+                    .append("@top-right { content: none;} ")
+                    .append("@bottom-center { content: element(running-footer); }")
+                    .append("}\n");
+            sb.append(".report-header-block-").append(key) // css on page
+                    .append(" { position: running(nav-").append(key).append(");")
+                    .append("border-bottom: 1px solid var(--border);\n")
+                    .append("width: 100%; }\n");
+        });
+        return sb.toString();
+    }
+
+    // PDF generation
 
     public byte[] generatePdf(String templateName, Context context, UUID bookingId, InspectionReport report){
         try {
@@ -186,6 +236,8 @@ public class ReportViewService {
                     .getClassLoader()
                     .getResourceAsStream("static/styles.css")
                     .readAllBytes());
+            css += "\n" + buildColourVariablesCSS();
+            css += "\n" + buildNavPageCSS();
             context.setVariable("css", css);
         } catch (Exception e) {
             throw new RuntimeException("Could not load styles.css", e);

@@ -10,7 +10,7 @@ def pdf_to_svg(pdf_bytes: bytes) -> str:
     for page in doc:
         svg = page.get_svg_image()
         html += f'''
-        <div id="appendix-page" class="appendix-page report-nav-page">{svg}</div>
+        <div id="appendix-page" class="appendix-page report-header-block-appendix">{svg}</div>
         '''
     return html
 

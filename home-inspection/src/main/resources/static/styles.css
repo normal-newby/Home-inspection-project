@@ -104,33 +104,6 @@ body {
 }
 
 /* ── Report nav page combined header + navbar ── */
-@page report-nav-page {
-    size: Letter portrait;
-    margin: 36mm 15mm 20mm 15mm;
-
-    @top-left {
-        content: element(report-header-block);
-        width: 100%;
-    }
-
-    @top-right {
-        content: none;
-    }
-
-    @bottom-center {
-        content: element(running-footer);
-    }
-}
-
-.report-nav-page {
-    page: report-nav-page;
-}
-
-.report-header-block {
-    position: running(report-header-block);
-    border-bottom: 1px solid var(--border);
-    width: 100%;
-}
 
 .header-left::after {
     content: string(current-section, first);
