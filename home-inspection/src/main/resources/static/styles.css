@@ -878,11 +878,6 @@ body {
 
 /* Appendix Page */
 
-.appendix-page {
-    break-before: page;
-    display: block;
-}
-
 .appendix-page svg {
     width: 100%;
     height: auto;

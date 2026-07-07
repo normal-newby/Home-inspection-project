@@ -224,7 +224,10 @@
 </div>
 
 <!-- SUMMARY -->
-<div id="summary-page" class="page-break-after" style="page: summary-page">
+<div class="page-break-after" style="page: summary-page">
+
+    <!-- Anchor translation -->
+    <div th:id="summary-page" style="position: relative; top: -36mm; height: 0;"></div>
 
     <div class="summary-title">Summary</div>
 
@@ -270,9 +273,11 @@
 <!-- Report Sections -->
 <div id="report-sections">
     <div th:each="placeEntry : ${allFields}"
-         th:id="'place-' + ${placeEntry.key}"
          class="page-break-after"
          th:style="'page: ' + ${placeEntry.key} + '-page'">
+
+         <!-- Anchor translation -->
+        <div th:id="'place-' + ${placeEntry.key}" style="position: relative; top: -36mm; height: 0;"></div>
 
         <!-- Doesn't actually display, job went to the header-->
         <div class="report-place-header" th:text="${placeEntry.key}"></div>

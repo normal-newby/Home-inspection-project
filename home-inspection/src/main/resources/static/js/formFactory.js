@@ -23,7 +23,16 @@ export async function saveForm(URI, fields, method = "POST") {
             body: JSON.stringify(collectForm(fields))
         });
         console.log(res);
-        if (!res.ok) throw new Error('Failed to save form');
+
+        const resultBanner = document.querySelector(".resultBanner");
+        if (resultBanner) {
+            resultBanner.textContent = "Profile saved successfully!";
+            setTimeout(() => {
+                resultBanner.textContent = "";
+            }, 3000); // Clear the message after 3 seconds
+        }
+
+        if (!res.ok) throw new Error('Failed to save form');        
         return await res.json();
     } catch (err) {
         console.error('Error saving form:', err);
@@ -37,8 +46,10 @@ export async function loadForm(URI, fields){
         const form = await res.json();
         populateForm(fields, form);
 
+        console.log(form);
+
         if (form.appendixPdf) {
-            const label = document.getElementById("appendixPdfLabel");
+            const label = document.querySelector(".appendixPdfLabel");
             if (label) {
                 label.textContent = `Current PDF: ${form.appendixPdf}`;
             }
