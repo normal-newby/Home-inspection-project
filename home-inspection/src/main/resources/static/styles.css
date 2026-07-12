@@ -689,6 +689,14 @@ body {
 
 /* Report Sections */
 
+.report-sections {
+    page-break-after: always;
+}
+
+.report-sections:last-child {
+    page-break-after: avoid;
+}
+
 .report-place-header {
     position: absolute;
     width: 0;
@@ -875,6 +883,41 @@ body {
     height: 100%;
     pointer-events: none;
 }
+
+/* ── End of Report Page ── */
+@page end-report-page {
+    size: Letter portrait;
+    margin: 36mm 15mm 20mm 15mm;
+
+    @top-left {
+        content: none;
+    }
+    @top-right {
+        content: none;
+    }
+    @bottom-center {
+        content: element(running-footer);
+    }
+}
+
+.end-report-page {
+    page: end-report-page;
+    break-before: page;
+}
+
+.end-report-spacer {
+    height: 200mm;
+}
+
+.end-report-label {
+    font-size: 24pt;
+    font-weight: 700;
+    text-align: center;
+    color: var(--ink);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
 
 /* Appendix Page */
 

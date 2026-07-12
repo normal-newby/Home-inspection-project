@@ -273,7 +273,7 @@
 <!-- Report Sections -->
 <div id="report-sections">
     <div th:each="placeEntry : ${allFields}"
-         class="page-break-after"
+         class="report-sections"
          th:style="'page: ' + ${placeEntry.key} + '-page'">
 
          <!-- Anchor translation -->
@@ -380,6 +380,12 @@
             </div>
         </div>
     </div>
+</div>
+
+<div class="end-report-page">
+    <div class="end-report-label">End of Report</div>
+    <div class="end-report-spacer"></div>
+    <div id="appendix-page" style="height: 0; position: relative; bottom: -35mm;"></div> <!-- Used for anchor -->
 </div>
 
 </body>
