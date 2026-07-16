@@ -7,10 +7,10 @@ const fields = ['summary'];
 const saveBtn = document.getElementById("saveBtn");
 const resetBtn = document.getElementById("resetBtn");
 
-saveBtn.addEventListener("click", () => saveWithPdf());
+saveBtn.addEventListener("click", () => saveWithOthers());
 resetBtn.addEventListener("click", () => loadForm(URI));
 
-async function saveWithPdf() {
+async function saveWithOthers() {
      await saveForm(URI, fields);
 
      const fileEl = document.getElementById("appendixPdf");
@@ -18,6 +18,13 @@ async function saveWithPdf() {
         const formData = new FormData();
         formData.append("file", fileEl.files[0]);
         await fetch(`${URI}/appendix-pdf`, { method: "POST", body: formData });
+    }
+
+    const coverPageEl = document.getElementById("coverPageImage");
+    if (coverPageEl?.files[0]) {
+        const formData = new FormData();
+        formData.append("file", coverPageEl.files[0]);
+        await fetch(`${URI}/cover-page-image`, { method: "POST", body: formData });
     }
 }
 

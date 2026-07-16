@@ -55,6 +55,13 @@ export async function loadForm(URI, fields){
             }
         }
 
+        if (form.coverPageImage) {
+            const label = document.querySelector(".coverPageImageLabel");
+            if (label) {
+                label.textContent = `Current Image: ${form.coverPageImage.ImageUrl}`;
+            }
+        }
+
         if (form.invoices) return form.invoices; // Return invoices for further processing
 
     } catch (err) {

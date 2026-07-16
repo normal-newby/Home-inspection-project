@@ -1,6 +1,7 @@
 package ca.inspection.home.inspection.service;
 
 import ca.inspection.home.inspection.entity.InspectionBookings;
+import ca.inspection.home.inspection.entity.InspectionImage;
 import ca.inspection.home.inspection.entity.InspectionReport;
 import ca.inspection.home.inspection.entity.InspectorProfile;
 import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
@@ -33,6 +34,9 @@ public class InspectionReportsService {
     @Autowired
     private InspectorProfileService inspectorProfileService;
 
+    @Autowired
+    private InspectionImagesService inspectionImagesService;
+
     @Value("${app.upload-dir}")
     private String uploadDir;
 
@@ -59,7 +63,7 @@ public class InspectionReportsService {
 
     public ResponseEntity<?> updateReportData(UUID bookingId, Map<String, String> body){
         try {
-            InspectionReport report = getOrCreateByBooking(bookingId);
+            InspectionReport report = inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId);
 
             Map<String, Consumer<String>> setters = Map.of(
                     "summary", report::setSummary
@@ -81,7 +85,7 @@ public class InspectionReportsService {
 
     public ResponseEntity<?> updateAppendixPdf(UUID bookingId, MultipartFile pdf){
         try {
-            InspectionReport report = getOrCreateByBooking(bookingId);
+            InspectionReport report = inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId);
 
             String fileName = "appendix_" + bookingId + ".pdf";
             Path path = getDirectory().resolve(fileName);
@@ -97,30 +101,25 @@ public class InspectionReportsService {
         }
     }
 
-    public ResponseEntity<?> getAppendixPdf(UUID bookingId){
+    public ResponseEntity<?> updateCoverPageImage(UUID bookingId, MultipartFile file){
         try {
-            InspectionReport report = getOrCreateByBooking(bookingId);
+            InspectionReport report = inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId);
 
-            Path path = null;
-            if (report.getAppendixPdf() != null) {
-                path = getDirectory().resolve(report.getAppendixPdf());
-            } else {
-                path = inspectorProfileService.getAppendixPdfPath();
-                if (path == null){
-                    return ResponseEntity.noContent().build();
-                }
+            InspectionImage oldCover = report.getCoverPageImage();
+            if (oldCover != null) {
+                report.setCoverPageImage(null);
+                inspectionReportsRepository.save(report);
+                inspectionImagesService.deleteImage(oldCover.getId());
             }
-            Resource resource = new FileSystemResource(path.toFile());
-            String contentType = Files.probeContentType(path);
-            if (contentType == null) contentType = "application/pdf";
 
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(contentType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + path.getFileName() + "\"")
-                    .body(resource);
+            InspectionImage image = inspectionImagesService.saveImages(file, bookingId);
+            report.setCoverPageImage(image);
+            inspectionReportsRepository.save(report);
 
+            return ResponseEntity.ok("Cover Page Image saved!");
         } catch (Exception e){
-            return ResponseEntity.badRequest().build();
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Cover page cannot be saved");
         }
     }
 

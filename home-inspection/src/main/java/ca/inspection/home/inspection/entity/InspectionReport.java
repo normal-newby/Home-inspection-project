@@ -31,6 +31,10 @@ public class InspectionReport {
     @Column(columnDefinition = "TEXT")
     private String summary;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cover_page_image_id")
+    private InspectionImage coverPageImage;
+
     private String appendixPdf;
 
     @OneToMany(mappedBy = "inspectionReport", cascade = CascadeType.ALL, orphanRemoval = true)

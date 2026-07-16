@@ -32,8 +32,9 @@ public class InspectionReportsController {
         return inspectionReportsService.updateAppendixPdf(bookingId, file);
     }
 
-    @GetMapping("/reports/{bookingId}/appendix-pdf")
-    public ResponseEntity<?> getAppendixPdf(@PathVariable UUID bookingId){
-        return inspectionReportsService.getAppendixPdf(bookingId);
+    @PostMapping("/reports/{bookingId}/cover-page-image")
+    public ResponseEntity<?> updateCoverPageImage(@PathVariable UUID bookingId, @RequestParam MultipartFile file){
+        return inspectionReportsService.updateCoverPageImage(bookingId, file);
     }
+
 }

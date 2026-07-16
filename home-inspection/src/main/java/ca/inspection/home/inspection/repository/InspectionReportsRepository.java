@@ -21,4 +21,11 @@ public interface InspectionReportsRepository extends JpaRepository<InspectionRep
         WHERE r.inspectionBooking.id = :bookingId
     """)
     InspectionReport findByInspectionBooking_Id(@Param("bookingId")  UUID bookingId);
+
+    @Query("""
+        SELECT r FROM InspectionReport r
+        LEFT JOIN FETCH r.inspectionBooking
+        WHERE r.inspectionBooking.id = :bookingId
+    """)
+    InspectionReport findByInspectionBooking_IdLite(@Param("bookingId") UUID bookingId);
 }

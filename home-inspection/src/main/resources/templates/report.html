@@ -60,13 +60,13 @@
 <!-- ===================== COVER PAGE ===================== -->
 <div id="cover-page">
 
-    <div id="cover-logo">
-        <img th:src="profile.logoPath">
-        <div class="tagline">Certified · Qualified · Experienced</div>
+    <div id="cover-header">
+        Inspection Report
     </div>
 
-    <div class="cover-divider"></div>
-    <div id="cover-report-label">Inspection Report</div>
+    <div class="cover-photo" th:if="${report.coverPageURL} != null and !#strings.isEmpty(report.coverPageURL)">
+        <img th:src="${report.coverPageURL}" alt="Cover Photo"/>
+    </div>
 
     <!-- Address -->
     <div id="cover-property-address">
@@ -74,6 +74,8 @@
         <div class="street" th:text="${booking.inspectionAddress}"></div>
         <div class="city-province" th:text="|${booking.city}, ${booking.province} ${booking.postalCode}|"></div>
     </div>
+
+    <div class="cover-divider"></div>
 
     <!-- Client info -->
     <div id="cover-meta">

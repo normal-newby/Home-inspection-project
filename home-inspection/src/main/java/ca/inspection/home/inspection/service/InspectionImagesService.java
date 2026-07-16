@@ -37,7 +37,7 @@ public class InspectionImagesService {
     private InspectionImagesRepository inspectionImagesRepository;
 
     @Autowired
-    InspectionReportsService inspectionReportsService;
+    InspectionReportsRepository inspectionReportsRepository;
 
     @Value("${app.upload-dir}")
     private String uploadDir;
@@ -47,13 +47,13 @@ public class InspectionImagesService {
     }
 
     @Transactional
-    public void saveImages(
+    public InspectionImage saveImages(
             MultipartFile file,
             UUID bookingId
-    ) throws IOException {
+    ) {
         try {
             //Find the report it belongs to
-            InspectionReport inspectionReport = inspectionReportsService.getOrCreateByBooking(bookingId);
+            InspectionReport inspectionReport = inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId);
 
             //make sure path exists
             Files.createDirectories(getDirectory());
@@ -70,15 +70,15 @@ public class InspectionImagesService {
             inspectionImage.setInspectionReport(inspectionReport);
             inspectionImage.setImageUrl(fileName);
 
-            inspectionImagesRepository.save(inspectionImage);
+            return inspectionImagesRepository.save(inspectionImage);
         } catch (Exception e){
             e.printStackTrace();
-            throw e;
+            return null;
         }
     }
 
     public Set<InspectionImage> getImages(UUID id){
-        InspectionReport inspectionReport = inspectionReportsService.getOrCreateByBooking(id);
+        InspectionReport inspectionReport = inspectionReportsRepository.findByInspectionBooking_IdLite(id);
         return inspectionReport.getImages().stream()
                 .sorted(Comparator.comparing(InspectionImage::getImageUrl))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
