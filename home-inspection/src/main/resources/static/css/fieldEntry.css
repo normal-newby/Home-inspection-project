@@ -154,16 +154,16 @@
     color: var(--muted);
 }
 
-/* ── Invoice list ── */
+/* ── Invoice and Asset list ── */
 
-.invoice-list {
+.invoice-list .asset-list {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
     margin-top: 0.25rem;
 }
 
-.invoice-item {
+.invoice-item .asset-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -176,12 +176,20 @@
     color: var(--ink);
 }
 
-.invoice-item .invoice-type { flex: 1; }
+.invoice-item .invoice-type .asset-item .asset-label { flex: 1; }
 
 .invoice-item .invoice-fee {
     color: var(--muted);
     font-size: 0.85rem;
     margin-right: 1rem;
+}
+
+.asset-preview {
+    height: 32px;
+    width: auto;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    margin-right: 0.75rem;
 }
 
 .remove-btn {

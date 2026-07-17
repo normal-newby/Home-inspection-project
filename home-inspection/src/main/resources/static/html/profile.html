@@ -128,6 +128,32 @@
                 </div>
             </div>
         </div>
+
+        <div class="card">
+            <div class="card-title">Cover Page Images</div>
+            
+            <div class="form-grid">
+                <div class="field">
+                    <label for="assetKey">Asset Key</label>
+                    <input id="assetKey" rows="1" placeholder="Enter asset key for cover page image..."></input>
+                </div>
+                <div class="field">
+                    <span class="assetFile">Upload File</span>
+                    <input type="file" id="assetFile" name="assetFile" accept="image/*" />
+                </div>
+            </div>
+
+            <div class="actions" style="margin-top: 1rem;">
+                <button type="button" id="uploadAssetBtn" class="btn btn-primary">Upload Asset</button>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="field">
+                <label>Current Images</label>
+                <div class="asset-list" id="asset-list"></div>
+            </div>
+        </div>
  
         <div class="actions">
             <button type="button" id="resetBtn" class="btn btn-secondary">Reset</button>
@@ -141,6 +167,7 @@
 
 <script type = "module" src = "../js/profile/profile.js"></script>
 <script type = "module" src = "../js/formFactory.js"></script>
+<script type = "module" src = "../js/profile/companyAssets.js"></script>
 
 </body>
 </html>
