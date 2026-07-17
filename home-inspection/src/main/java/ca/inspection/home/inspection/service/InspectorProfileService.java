@@ -22,12 +22,8 @@ public class InspectorProfileService {
     @Autowired
     private InspectorProfileRepository inspectorProfileRepository;
 
-    @Value("${app.upload-dir}")
-    private String uploadDir;
-
-    private Path getDirectory(){
-        return Paths.get(uploadDir);
-    }
+    @Autowired
+    private HelperFunctions helperFunctions;
 
     public InspectorProfile getProfile() {
         return inspectorProfileRepository.findById(1L)
@@ -50,7 +46,7 @@ public class InspectorProfileService {
             InspectorProfile profile = getProfile();
 
             String filename = "appendix.pdf";
-            Path path = getDirectory().resolve(filename);
+            Path path = helperFunctions.getDirectory().resolve(filename);
             appendixPdf.transferTo(path.toFile());
 
             profile.setAppendixPdf(filename);
@@ -67,7 +63,7 @@ public class InspectorProfileService {
         try {
             InspectorProfile profile = getProfile();
 
-            return getDirectory().resolve(profile.getAppendixPdf());
+            return helperFunctions.getDirectory().resolve(profile.getAppendixPdf());
         } catch (Exception e){
             e.printStackTrace();
             return null;

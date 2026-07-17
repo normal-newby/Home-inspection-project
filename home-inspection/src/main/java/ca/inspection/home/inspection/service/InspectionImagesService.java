@@ -37,14 +37,10 @@ public class InspectionImagesService {
     private InspectionImagesRepository inspectionImagesRepository;
 
     @Autowired
-    InspectionReportsRepository inspectionReportsRepository;
+    private InspectionReportsRepository inspectionReportsRepository;
 
-    @Value("${app.upload-dir}")
-    private String uploadDir;
-
-    private Path getDirectory(){
-        return Paths.get(uploadDir);
-    }
+    @Autowired
+    private HelperFunctions helperFunctions;
 
     @Transactional
     public InspectionImage saveImages(
@@ -56,11 +52,11 @@ public class InspectionImagesService {
             InspectionReport inspectionReport = inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId);
 
             //make sure path exists
-            Files.createDirectories(getDirectory());
+            Files.createDirectories(helperFunctions.getDirectory());
 
             //creates filename
             String fileName = System.currentTimeMillis() + "_" + UUID.randomUUID().toString() + ".jpg";
-            Path path = getDirectory().resolve(fileName);
+            Path path = helperFunctions.getDirectory().resolve(fileName);
 
             //saves to folder
             file.transferTo(path.toFile());
@@ -89,7 +85,7 @@ public class InspectionImagesService {
             InspectionImage image = inspectionImagesRepository.findById(id)
                     .orElseThrow();
 
-            Path filePath = getDirectory().resolve(image.getImageUrl());
+            Path filePath = helperFunctions.getDirectory().resolve(image.getImageUrl());
             Resource resource = new UrlResource(filePath.toUri());
 
             return ResponseEntity.ok()
@@ -104,7 +100,7 @@ public class InspectionImagesService {
         try {
             InspectionImage image = inspectionImagesRepository.findById(id)
                     .orElseThrow();
-            Path filePath = getDirectory().resolve(image.getImageUrl());
+            Path filePath = helperFunctions.getDirectory().resolve(image.getImageUrl());
             BufferedImage img = ImageIO.read(filePath.toFile());
 
             //resize
@@ -208,7 +204,7 @@ public class InspectionImagesService {
             inspectionImagesRepository.delete(image);
 
             //delete from disk
-            Path path = getDirectory().resolve(image.getImageUrl());
+            Path path = helperFunctions.getDirectory().resolve(image.getImageUrl());
             Files.deleteIfExists(path);
 
             return ResponseEntity.ok().build();

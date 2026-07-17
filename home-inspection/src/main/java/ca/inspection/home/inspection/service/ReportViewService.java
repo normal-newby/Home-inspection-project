@@ -176,11 +176,6 @@ public class ReportViewService {
         }
     }
 
-    public String capitalizeFirstLetter(String s){
-        if (s == null || s.isEmpty()) return s;
-        return Character.toUpperCase(s.charAt(0)) + s.substring(1);
-    }
-
     // Nav section colours
 
     public record NavSection(String key, String label, String anchor, String colour){}
@@ -198,7 +193,7 @@ public class ReportViewService {
 
         navSectionColours.forEach((key, colour) -> {
             if (allFields.containsKey(key)) {
-                sections.add(new NavSection(key, capitalizeFirstLetter(key), "place-" + key, colour));
+                sections.add(new NavSection(key, HelperFunctions.capitalizeFirstLetter(key), "place-" + key, colour));
             }
         });
 
