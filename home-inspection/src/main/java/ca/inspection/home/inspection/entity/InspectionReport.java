@@ -31,7 +31,7 @@ public class InspectionReport {
     @Column(columnDefinition = "TEXT")
     private String summary;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne
     @JoinColumn(name = "cover_page_image_id")
     private InspectionImage coverPageImage;
 

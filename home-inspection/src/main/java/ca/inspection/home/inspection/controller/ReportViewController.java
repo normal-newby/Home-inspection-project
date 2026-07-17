@@ -50,6 +50,7 @@ public class ReportViewController {
         InspectionReport report = inspectionReportsService.getOrCreateByBooking(bookingId);
 
         reportViewService.getOtherFields(report);
+        reportViewService.setCoverPageImageBase64(report);
 
         Comparator<InspectionField> fieldComparator = reportViewService.getComparator();
 

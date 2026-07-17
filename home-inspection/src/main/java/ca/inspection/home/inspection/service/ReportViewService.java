@@ -4,6 +4,7 @@ import ca.inspection.home.inspection.entity.*;
 import ca.inspection.home.inspection.repository.ImageAnnotationRepository;
 import ca.inspection.home.inspection.repository.InspectionImagesRepository;
 import ca.inspection.home.inspection.repository.InspectionRecommendationFieldRepository;
+import ca.inspection.home.inspection.repository.InspectionReportsRepository;
 import lombok.AllArgsConstructor;
 import org.apache.tomcat.util.http.fileupload.ByteArrayOutputStream;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -165,6 +166,14 @@ public class ReportViewService {
                         Collectors.toList()
                 ));
 
+    }
+
+    public void setCoverPageImageBase64(InspectionReport report){
+        InspectionImage coverImage = report.getCoverPageImage();
+        if (coverImage != null){
+            String base64 = inspectionImagesService.toBase64(coverImage.getId(), null);
+            coverImage.setBase64(base64);
+        }
     }
 
     public String capitalizeFirstLetter(String s){

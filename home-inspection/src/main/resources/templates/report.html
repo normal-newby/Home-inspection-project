@@ -64,8 +64,8 @@
         Inspection Report
     </div>
 
-    <div class="cover-photo" th:if="${report.coverPageURL} != null and !#strings.isEmpty(report.coverPageURL)">
-        <img th:src="${report.coverPageURL}" alt="Cover Photo"/>
+    <div class="cover-photo" th:if="${report.coverPageImage} != null">
+        <img th:src="${report.coverPageImage.base64}" alt="Cover Photo"/>
     </div>
 
     <!-- Address -->
@@ -92,20 +92,8 @@
                 <td class="label">Prepared By</td>
                 <td class="value" th:text="${profile.name}"></td>
             </tr>
-            <tr>
-                <td class="label">Company</td>
-                <td class="value" th:text="${profile.company}"></td>
-            </tr>
         </table>
-    </div>
-
-    <!-- Footer bar -->
-    <div id="cover-footer">
-        <span th:text="${profile.phone}"></span>
-        <span class="separator">|</span>
-        <a th:href="'mailto:' + ${profile.email}" th:text="${profile.email}"></a>
-        <span class="separator">|</span>
-        <a th:href="${profile.website}" th:text="${profile.website}"></a>
+        <!--Add stuff later-->
     </div>
 </div>
 

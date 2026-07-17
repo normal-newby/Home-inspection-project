@@ -32,7 +32,7 @@ public class InspectionImage {
     private InspectionReport inspectionReport;
 
     @Column(name = "image_url")
-    private String ImageUrl;
+    private String imageUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonBackReference("inspectionField-images")

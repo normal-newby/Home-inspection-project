@@ -58,7 +58,7 @@ export async function loadForm(URI, fields){
         if (form.coverPageImage) {
             const label = document.querySelector(".coverPageImageLabel");
             if (label) {
-                label.textContent = `Current Image: ${form.coverPageImage.ImageUrl}`;
+                label.textContent = `Current Image: ${form.coverPageImage.imageUrl}`;
             }
         }
 
