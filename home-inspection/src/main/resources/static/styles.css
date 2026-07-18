@@ -210,7 +210,7 @@ body {
 }
 
 .cover-photo {
-    margin: 0 20mm 10mm 20mm;
+    margin: 0 20mm 5mm 20mm;
     overflow: hidden;
     border: 2px solid var(--ink);
 }
@@ -218,11 +218,12 @@ body {
 .cover-photo img {
     display: block;
     width: 100%;
-    max-height: 120mm;
+    max-height: 110mm;
     object-fit: cover;
 }
 
 #cover-property-address {
+    font-size: 13pt;
     text-align: center;
 }
 
@@ -236,7 +237,6 @@ body {
 }
 
 #cover-property-address .city-province {
-    font-size: 13pt;
     font-weight: 500;
     color: var(--ink);
     letter-spacing: 1px;
@@ -248,11 +248,11 @@ body {
     height: 4px;
     border-radius: 2px;
     background: var(--accent);
-    margin: 8mm auto 10mm auto;
+    margin: 5mm auto 5mm auto;
 }
 
 #cover-meta {
-    margin: 0 20mm 20mm 20mm;
+    margin: 0 20mm 5mm 20mm;
     border: 1px solid var(--border);
     border-radius: 4px;
     overflow: hidden;
@@ -287,6 +287,63 @@ body {
 
 #cover-meta tr:last-child td {
     border-bottom: none;
+}
+
+#company-images {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 6mm;
+}
+
+.company-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.company-image img {
+    max-height: 30mm;
+    max-width: 30mm;
+    object-fit: contain;
+}
+
+#cover-company-info,
+#cover-company-contact {
+    text-align: center;
+    font-size: 9pt;
+    line-height: 1.2;
+    color: var(--ink);
+}
+
+#cover-company-info {
+    margin-top: 5mm;
+    font-weight: 500;
+    color: var(--ink);
+}
+
+#cover-company-contact {
+    margin-top: 2mm;
+    color: var(--ink);
+}
+
+#cover-company-contact a {
+    text-decoration: none;
+    color: var(--muted);
+}
+
+#cover-footer {
+    background-color: var(--accent);
+    border: 2px solid var(--ink);
+    color: var(--card);
+    padding: 3mm 20mm;
+    text-align: center;
+    font-size: 10pt;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin: 5mm;
 }
 
 /* ── Letter page ── */

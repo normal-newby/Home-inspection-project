@@ -70,6 +70,9 @@ public class ReportViewService {
     @Autowired
     private ImageAnnotationRepository imageAnnotationRepository;
 
+    @Autowired
+    private CompanyAssetService companyAssetService;
+
     public void getOtherFields(InspectionReport report){
         List<UUID> fieldIds = report.getFields().stream().map(InspectionField::getId).toList();
         if (fieldIds.isEmpty()) return;
@@ -174,6 +177,12 @@ public class ReportViewService {
             String base64 = inspectionImagesService.toBase64(coverImage.getId(), null);
             coverImage.setBase64(base64);
         }
+    }
+
+    public List<String> getCompanyAssetsBase64(){
+        return companyAssetService.getAllAssets().stream()
+                .map(asset -> companyAssetService.toBase64(asset))
+                .collect(Collectors.toList());
     }
 
     // Nav section colours

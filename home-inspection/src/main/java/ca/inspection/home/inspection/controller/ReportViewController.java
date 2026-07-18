@@ -71,6 +71,7 @@ public class ReportViewController {
         context.setVariable("navSections", reportViewService.getPopulatedNavSections(
                 allFields, summaryFields, hasAppendix
         ));
+        context.setVariable("companyAssets", reportViewService.getCompanyAssetsBase64());
 
         byte[] pdf = reportViewService.generatePdf("report", context, bookingId, report);
 

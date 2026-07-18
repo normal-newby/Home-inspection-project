@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -92,6 +93,24 @@ public class CompanyAssetService {
         } catch (Exception e){
             e.printStackTrace();
             return ResponseEntity.badRequest().body("Could not delete asset with key: " + key);
+        }
+    }
+
+    public String toBase64(CompanyAsset asset){
+        try {
+            if (asset == null || asset.getPath() == null) return null;
+
+            Path path = helperFunctions.getCompanyAssetDirectory().resolve(asset.getPath());
+            if (!Files.exists(path)) return null;
+
+            byte[] bytes = Files.readAllBytes(path);
+            String contentType = Files.probeContentType(path);
+            if (contentType == null) contentType = "image/jpg";
+
+            return "data:" + contentType + ";base64," + Base64.getEncoder().encodeToString(bytes);
+        } catch (Exception e){
+            e.printStackTrace();
+            return null;
         }
     }
 }

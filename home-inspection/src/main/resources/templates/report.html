@@ -92,8 +92,33 @@
                 <td class="label">Prepared By</td>
                 <td class="value" th:text="${profile.name}"></td>
             </tr>
-        </table>
-        <!--Add stuff later-->
+        </table>         
+    </div>
+
+    <!-- Company Images -->
+     <div id="company-images" th:if="${companyAssets != null and !#lists.isEmpty(companyAssets)}">
+        <div th:each="asset : ${companyAssets}" class="company-image">
+            <img th:src="${asset}" alt="Company Asset"/>
+        </div>
+    </div>
+
+    <!-- Company Address and Info-->
+     <div id="cover-company-info">
+        <span th:text="${profile.company}"></span><br/>
+        <span th:text="${profile.address}"></span><br/>
+        <span th:text="|${profile.city}, ${profile.province} ${profile.postalCode}|"></span><br/>
+     </div>
+
+     <!-- Company Contact Info -->
+     <div id="cover-company-contact">
+        <span th:text="|Phone: ${profile.phone}|"></span><br/>
+        Email: <a th:href="|mailto:${profile.email}|" th:text="${profile.email}"></a><br/>
+        Website: <a th:href="|${profile.website}|" th:text="${profile.website}|"></a>
+     </div>
+
+     <!-- Footer -->
+    <div id="cover-footer">
+        <span>Awesome in Home Inspection.</span>
     </div>
 </div>
 
