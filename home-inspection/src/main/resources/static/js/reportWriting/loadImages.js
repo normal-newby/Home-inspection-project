@@ -157,7 +157,7 @@ export async function initImagesSlider(bookingId, container, getUsedForReport = 
 
     //Use cached images if available, otherwise fetch from server
     if (!imageCache.has(bookingId)){
-        const response = await fetch(`http://localhost:8080/api/images/${bookingId}/get`);
+        const response = await fetch(`http://localhost:8080/api/images/${bookingId}`);
         const images = await response.json();
         imageCache.set(bookingId, images);
         console.log("fetched");

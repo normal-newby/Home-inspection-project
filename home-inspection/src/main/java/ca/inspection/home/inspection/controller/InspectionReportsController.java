@@ -32,9 +32,4 @@ public class InspectionReportsController {
         return inspectionReportsService.updateAppendixPdf(bookingId, file);
     }
 
-    @PostMapping("/reports/{bookingId}/cover-page-image")
-    public ResponseEntity<?> updateCoverPageImage(@PathVariable UUID bookingId, @RequestParam MultipartFile file){
-        return inspectionReportsService.updateCoverPageImage(bookingId, file);
-    }
-
 }

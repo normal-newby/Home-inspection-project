@@ -257,6 +257,7 @@
                 <th>Implication</th>
                 <th>Condition</th>
                 <th>Location</th>
+                <th>Room</th>
                 <th>Task</th>
                 <th>Time</th>
                 <th>Est. Cost</th>
@@ -267,7 +268,8 @@
                 <td th:text="${field.inspectionFieldDefinition.fieldName}"></td>
                 <td th:text="${field.inspectionRecommendationField?.implication}"></td>
                 <td th:text="${field.selectedValue.value}"></td>
-                <td th:text="${field.inspectionRecommendationField.floorLevel}"></td>
+                <td th:text="${field.inspectionRecommendationField.getLocationDisplay()}"></td>
+                <td th:text="${field.inspectionRecommendationField.room}"></td>
                 <td th:text="${field.inspectionRecommendationField.task}"></td>
                 <td th:text="${field.inspectionRecommendationField.time}"></td>
                 <td th:if="${field.inspectionRecommendationField != null 
@@ -335,9 +337,9 @@
                 <!-- Meta Row: Floor Level + Location -->
                 <div class="report-field-meta" th:if="${field.inspectionRecommendationField != null}">
                     <div class="report-meta-item"
-                         th:if="${field.inspectionRecommendationField.floorLevel != null}">
-                        <span class="report-meta-label">Floor</span>
-                        <span class="report-meta-value" th:text="${field.inspectionRecommendationField.floorLevel}"></span>
+                         th:if="${field.inspectionRecommendationField.getLocationDisplay() != null}">
+                        <span class="report-meta-label">Location</span>
+                        <span class="report-meta-value" th:text="${field.inspectionRecommendationField.getLocationDisplay()}"></span>
                     </div>
                     <div class="report-meta-item"
                          th:if="${field.inspectionRecommendationField.room != null}">

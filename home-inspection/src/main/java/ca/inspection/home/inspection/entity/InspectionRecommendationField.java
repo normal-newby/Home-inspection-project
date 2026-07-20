@@ -35,4 +35,20 @@ public class InspectionRecommendationField {
 
     @Column(columnDefinition = "text")
     private String implication;
+
+    @Transient
+    public String getLocationDisplay() {
+        boolean hasDirection = direction != null && !direction.isBlank();
+        boolean hasFloorLevel = floorLevel != null && !floorLevel.isBlank();
+
+        if (hasDirection && hasFloorLevel) {
+            return direction + ", " + floorLevel;
+        } else if (hasDirection) {
+            return direction;
+        } else if (hasFloorLevel) {
+            return floorLevel;
+        } else {
+            return null;
+        }
+    }
 }

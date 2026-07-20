@@ -15,13 +15,13 @@ import java.util.Set;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/images")
 @CrossOrigin(origins = "*")
 public class InspectionImagesController {
     @Autowired
     private InspectionImagesService inspectionImagesService;
 
-    @PostMapping("/images/{id}/upload")
+    @PostMapping("/{id}/upload")
     public ResponseEntity<String> uploadImage(@PathVariable UUID id,
                              @RequestParam("file") MultipartFile file
     ) throws IOException {
@@ -33,18 +33,23 @@ public class InspectionImagesController {
         }
     }
 
-    @GetMapping("/images/{id}/get")
+    @GetMapping("/{id}")
     public Set<InspectionImage> getImages(@PathVariable UUID id) {
         return inspectionImagesService.getImages(id);
     }
 
-    @GetMapping("/images/file/{filename}")
+    @GetMapping("/file/{filename}")
     public ResponseEntity<Resource> getImageFile(@PathVariable UUID filename){
         return inspectionImagesService.getImageFile(filename);
     }
 
-    @DeleteMapping("/images/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteImage(@PathVariable UUID id) {
         return inspectionImagesService.deleteImage(id);
+    }
+
+    @PostMapping("/{bookingId}/cover-page-image")
+    public ResponseEntity<?> updateCoverPageImage(@PathVariable UUID bookingId, @RequestParam MultipartFile file){
+        return inspectionImagesService.updateCoverPageImage(bookingId, file);
     }
 }

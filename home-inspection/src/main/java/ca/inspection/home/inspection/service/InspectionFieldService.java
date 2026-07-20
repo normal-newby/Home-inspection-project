@@ -250,32 +250,14 @@ public class InspectionFieldService {
                 recommendationField.setInspectionField(field);
                 saved = inspectionRecommendationFieldRepository.save(recommendationField);
             } else {
-                // Update only the fields that are provided by the client.
-                if (recommendationField.getDirection() != null) {
-                    existing.setDirection(recommendationField.getDirection());
-                }
-                if (recommendationField.getFloorLevel() != null) {
-                    existing.setFloorLevel(recommendationField.getFloorLevel());
-                }
-                if (recommendationField.getRoom() != null) {
-                    existing.setRoom(recommendationField.getRoom());
-                }
-                if (recommendationField.getTask() != null) {
-                    existing.setTask(recommendationField.getTask());
-                }
-                if (recommendationField.getTime() != null) {
-                    existing.setTime(recommendationField.getTime());
-                }
-                if (recommendationField.getLower_cost() != null) {
-                    existing.setLower_cost(recommendationField.getLower_cost());
-                }
-                if (recommendationField.getUpper_cost() != null) {
-                    existing.setUpper_cost(recommendationField.getUpper_cost());
-                }
-                if (recommendationField.getImplication() != null) {
-                    existing.setImplication(recommendationField.getImplication());
-                }
-                existing.setInspectionField(field);
+                existing.setDirection(recommendationField.getDirection());
+                existing.setFloorLevel(recommendationField.getFloorLevel());
+                existing.setRoom(recommendationField.getRoom());
+                existing.setTask(recommendationField.getTask());
+                existing.setTime(recommendationField.getTime());
+                existing.setLower_cost(recommendationField.getLower_cost());
+                existing.setUpper_cost(recommendationField.getUpper_cost());
+                existing.setImplication(recommendationField.getImplication());
                 saved = inspectionRecommendationFieldRepository.save(existing);
             }
 

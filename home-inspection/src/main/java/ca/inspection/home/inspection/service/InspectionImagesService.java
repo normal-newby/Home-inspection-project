@@ -40,6 +40,9 @@ public class InspectionImagesService {
     private InspectionReportsRepository inspectionReportsRepository;
 
     @Autowired
+    private InspectionReportsService inspectionReportsService;
+
+    @Autowired
     private HelperFunctions helperFunctions;
 
     @Transactional
@@ -74,7 +77,7 @@ public class InspectionImagesService {
     }
 
     public Set<InspectionImage> getImages(UUID id){
-        InspectionReport inspectionReport = inspectionReportsRepository.findByInspectionBooking_IdLite(id);
+        InspectionReport inspectionReport = inspectionReportsService.getOrCreateByBooking(id);
         return inspectionReport.getImages().stream()
                 .sorted(Comparator.comparing(InspectionImage::getImageUrl))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
@@ -93,6 +96,28 @@ public class InspectionImagesService {
                     .body(resource);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    public ResponseEntity<?> updateCoverPageImage(UUID bookingId, MultipartFile file){
+        try {
+            InspectionReport report = inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId);
+
+            InspectionImage oldCover = report.getCoverPageImage();
+            if (oldCover != null) {
+                report.setCoverPageImage(null);
+                inspectionReportsRepository.save(report);
+                deleteImage(oldCover.getId());
+            }
+
+            InspectionImage image = saveImages(file, bookingId);
+            report.setCoverPageImage(image);
+            inspectionReportsRepository.save(report);
+
+            return ResponseEntity.ok("Cover Page Image saved!");
+        } catch (Exception e){
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Cover page cannot be saved");
         }
     }
 

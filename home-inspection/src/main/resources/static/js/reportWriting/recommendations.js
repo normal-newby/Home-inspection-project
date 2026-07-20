@@ -123,8 +123,7 @@ function renderSections() {
             //Create buttons
             config.options.forEach(option => {
                 const button = createOptionButton(option, () => {
-                    optionsContainer.querySelectorAll("button").forEach(b => b.classList.remove("selected"));
-                    button.classList.add("selected");
+                    button.classList.toggle("selected");
                 });
                 optionsContainer.appendChild(button);
             });
@@ -151,9 +150,11 @@ function highlightExistingValues(recommendations) {
         const sectionRoot = document.querySelector(section.selector);
         if (!sectionRoot) return;
 
+        const selectedValues = value ? value.split(",").map(v => v.trim()) : [];
+
         const buttons = sectionRoot.querySelectorAll(".recommendations-options button");
         buttons.forEach(btn => {
-            btn.classList.toggle("selected", btn.dataset.value === value);
+            btn.classList.toggle("selected", selectedValues.includes(btn.dataset.value));
         });
     });
 
@@ -186,10 +187,9 @@ function collectRecommendationsFromUI() {
         const sectionRoot = document.querySelector(sectionsConfig[sectionKey].selector);
         if (!sectionRoot) return;
 
-        const selected = sectionRoot.querySelector(".recommendations-options button.selected");
-        if (selected) {
-            payload[sectionKey] = selected.dataset.value;
-        }
+        const selected = Array.from(sectionRoot.querySelectorAll(".recommendations-options button.selected"));
+        payload[sectionKey] = selected.length > 0 ?
+            selected.map(btn => btn.dataset.value).join(", ") : null;
     });
 
     // Cost is stored as two separate fields (lower_cost and upper_cost)
@@ -198,18 +198,12 @@ function collectRecommendationsFromUI() {
         const lowerInput = costSection.querySelector('input[data-cost-key="lower_cost"]');
         const upperInput = costSection.querySelector('input[data-cost-key="upper_cost"]');
 
-        if (lowerInput && lowerInput.value.trim() !== "") {
-            payload.lower_cost = lowerInput.value.trim();
-        }
-        if (upperInput && upperInput.value.trim() !== "") {
-            payload.upper_cost = upperInput.value.trim();
-        }
+        payload.lower_cost = lowerInput && lowerInput.value.trim() !== "" ? lowerInput.value.trim() : null;
+        payload.upper_cost = upperInput && upperInput.value.trim() !== "" ? upperInput.value.trim() : null;
     }
 
     const implicationSection = document.querySelector('[data-implication-key="implication"]');
-    if (implicationSection && implicationSection.value.trim() !== "") {
-        payload.implication = implicationSection.value.trim();
-    }
+    payload.implication = implicationSection && implicationSection.value.trim() !== "" ? implicationSection.value.trim() : null;
 
     return payload;
 }
@@ -220,7 +214,7 @@ function submitRecommendations(fieldId, saveAsDefault = false) {
     console.log(payload);
 
     fetch(`http://localhost:8080/api/fields/${fieldId}/recommendations?saveAsDefaultImplication=${saveAsDefault}`, {
-        method: "POST",
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
     })

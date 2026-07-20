@@ -108,8 +108,8 @@ public class InspectionFieldController {
         return inspectionFieldService.getRecommendationField(fieldId);
     }
 
-    @PostMapping("/{fieldId}/recommendations")
-    public ResponseEntity<?> addRecommendationField(@PathVariable UUID fieldId, @RequestBody InspectionRecommendationField recommendationField,
+    @PutMapping("/{fieldId}/recommendations")
+    public ResponseEntity<?> updateRecommendationField(@PathVariable UUID fieldId, @RequestBody InspectionRecommendationField recommendationField,
                                                     @RequestParam Boolean saveAsDefaultImplication){
         return inspectionFieldService.addRecommendationField(fieldId, recommendationField, saveAsDefaultImplication);
     }
