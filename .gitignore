@@ -5,3 +5,6 @@ database
 database.db
 
 .env
+
+web_scraper/
+test

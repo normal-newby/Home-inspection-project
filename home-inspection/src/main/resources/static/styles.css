@@ -218,7 +218,7 @@ body {
 .cover-photo img {
     display: block;
     width: 100%;
-    max-height: 110mm;
+    max-height: 100mm;
     object-fit: cover;
 }
 

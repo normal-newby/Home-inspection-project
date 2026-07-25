@@ -20,7 +20,7 @@
 </div>
 
 <div id="page-footer">
-    <span>Something here</span>
+    <!--<span>Something here</span>-->
     <span id="footer-right">
         Page <span class="page-number"></span> of <span class="total-pages"></span>
     </span>
@@ -246,7 +246,7 @@
 
     <div class="summary-title">Summary</div>
 
-    <div class="summary-letter page-break-after" th:text="${profile.summaryLetterBody}"></div>
+    <div class="summary-letter page-break-after" th:text="${report.summary}"></div>
 
     <div th:each="section : ${summaryFields}">
         <div class="summary-section-header" th:text="${section.key}"></div>
