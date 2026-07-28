@@ -1,5 +1,6 @@
 package ca.inspection.home.inspection.service;
 
+import ca.inspection.home.inspection.DTO.NavSection;
 import ca.inspection.home.inspection.entity.*;
 import ca.inspection.home.inspection.repository.ImageAnnotationRepository;
 import ca.inspection.home.inspection.repository.InspectionImagesRepository;
@@ -186,8 +187,6 @@ public class ReportViewService {
     }
 
     // Nav section colours
-
-    public record NavSection(String key, String label, String anchor, String colour){}
 
     public List<NavSection> getPopulatedNavSections(
             Map<String, Map<String, List<InspectionField>>> allFields,

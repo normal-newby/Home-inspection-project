@@ -1,4 +1,5 @@
-const sectionsConfig = {
+const definitionTypes = ["direction", "floorLevel", "room", "task", "time", "cost", "implication"];
+let sectionValues = {/*
     direction: {
         selector: ".recommendations-section:nth-of-type(1)",
         options: ["Various", "Throughout", "North", "South", "East", "West", "Front", "Rear", "Left", "Right"],
@@ -38,19 +39,23 @@ const sectionsConfig = {
     },
     implication: {
         selector: ".recommendations-section:nth-of-type(7)",
-    }
+    }*/
 };
 
 const recommendationsWrapper = document.querySelector(".recommendations-section-wrapper");
 const submitButton = document.getElementById("submit-recommendations-button");
 
-function createOptionButton(value, onSelect) {
+function createOptionButton(definition, type) {
     const btn = document.createElement("button");
-    btn.textContent = value;
-    btn.dataset.value = value;
+    btn.textContent = definition.value;
+    btn.dataset.value = definition.value;
+    btn.dataset.id = definition.id;
     btn.addEventListener("click", () => {
-        onSelect(value);
+        btn.classList.toggle("selected");
     });
+    btn.addEventListener("contextmenu", () => {
+        deleteDefinition(btn);
+    })
     return btn;
 }
 
@@ -94,43 +99,64 @@ function createImplicationInput() {
 
 function renderSections() {
     recommendationsWrapper.innerHTML = "";
-    for (let i = 0; i < Object.keys(sectionsConfig).length; i++) {
+    for (let i = 0; i < definitionTypes.length; i++) {
 
-        //Get the information from dictionary
-        const sectionKey = Object.keys(sectionsConfig)[i];
-        const config = sectionsConfig[sectionKey];
+        //Get type of definition
+        const type = definitionTypes[i];
 
         //Create the recommendation section
         const recommendationSection = document.createElement("div");
         recommendationSection.classList.add("recommendations-section");
+        recommendationSection.id = "type-" + type;
 
         //Create label
         const label = document.createElement("div");
         label.classList.add("recommendations-section-label");
-        label.textContent = sectionKey.charAt(0).toUpperCase() + sectionKey.slice(1);
-
+        label.textContent = type.charAt(0).toUpperCase() + type.slice(1);
         recommendationSection.appendChild(label);
 
         //Create container for options
         const optionsContainer = document.createElement("div");
         optionsContainer.classList.add("recommendations-options");
 
-        if (sectionKey === "cost") {
+        if (type === "cost") {
             optionsContainer.appendChild(createCostInputs());
-        } else if (sectionKey === "implication"){
+        } else if (type === "implication"){
             optionsContainer.appendChild(createImplicationInput());
         } else {
-            //Create buttons
-            config.options.forEach(option => {
-                const button = createOptionButton(option, () => {
-                    button.classList.toggle("selected");
+            // Create container for definitions
+            const definitionsContainer = document.createElement("div");
+            definitionsContainer.classList.add("recommendations-definitions");
+
+            // Create buttons
+            if (sectionValues[type] !== null && sectionValues[type] !== undefined) {
+                sectionValues[type].forEach(definition => {
+                    const btn = createOptionButton(definition, type);
+                    definitionsContainer.appendChild(btn);
                 });
-                optionsContainer.appendChild(button);
+            }
+            optionsContainer.appendChild(definitionsContainer);
+
+            // Create container for adding
+            const addContainer = document.createElement("div");
+            addContainer.classList.add("recommendations-add");
+
+            // Create "add definition" button
+            const definitionInput = document.createElement("input");
+            definitionInput.id = "definition-input";
+            const btn = document.createElement("button");
+            btn.textContent = "Add a value for: " + type;
+            btn.addEventListener("click", () => {
+                const value = definitionInput.value;
+                addDefinition(type, value);
             });
+
+            addContainer.appendChild(definitionInput);
+            addContainer.appendChild(btn);
+            optionsContainer.appendChild(addContainer);
         }
 
         recommendationSection.appendChild(optionsContainer);
-
         recommendationsWrapper.appendChild(recommendationSection);
     };
 }
@@ -240,7 +266,8 @@ function submitRecommendations(fieldId, saveAsDefault = false) {
     });
 }
 
-export function setUpRecommendationsPanel(fieldId) {
+export async function setUpRecommendationsPanel(fieldId) {
+    await getSectionsConfig();
     renderSections();
 
     submitButton.addEventListener("click", () => {
@@ -263,4 +290,65 @@ export function setUpRecommendationsPanel(fieldId) {
     .catch(error => {
         console.error(error);
     });
+}
+
+async function getSectionsConfig(){
+    await fetch(`http://localhost:8080/api/recommendation-definition`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" }
+    })
+    .then(response => {
+        if (!response.ok) {
+            console.log("Failed to fetch definitions");
+        }
+        return response.json();
+    })
+    .then(sections => {
+        sectionValues = sections;
+    })
+    .catch(error => {
+        console.log(error)
+    });
+}
+
+function appendDefinitionToList(type, definition){
+    const definitionsContainer = document.getElementById("type-" + type).querySelector(".recommendations-definitions");
+    if (!definitionsContainer) return;
+
+    const btn = createOptionButton(definition, type);
+    definitionsContainer.appendChild(btn);
+}
+
+async function addDefinition(type, value){
+    const body = {
+        type: type,
+        value, value
+    };
+
+    const res = await fetch(`http://localhost:8080/api/recommendation-definition`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+    })
+    if (!res.ok) {
+        console.log("failed to add definition");
+        return;
+    }
+    const definition = await res.json();
+    console.log(definition);
+    appendDefinitionToList(type, definition);
+}
+
+function deleteDefinition(button){
+    fetch(`http://localhost:8080/api/recommendation-definition/${button.dataset.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+    })
+    .then(res => {
+        if (res.ok) {
+            button.remove();
+        }
+        else console.log("failed to delete")
+    })
+    .catch(error => console.log(error));
 }

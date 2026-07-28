@@ -50,13 +50,13 @@
     color: var(--muted);
 }
 
-.recommendations-options {
+.recommendations-definitions {
     display: flex;
     flex-wrap: wrap;
     gap: 0.4rem;
 }
 
-.recommendations-options button {
+.recommendations-definitions button {
     background: var(--paper);
     border: 1px solid var(--border);
     border-radius: 3px;
@@ -69,15 +69,49 @@
     transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
-.recommendations-options button:hover {
+.recommendations-definitions button:hover {
     border-color: var(--muted);
     color: var(--ink);
 }
 
-.recommendations-options button.selected {
+.recommendations-definitions button.selected {
     background: #fdf0ea;
     border-color: var(--accent);
     color: var(--accent);
+}
+
+.recommendations-add {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.recommendations-add input {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var (--border);
+    border-radius: 3px;
+    padding: 0.4rem 0.75rem;
+    font-family: "DM SANS", sans-serif;
+    font-size: 0.85rem;
+    color: var(--ink);
+}
+
+.recommendations-add button {
+    background: var(--accent);
+    color: #fff;
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    padding: 0.4rem 0.9rem;
+    font-family: "DM SANS", sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.recommendations-add button:hover {
+    background: #943b08;
+    border-color: #943b08;
 }
 
 .recommendations-footer {
