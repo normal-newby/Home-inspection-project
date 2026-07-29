@@ -1,46 +1,7 @@
 const definitionTypes = ["direction", "floorLevel", "room", "task", "time", "cost", "implication"];
-let sectionValues = {/*
-    direction: {
-        selector: ".recommendations-section:nth-of-type(1)",
-        options: ["Various", "Throughout", "North", "South", "East", "West", "Front", "Rear", "Left", "Right"],
-    },
-    floorLevel: {
-        selector: ".recommendations-section:nth-of-type(2)",
-        options: ["Basement", "Ground", "1st Floor", "2nd Floor", "3rd Floor", "Attic"],
-    },
-    room: {
-        selector: ".recommendations-section:nth-of-type(3)",
-        options: ["Living room", "Dining room", "Kitchen", "Bathroom", "Master Bathroom",
-            "Hallway Bathroom", "Ensuite Bathroom", "Powder Room",
-            "Bedroom", "Master Bedroom", "Family Room", "Sunroom",
-            "Laundry Area", "Office", "Utility Room", "Furnace Room",
-            "Garage", "Carport", "Porch", "Hall", "Foyer", "Staircase", "Panel",
-            "Balcony", "Deck", "Cold Room", "Roof", "Addition", "Dinette", "Washroom", "Half Bathroom"
-        ],
-    },
-    task: {
-        selector: ".recommendations-section:nth-of-type(4)",
-        options: ["Repair", "Replace", "Repair or replace", "Futher evaluation", "Provide",
-            "Improve", "Monitor", "Service", "Clean", "Correct", "Request Disclosure",
-            "Request Demo", "Service Annually", "Inspect Annually", "Demolish", "Remodel",
-            "Upgrade", "Remove", "Protect", "Patch", "Paint", "Seal", "Patch and Paint"
-        ],
-    },
-    time: {
-        selector: ".recommendations-section:nth-of-type(5)",
-        options: ["Immediate", "Within 1 year", "Within 2 years", "Within 3 years",
-            "Within 4 years", "Within 5 years", "Unpredictable", "Unknown", "Discretionary",
-        "Ongoing", "Regular Maintenance", "If Necessary", "When Remodelling", "When Necessary",
-    "As soon as possible", "As soon as practical", "Before Use"],
-    },
-    cost: {
-        selector: ".recommendations-section:nth-of-type(6)",
-        // This section is rendered as inputs instead of option buttons.
-    },
-    implication: {
-        selector: ".recommendations-section:nth-of-type(7)",
-    }*/
-};
+let sectionValues; /* = {Structure
+    type : list({id, value})
+}*/
 
 const recommendationsWrapper = document.querySelector(".recommendations-section-wrapper");
 const submitButton = document.getElementById("submit-recommendations-button");
@@ -161,31 +122,36 @@ function renderSections() {
     };
 }
 
+function highLightSelectedButtons(recommendations, definition) {
+    const value = recommendations[definition];
+    if (value === null || value === undefined) return;
+
+    const section = sectionValues[definition];
+    if (!section) return;
+
+    const sectionRoot = document.getElementById("type-" + definition).querySelector(".recommendations-definitions");
+    if (!sectionRoot) return;
+
+    const selectedValues = value ? value.split(",").map(v => v.trim()) : [];
+
+    const buttons = sectionRoot.querySelectorAll("button");
+    buttons.forEach(btn => {
+        btn.classList.toggle("selected", selectedValues.includes(btn.dataset.value));
+    });
+}
+
 function highlightExistingValues(recommendations) {
     if (!recommendations) return;
 
-    const keys = ["direction", "floorLevel", "room", "task", "time"];
+    console.log("Highlighting existing values:", recommendations);
 
-    keys.forEach(key => {
-        const value = recommendations[key];
-        if (value === null || value === undefined) return;
-
-        const section = sectionsConfig[key];
-        if (!section) return;
-
-        const sectionRoot = document.querySelector(section.selector);
-        if (!sectionRoot) return;
-
-        const selectedValues = value ? value.split(",").map(v => v.trim()) : [];
-
-        const buttons = sectionRoot.querySelectorAll(".recommendations-options button");
-        buttons.forEach(btn => {
-            btn.classList.toggle("selected", selectedValues.includes(btn.dataset.value));
-        });
+    definitionTypes.forEach(definition => {
+        if (definition === "cost" || definition === "implication") return; // Skip cost and implication for button highlighting
+        highLightSelectedButtons(recommendations, definition);
     });
 
     // Handle cost inputs separately (lower/upper)
-    const costSection = document.querySelector(sectionsConfig.cost.selector);
+    const costSection = document.getElementById("type-cost");
     if (costSection) {
         const lowerInput = costSection.querySelector('input[data-cost-key="lower_cost"]');
         const upperInput = costSection.querySelector('input[data-cost-key="upper_cost"]');
@@ -198,7 +164,7 @@ function highlightExistingValues(recommendations) {
         }
     }
 
-    const implicationSection = document.querySelector('[data-implication-key="implication"]');
+    const implicationSection = document.getElementById("type-implication").querySelector('textarea[data-implication-key="implication"]');
     if (implicationSection && recommendations.implication) {
         implicationSection.value = recommendations.implication;
     }
@@ -207,19 +173,19 @@ function highlightExistingValues(recommendations) {
 function collectRecommendationsFromUI() {
     const payload = {};
 
-    Object.keys(sectionsConfig).forEach(sectionKey => {
-        if (sectionKey === "cost") return;
+    definitionTypes.forEach(definition => {
+        if (definition === "cost" || definition === "implication") return;
 
-        const sectionRoot = document.querySelector(sectionsConfig[sectionKey].selector);
+        const sectionRoot = document.getElementById("type-" + definition).querySelector(".recommendations-definitions");
         if (!sectionRoot) return;
 
-        const selected = Array.from(sectionRoot.querySelectorAll(".recommendations-options button.selected"));
-        payload[sectionKey] = selected.length > 0 ?
+        const selected = Array.from(sectionRoot.querySelectorAll("button.selected"));
+        payload[definition] = selected.length > 0 ?
             selected.map(btn => btn.dataset.value).join(", ") : null;
     });
 
     // Cost is stored as two separate fields (lower_cost and upper_cost)
-    const costSection = document.querySelector(sectionsConfig.cost.selector);
+    const costSection = document.getElementById("type-cost");
     if (costSection) {
         const lowerInput = costSection.querySelector('input[data-cost-key="lower_cost"]');
         const upperInput = costSection.querySelector('input[data-cost-key="upper_cost"]');
@@ -228,7 +194,7 @@ function collectRecommendationsFromUI() {
         payload.upper_cost = upperInput && upperInput.value.trim() !== "" ? upperInput.value.trim() : null;
     }
 
-    const implicationSection = document.querySelector('[data-implication-key="implication"]');
+    const implicationSection = document.getElementById("type-implication").querySelector('textarea[data-implication-key="implication"]');
     payload.implication = implicationSection && implicationSection.value.trim() !== "" ? implicationSection.value.trim() : null;
 
     return payload;
