@@ -7,7 +7,6 @@ database.db
 .env
 
 web_scraper/
-test
 
 database.db
 database.db-journal
