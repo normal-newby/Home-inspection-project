@@ -123,8 +123,8 @@ public class ReportViewService {
         return fieldComparator;
     }
 
-    public List<InspectionField> getSortedFields(InspectionReport report,
-                                                 Comparator<InspectionField> fieldComparator){
+    public List<InspectionField> getSortedFields(InspectionReport report){
+        Comparator<InspectionField> fieldComparator = getComparator();
         List<InspectionField> fields = report.getFields().stream()
                 .filter(f -> f != null)
                 .filter(f -> f.getInspectionFieldDefinition() != null)

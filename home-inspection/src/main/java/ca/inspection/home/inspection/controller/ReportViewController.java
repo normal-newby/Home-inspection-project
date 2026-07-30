@@ -52,11 +52,7 @@ public class ReportViewController {
         reportViewService.getOtherFields(report);
         reportViewService.setCoverPageImageBase64(report);
 
-        Comparator<InspectionField> fieldComparator = reportViewService.getComparator();
-
-        List<InspectionField> fields = reportViewService.getSortedFields(
-                report, fieldComparator
-        );
+        List<InspectionField> fields = reportViewService.getSortedFields(report);
         Map<String, Map<String, List<InspectionField>>> allFields = reportViewService.getAllFields(fields);
         Map<String, List<InspectionField>> summaryFields = reportViewService.getSummaryFields(fields);
 

@@ -21,7 +21,10 @@ public class HelperFunctions {
 
     public static String getFileExtension(String originalFileName){
         if (originalFileName == null || !originalFileName.contains(".")) return "";
-        return originalFileName.substring(originalFileName.lastIndexOf("."));
+        int dotIndex = originalFileName.lastIndexOf(".");
+        if (dotIndex == originalFileName.length() - 1) return "";
+        return originalFileName.substring(dotIndex);
+
     }
 
     public static String capitalizeFirstLetter(String s){
