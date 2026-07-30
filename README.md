@@ -18,7 +18,7 @@ The "how to use it" part is designed to be minimal, as hopefully the UI explains
 
 ## 1. Setup
 
-### Data cloning
+### Data cloning **IMPORTANT**
 
 Clone this repo onto your computer.
 This repo only contains necessary database information for the boilerplate of the web application,
