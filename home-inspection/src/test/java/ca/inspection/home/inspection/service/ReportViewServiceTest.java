@@ -1,6 +1,9 @@
 package ca.inspection.home.inspection.service;
 
+import ca.inspection.home.inspection.DTO.NavSection;
 import ca.inspection.home.inspection.entity.*;
+import ca.inspection.home.inspection.repository.ImageAnnotationRepository;
+import ca.inspection.home.inspection.repository.InspectionImagesRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -11,16 +14,35 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class ReportViewServiceTest {
 
+    private static final Map<String, String> NAV_SECTION_COLOURS = new LinkedHashMap<>(){{
+        put("summary",     "#943b08");
+        put("roofing",     "#a68368");
+        put("exterior",    "#7BB369");
+        put("structure",   "#777777");
+        put("electrical",  "#FFA500");
+        put("heating",     "#ff6d4d");
+        put("cooling",     "#399cff");
+        put("insulation",  "#ffb6c1");
+        put("plumbing",    "#ADD8E6");
+        put("interior",    "#D2D1CD");
+        put("appendix",    "#5c5a52");
+    }};
+
     @Mock
     private InspectionImagesService inspectionImagesService;
+
+    @Mock
+    private InspectionImagesRepository inspectionImagesRepository;
+
+    @Mock
+    private ImageAnnotationRepository imageAnnotationRepository;
 
     @InjectMocks
     private ReportViewService reportViewService;
@@ -238,4 +260,285 @@ public class ReportViewServiceTest {
         verifyNoInteractions(inspectionImagesService);
     }
 
+    // Get Populated Nav Sections
+
+    @Test
+    void getPopulatedNavSections_emptySummaryFields_summaryExcluded(){
+        Map<String, Map<String, List<InspectionField>>> fields = Map.of();
+        Map<String, List<InspectionField>> summaryFields = Map.of();
+
+        List<NavSection> result = reportViewService.getPopulatedNavSections(fields, summaryFields, false);
+
+        assertThat(result).extracting(NavSection::key).doesNotContain("summary");
+    }
+
+    @Test
+    void getPopulatedNavSections_nullSummaryFields_summaryExcluded(){
+        Map<String, Map<String, List<InspectionField>>> fields = Map.of();
+
+        List<NavSection> result = reportViewService.getPopulatedNavSections(fields, null, false);
+
+        assertThat(result).extracting(NavSection::key).doesNotContain("summary");
+    }
+
+    @Test
+    void getPopulatedNavSections_nonEmptySummaryFields_summaryFirst(){
+        Map<String, Map<String, List<InspectionField>>> fields = Map.of();
+        Map<String, List<InspectionField>> summaryFields = Map.of(
+                "roofing", List.of(fieldWithSummary("roofing", "recommendations", true))
+        );
+
+        List<NavSection> result = reportViewService.getPopulatedNavSections(fields, summaryFields, false);
+
+        assertThat(result).isNotEmpty();
+        assertThat(result).hasSize(1);
+        NavSection summary = result.getFirst();
+        assertThat(summary.key()).isEqualTo("summary");
+        assertThat(summary.label()).isEqualTo("Summary");
+        assertThat(summary.anchor()).isEqualTo("summary-page");
+        assertThat(summary.colour()).isEqualTo("#943b08");
+    }
+
+    @Test
+    void getPopulatedNavSections_noAppendix_appendixExcluded(){
+        Map<String, Map<String, List<InspectionField>>> fields = Map.of();
+        Map<String, List<InspectionField>> summaryFields = Map.of();
+
+        List<NavSection> result = reportViewService.getPopulatedNavSections(fields, summaryFields, false);
+
+        assertThat(result).extracting(NavSection::key).doesNotContain("appendix");
+    }
+
+    @Test
+    void getPopulatedNavSections_hasAppendix_appendixIncludedLast(){
+        Map<String, Map<String, List<InspectionField>>> fields = Map.of(
+                "roofing",
+                Map.of("description",
+                        List.of(fieldWithSummary("roofing", "description", false)))
+        );
+        Map<String, List<InspectionField>> summaryFields = Map.of();
+
+        List<NavSection> result = reportViewService.getPopulatedNavSections(fields, summaryFields, true);
+
+        assertThat(result).isNotEmpty();
+        NavSection appendix = result.getLast();
+        assertThat(appendix.key()).isEqualTo("appendix");
+        assertThat(appendix.label()).isEqualTo("Appendix");
+        assertThat(appendix.anchor()).isEqualTo("appendix-page");
+        assertThat(appendix.colour()).isEqualTo("#5c5a52");
+    }
+
+    @Test
+    void getPopulatedNavSections_allFields_onlyContainsFieldsIncluded(){
+        Map<String, Map<String, List<InspectionField>>> fields = Map.of(
+                "roofing",
+                Map.of("description",
+                        List.of(fieldWithSummary("roofing", "description", false)))
+        );
+        Map<String, List<InspectionField>> summaryFields = Map.of();
+
+        List<NavSection> result = reportViewService.getPopulatedNavSections(fields, summaryFields, false);
+
+        assertThat(result).extracting(NavSection::key).containsOnly("roofing");
+    }
+
+    @Test
+    void getPopulatedNavSections_placeInAllFields_containsCorrectInformation(){
+        Map<String, Map<String, List<InspectionField>>> fields = Map.of(
+                "roofing",
+                Map.of("description",
+                        List.of(fieldWithSummary("roofing", "description", false)))
+        );
+        Map<String, List<InspectionField>> summaryFields = Map.of();
+
+        List<NavSection> result = reportViewService.getPopulatedNavSections(fields, summaryFields, false);
+
+        assertThat(result).hasSize(1);
+        NavSection appendix = result.getFirst();
+        assertThat(appendix.key()).isEqualTo("roofing");
+        assertThat(appendix.label()).isEqualTo("Roofing");
+        assertThat(appendix.anchor()).isEqualTo("place-roofing");
+        assertThat(appendix.colour()).isEqualTo("#a68368");
+    }
+
+    @Test
+    void getPopulatedNavSections_multiplePlaces_orderedCorrectly(){
+        Map<String, Map<String, List<InspectionField>>> fields = Map.of(
+                "roofing",
+                Map.of("description",
+                        List.of(fieldWithSummary("roofing", "description", false))),
+                "interior",
+                Map.of("description",
+                        List.of(fieldWithSummary("interior", "description", false)))
+        );
+        Map<String, List<InspectionField>> summaryFields = Map.of();
+
+        List<NavSection> result = reportViewService.getPopulatedNavSections(fields, summaryFields, false);
+
+        assertThat(result).extracting(NavSection::key).containsExactly("roofing", "interior");
+    }
+
+    @Test
+    void getPopulatedNavSections_summaryPlacesAndAppendix_fullOrdering(){
+        Map<String, Map<String, List<InspectionField>>> fields = Map.of(
+                "roofing",
+                Map.of("description",
+                        List.of(fieldWithSummary("roofing", "description", false)))
+        );
+        Map<String, List<InspectionField>> summaryFields = Map.of(
+                "roofing", List.of(fieldWithSummary("roofing", "recommendations", true))
+        );
+
+        List<NavSection> result = reportViewService.getPopulatedNavSections(fields, summaryFields, true);
+
+        assertThat(result).extracting(NavSection::key).containsExactly("summary", "roofing", "appendix");
+    }
+
+    // Build Colour Variable CSS tests
+
+    @Test
+    void buildColourVariableCSS_startsWithRootSelector(){
+        String result = reportViewService.buildColourVariablesCSS();
+
+        assertThat(result).startsWith(":root {");
+    }
+
+    @Test
+    void buildColourVariableCSS_endsWithClosingBrace(){
+        String result = reportViewService.buildColourVariablesCSS();
+
+        assertThat(result).endsWith("}\n");
+    }
+
+    @Test
+    void buildColourVariableCSS_containsEntryForEachColour(){
+        String result = reportViewService.buildColourVariablesCSS();
+
+        NAV_SECTION_COLOURS.forEach((key, colour) -> {
+            assertThat(result).contains("--place-" + key + ": " + colour + ";");
+        });
+    }
+
+    // Build Nav Page CSS
+
+    @Test
+    void buildNavPageCSS_containsPageRuleForEachKey(){
+        String result = reportViewService.buildNavPageCSS();
+
+        NAV_SECTION_COLOURS.keySet().forEach(key -> {
+            assertThat(result).contains("@page " + key + "-page {");
+        });
+    }
+
+    @Test
+    void buildNavPageCSS_containsRunningElementForEachKey(){
+        String result = reportViewService.buildNavPageCSS();
+
+        NAV_SECTION_COLOURS.keySet().forEach(key -> {
+            assertThat(result).contains("element(nav-" + key + ")");
+        });
+    }
+
+    @Test
+    void buildNavPageCSS_containHeaderBlockForEachKey(){
+        String result = reportViewService.buildNavPageCSS();
+
+        NAV_SECTION_COLOURS.keySet().forEach(key -> {
+            assertThat(result).contains(".report-header-block-" + key + " { position: running(nav-" + key + ");");
+        });
+    }
+
+    // Get Other Fields
+
+    private InspectionImage imageForField(InspectionField field){
+        InspectionImage image = new InspectionImage();
+        image.setId(UUID.randomUUID());
+        image.setInspectionField(field);
+        return image;
+    }
+
+    private ImageAnnotation annotationForImage(InspectionImage image){
+        ImageAnnotation annotation = new ImageAnnotation();
+        annotation.setId(UUID.randomUUID());
+        annotation.setInspectionImage(image);
+        return annotation;
+    }
+
+    @Test
+    void getOtherFields_noFields_noCallRepositories(){
+        InspectionReport report = new InspectionReport();
+        report.setFields(Set.of());
+
+        reportViewService.getOtherFields(report);
+
+        verifyNoInteractions(inspectionImagesRepository);
+        verifyNoInteractions(imageAnnotationRepository);
+    }
+
+    @Test
+    void getOtherFields_imagesWithAnnotations_correctAnnotationsAttached(){
+        InspectionReport report = new InspectionReport();
+        InspectionField field = fieldWithTypeAndPlace("roofing", "description");
+        InspectionImage image = imageForField(field);
+        ImageAnnotation annotation = annotationForImage(image);
+        report.setFields(Set.of(field));
+
+        when(inspectionImagesRepository.findByInspectionField_IdIn(anyList())).thenReturn(List.of(image));
+        when(imageAnnotationRepository.findByInspectionImageIdIn(anyList())).thenReturn(List.of(annotation));
+        reportViewService.getOtherFields(report);
+
+        assertThat(image.getAnnotations()).containsExactly(annotation);
+    }
+
+    @Test
+    void getOtherFields_multipleFields_imagesByFieldId(){
+        InspectionReport report = new InspectionReport();
+        InspectionField roofing = fieldWithTypeAndPlace("roofing", "description");
+        InspectionField exterior = fieldWithTypeAndPlace("exterior", "description");
+        InspectionImage roofingImage = imageForField(roofing);
+        InspectionImage exteriorImage = imageForField(exterior);
+        report.setFields(Set.of(roofing, exterior));
+
+        when(inspectionImagesRepository.findByInspectionField_IdIn(anyList())).thenReturn(List.of(roofingImage, exteriorImage));
+        reportViewService.getOtherFields(report);
+
+        assertThat(roofing.getInspectionImages()).containsExactly(roofingImage);
+        assertThat(exterior.getInspectionImages()).containsExactly(exteriorImage);
+    }
+
+    @Test
+    void getOtherFields_multipleImages_annotationsByImage(){
+        InspectionReport report = new InspectionReport();
+        InspectionField field = fieldWithTypeAndPlace("roofing", "description");
+        InspectionImage image1 = imageForField(field);
+        InspectionImage image2 = imageForField(field);
+        ImageAnnotation annotation1 = annotationForImage(image1);
+        ImageAnnotation annotation2 = annotationForImage(image2);
+        report.setFields(Set.of(field));
+
+        when(inspectionImagesRepository.findByInspectionField_IdIn(anyList()))
+                .thenReturn(List.of(image1, image2));
+        when(imageAnnotationRepository.findByInspectionImageIdIn(anyList()))
+                .thenReturn(List.of(annotation1, annotation2));
+        reportViewService.getOtherFields(report);
+
+        assertThat(image1.getAnnotations()).containsExactly(annotation1);
+        assertThat(image2.getAnnotations()).containsExactly(annotation2);
+    }
+
+    @Test
+    void getOtherFields_fieldWithNoImage_getsEmptyList(){
+        InspectionReport report = new InspectionReport();
+        InspectionField fieldImages = fieldWithTypeAndPlace("roofing", "description");
+        InspectionField fieldNoImages = fieldWithTypeAndPlace("exterior", "description");
+        InspectionImage image = imageForField(fieldImages);
+        report.setFields(Set.of(fieldNoImages, fieldImages));
+
+        when(inspectionImagesRepository.findByInspectionField_IdIn(anyList()))
+                .thenReturn(List.of(image));
+        reportViewService.getOtherFields(report);
+
+        assertThat(fieldImages.getInspectionImages()).containsExactly(image);
+        assertThat(fieldNoImages.getInspectionImages()).isEmpty();
+    }
 }
