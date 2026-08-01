@@ -69,11 +69,15 @@ public class InspectionFieldService {
     public Map<UUID, List<InspectionField>> getAlreadyExistingFieldsCombined(
             UUID bookingId, String place, String type
     ){
-        InspectionReport report = inspectionBookingsService.getReportFromBooking(bookingId);
-        List<InspectionField> fields = inspectionFieldRepository
-                .getExistingFieldsForPlaceAndType(report.getId(), place, type);
-        return fields.stream()
-                .collect(Collectors.groupingBy(field -> field.getInspectionFieldDefinition().getId()));
+        try {
+            InspectionReport report = inspectionBookingsService.getReportFromBooking(bookingId);
+            List<InspectionField> fields = inspectionFieldRepository
+                    .getExistingFieldsForPlaceAndType(report.getId(), place, type);
+            return fields.stream()
+                    .collect(Collectors.groupingBy(field -> field.getInspectionFieldDefinition().getId()));
+        } catch (Exception e){
+            return Map.of();
+        }
     }
 
     public void deleteInspectionField(UUID id){
@@ -99,7 +103,7 @@ public class InspectionFieldService {
             return ResponseEntity.ok().body(Map.of("Image added", true));
         } catch (Exception e){
             e.printStackTrace();
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
@@ -118,7 +122,7 @@ public class InspectionFieldService {
             return ResponseEntity.ok().body(Map.of("Image deleted", true));
         } catch (Exception e){
             e.printStackTrace();
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
