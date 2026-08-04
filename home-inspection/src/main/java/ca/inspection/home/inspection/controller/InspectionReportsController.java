@@ -19,7 +19,7 @@ public class InspectionReportsController {
 
     @GetMapping("/reports/{bookingId}")
     public InspectionReport getReport(@PathVariable UUID bookingId){
-        return inspectionReportsService.getOrCreateByBooking(bookingId);
+        return inspectionReportsService.getBooking(bookingId);
     }
 
     @PostMapping("/reports/{bookingId}")

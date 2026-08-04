@@ -4,8 +4,10 @@ import ca.inspection.home.inspection.DTO.BookingDetails;
 import ca.inspection.home.inspection.DTO.InvoiceAmount;
 import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectionReport;
+import ca.inspection.home.inspection.entity.InspectorProfile;
 import ca.inspection.home.inspection.entity.Invoice;
 import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
+import ca.inspection.home.inspection.repository.InspectionReportsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -23,9 +25,23 @@ public class InspectionBookingsService {
     @Autowired
     private InspectorProfileService inspectorProfileService;
 
+    @Autowired
+    private InspectionReportsRepository inspectionReportsRepository;
+
     public InspectionBookings createBooking(InspectionBookings booking){
+        System.out.println("Creating booking!");
         booking.setInspectionNumber(inspectorProfileService.getAndUpdateNumber());
-        return inspectionBookingsRepository.save(booking);
+        InspectionBookings saved = inspectionBookingsRepository.save(booking);
+
+        InspectionReport report = new InspectionReport();
+        report.setInspectionBooking(saved);
+
+        InspectorProfile profile = inspectorProfileService.getProfile();
+        report.setSummary(profile.getSummaryLetterBody());
+
+        report = inspectionReportsRepository.save(report);
+        saved.setInspectionReport(report);
+        return saved;
     }
 
     public List<BookingDetails> findAll(){

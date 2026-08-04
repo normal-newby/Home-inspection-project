@@ -77,7 +77,7 @@ public class InspectionImagesService {
     }
 
     public Set<InspectionImage> getImages(UUID id){
-        InspectionReport inspectionReport = inspectionReportsService.getOrCreateByBooking(id);
+        InspectionReport inspectionReport = inspectionReportsRepository.findByInspectionBooking_Id(id);
         return inspectionReport.getImages().stream()
                 .sorted(Comparator.comparing(InspectionImage::getImageUrl))
                 .collect(Collectors.toCollection(LinkedHashSet::new));

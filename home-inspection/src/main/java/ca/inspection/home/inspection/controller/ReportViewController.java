@@ -2,6 +2,7 @@ package ca.inspection.home.inspection.controller;
 
 import ca.inspection.home.inspection.DTO.InvoiceAmount;
 import ca.inspection.home.inspection.entity.*;
+import ca.inspection.home.inspection.repository.InspectionReportsRepository;
 import ca.inspection.home.inspection.service.InspectionBookingsService;
 import ca.inspection.home.inspection.service.InspectionReportsService;
 import ca.inspection.home.inspection.service.InspectorProfileService;
@@ -35,6 +36,9 @@ public class ReportViewController {
     private InspectionReportsService inspectionReportsService;
 
     @Autowired
+    private InspectionReportsRepository inspectionReportsRepository;
+
+    @Autowired
     private SpringTemplateEngine templateEngine;
 
     @Autowired
@@ -47,7 +51,7 @@ public class ReportViewController {
         InspectorProfile profile = inspectorProfileService.getProfile();
         InspectionBookings booking = inspectionBookingsService.findById(bookingId);
         InvoiceAmount amount = inspectionBookingsService.buildInvoiceAmount(booking.getInvoices());
-        InspectionReport report = inspectionReportsService.getOrCreateByBooking(bookingId);
+        InspectionReport report = inspectionReportsRepository.findByInspectionBooking_Id(bookingId);
 
         reportViewService.getOtherFields(report);
         reportViewService.setCoverPageImageBase64(report);

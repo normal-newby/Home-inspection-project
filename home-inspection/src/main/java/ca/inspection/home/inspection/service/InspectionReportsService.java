@@ -41,21 +41,8 @@ public class InspectionReportsService {
         return Paths.get(uploadDir);
     }
 
-    public InspectionReport getOrCreateByBooking(UUID bookingId){
-        InspectionReport report = inspectionReportsRepository.findByInspectionBooking_Id(bookingId);
-        if (report != null){
-            return report;
-        }
-
-        InspectionBookings booking = inspectionBookingsRepository.findById(bookingId).orElseThrow();
-
-        InspectionReport newReport = new InspectionReport();
-        newReport.setInspectionBooking(booking);
-
-        InspectorProfile profile = inspectorProfileService.getProfile();
-        newReport.setSummary(profile.getSummaryLetterBody());
-
-        return inspectionReportsRepository.save(newReport);
+    public InspectionReport getBooking(UUID bookingId){
+        return inspectionReportsRepository.findByInspectionBooking_Id(bookingId);
     }
 
     public ResponseEntity<?> updateReportData(UUID bookingId, Map<String, String> body){
