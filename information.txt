@@ -1,2 +1,0 @@
-Image able to cut and edit on command
-Discount feature
