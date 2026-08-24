@@ -75,6 +75,7 @@ public class InspectionFieldService {
             InspectionReport report = inspectionBookingsService.getReportFromBooking(bookingId);
             List<InspectionField> fields = inspectionFieldRepository
                     .getExistingFieldsForPlaceAndType(report.getId(), place, type);
+            attachAnnotations(fields);
             return fields.stream()
                     .collect(Collectors.groupingBy(field -> field.getInspectionFieldDefinition().getId()));
         } catch (Exception e){
@@ -82,6 +83,25 @@ public class InspectionFieldService {
                     bookingId, place, type, e);
             return Map.of();
         }
+    }
+
+    // Loads the annotations for every image on these fields in one query and wires them onto the images
+    private void attachAnnotations(List<InspectionField> fields){
+        List<InspectionImage> images = fields.stream()
+                .map(InspectionField::getInspectionImages)
+                .filter(Objects::nonNull)
+                .flatMap(List::stream)
+                .toList();
+        if (images.isEmpty()) return;
+
+        List<UUID> imageIds = images.stream().map(InspectionImage::getId).toList();
+        Map<UUID, Set<ImageAnnotation>> annotationMap = imageAnnotationRepository
+                .findByInspectionImageIdIn(imageIds).stream()
+                .collect(Collectors.groupingBy(ann -> ann.getInspectionImage().getId(),
+                        Collectors.toSet()));
+
+        images.forEach(img -> img.setAnnotations(
+                annotationMap.getOrDefault(img.getId(), new HashSet<>())));
     }
 
     public void deleteInspectionField(UUID id){
