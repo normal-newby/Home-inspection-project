@@ -12,7 +12,9 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 @Entity
-@Table(name = "inspection_field")
+@Table(name = "inspection_field", indexes = {
+        @Index(name = "idx_field_report", columnList = "inspection_report_id")
+})
 @Getter
 @Setter
 @AllArgsConstructor

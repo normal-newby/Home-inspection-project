@@ -7,7 +7,9 @@ import lombok.*;
 import java.util.UUID;
 
 @Entity
-@Table(name = "image_annotation")
+@Table(name = "image_annotation", indexes = {
+        @Index(name = "idx_annotation_image", columnList = "inspection_image_id")
+})
 @Getter
 @Setter
 @AllArgsConstructor

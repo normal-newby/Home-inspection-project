@@ -10,7 +10,9 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
-@Table(name = "invoice")
+@Table(name = "invoice", indexes = {
+        @Index(name = "idx_invoice_booking", columnList = "booking_id")
+})
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

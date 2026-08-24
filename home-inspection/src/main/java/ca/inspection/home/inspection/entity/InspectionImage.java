@@ -10,7 +10,10 @@ import org.hibernate.type.SqlTypes;
 import java.util.*;
 
 @Entity
-@Table(name = "inspection_image")
+@Table(name = "inspection_image", indexes = {
+        @Index(name = "idx_image_report", columnList = "inspection_report_id"),
+        @Index(name = "idx_image_field",  columnList = "inspection_field_id")
+})
 @Getter
 @Setter
 @AllArgsConstructor
