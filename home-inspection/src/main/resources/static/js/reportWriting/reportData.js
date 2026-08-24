@@ -7,9 +7,32 @@ const fields = ['summary'];
 
 const saveBtn = document.getElementById("saveBtn");
 const resetBtn = document.getElementById("resetBtn");
+const generateSummaryBtn = document.getElementById("generateSummaryBtn");
 
 saveBtn.addEventListener("click", () => saveWithOthers());
 resetBtn.addEventListener("click", () => loadForm(URI));
+generateSummaryBtn?.addEventListener("click", () => generateSummary());
+
+async function generateSummary() {
+    const label = generateSummaryBtn.textContent;
+    generateSummaryBtn.disabled = true;
+    generateSummaryBtn.textContent = "Generating…";
+    try {
+        const res = await fetch(`${URI}/generate-summary`, { method: "POST" });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || `Request failed (${res.status})`);
+        }
+        const data = await res.json();
+        document.getElementById("summary").value = data.summary ?? "";
+    } catch (err) {
+        console.error("Error generating summary:", err);
+        alert("Could not generate summary: " + err.message);
+    } finally {
+        generateSummaryBtn.disabled = false;
+        generateSummaryBtn.textContent = label;
+    }
+}
 
 async function saveWithOthers() {
      await saveForm(URI, fields);

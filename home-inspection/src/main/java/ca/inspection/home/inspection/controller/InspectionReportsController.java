@@ -32,4 +32,9 @@ public class InspectionReportsController {
         return inspectionReportsService.updateAppendixPdf(bookingId, file);
     }
 
+    @PostMapping("/reports/{bookingId}/generate-summary")
+    public ResponseEntity<?> generateSummary(@PathVariable UUID bookingId){
+        return inspectionReportsService.generateSummary(bookingId);
+    }
+
 }

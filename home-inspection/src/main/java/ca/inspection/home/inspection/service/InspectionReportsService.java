@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,9 @@ public class InspectionReportsService {
 
     @Autowired
     private InspectorProfileService inspectorProfileService;
+
+    @Autowired
+    private GeminiService geminiService;
 
     @Value("${app.upload-dir}")
     private String uploadDir;
@@ -82,6 +86,25 @@ public class InspectionReportsService {
         } catch (Exception e){
             e.printStackTrace();
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    public ResponseEntity<?> generateSummary(UUID bookingId){
+        try {
+            InspectionReport report = inspectionReportsRepository.findByInspectionBooking_Id(bookingId);
+            if (report == null){
+                return ResponseEntity.notFound().build();
+            }
+            String summary = geminiService.generateSummary(report);
+            return ResponseEntity.ok(Map.of("summary", summary));
+        } catch (IllegalStateException e){
+            // Missing / unconfigured API key
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body(Map.of("error", e.getMessage()));
+        } catch (Exception e){
+            e.printStackTrace();
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "Failed to generate summary"));
         }
     }
 
