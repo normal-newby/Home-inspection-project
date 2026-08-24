@@ -31,6 +31,10 @@ public class InspectionBookingsService {
     public InspectionBookings createBooking(InspectionBookings booking){
         System.out.println("Creating booking!");
         booking.setInspectionNumber(inspectorProfileService.getAndUpdateNumber());
+        // Set up invoices
+        if (booking.getInvoices() != null){
+            booking.getInvoices().forEach(invoice -> invoice.setBookings(booking));
+        }
         InspectionBookings saved = inspectionBookingsRepository.save(booking);
 
         InspectionReport report = new InspectionReport();

@@ -110,6 +110,26 @@ public class InspectionBookingsServiceTest {
         verify(inspectionReportsRepository).save(any(InspectionReport.class));
     }
 
+    @Test
+    void createBooking_withInvoices_setsBookingReferenceOnEachInvoice() {
+        InspectionBookings booking = new InspectionBookings();
+        Invoice invoice1 = new Invoice();
+        Invoice invoice2 = new Invoice();
+        booking.setInvoices(List.of(invoice1, invoice2));
+
+        when(inspectorProfileService.getAndUpdateNumber()).thenReturn(1);
+        when(inspectorProfileService.getProfile()).thenReturn(new InspectorProfile());
+        when(inspectionBookingsRepository.save(booking)).thenReturn(booking);
+        when(inspectionReportsRepository.save(any(InspectionReport.class)))
+                .thenAnswer(res -> res.getArgument(0));
+
+        inspectionBookingsService.createBooking(booking);
+
+        // Without this, cascade-save writes invoices with a null booking_id.
+        assertThat(invoice1.getBookings()).isEqualTo(booking);
+        assertThat(invoice2.getBookings()).isEqualTo(booking);
+    }
+
     // FIND ALL
 
     @Test

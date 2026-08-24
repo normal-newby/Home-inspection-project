@@ -14,18 +14,23 @@ const fields = ["inspectionAddress", "suite", "city", "postalCode", "province", 
 const saveBtn = document.getElementById("saveBtn");
 const method = id ? "PUT" : "POST";
 saveBtn.addEventListener("click", async () => {
-    await saveWithInvoices();
-    window.location.href = "index.html";
+    const saved = await saveWithInvoices();
+    // New inspection lands on its own booking page; edits go back to the list.
+    if (!id && saved && saved.id) {
+        window.location.href = `booking.html?id=${saved.id}`;
+    } else {
+        window.location.href = "index.html";
+    }
 });
 
 async function saveWithInvoices() {
     const bookingForm = collectForm(fields);
     const invoices = [];
     invoiceList.querySelectorAll(".invoice-item").forEach(item => {
-        const id = item.dataset.invoiceId.startsWith("local-") ? null : item.dataset.invoiceId; // Ignore local IDs
+        const invoiceId = item.dataset.invoiceId.startsWith("local-") ? null : item.dataset.invoiceId; // Ignore local IDs
         const type = item.querySelector(".invoice-type").textContent;
         const fee = parseFloat(item.querySelector(".invoice-fee").textContent.replace("$", ""));
-        invoices.push({ id, type, fee });
+        invoices.push({ id: invoiceId, type, fee });
     });
     bookingForm.invoices = invoices;
 
@@ -37,8 +42,11 @@ async function saveWithInvoices() {
         });
         console.log(res);
         if (!res.ok) throw new Error('Failed to save form');
+        // POST returns the created booking (with id); PUT returns an empty body.
+        return method === "POST" ? await res.json() : null;
     } catch (err) {
         console.error('Error saving form:', err);
+        return null;
     }
 }
 

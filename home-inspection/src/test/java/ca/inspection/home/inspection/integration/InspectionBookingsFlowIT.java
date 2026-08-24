@@ -2,9 +2,11 @@ package ca.inspection.home.inspection.integration;
 
 import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectorProfile;
+import ca.inspection.home.inspection.entity.Invoice;
 import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
 import ca.inspection.home.inspection.repository.InspectionReportsRepository;
 import ca.inspection.home.inspection.repository.InspectorProfileRepository;
+import ca.inspection.home.inspection.repository.InvoiceRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -17,6 +19,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,9 +51,13 @@ public class InspectionBookingsFlowIT {
     @Autowired
     private InspectorProfileRepository inspectorProfileRepository;
 
+    @Autowired
+    private InvoiceRepository invoiceRepository;
+
     @BeforeEach
     void resetState() {
         reportsRepository.deleteAll();
+        invoiceRepository.deleteAll();
         bookingsRepository.deleteAll();
         inspectorProfileRepository.deleteAll();
 
@@ -106,6 +114,42 @@ public class InspectionBookingsFlowIT {
         mockMvc.perform(get("/api/bookings/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.inspectionAddress").value("1 Round Trip Rd"));
+    }
+
+    @Test
+    void createBooking_withInvoices_persistsInvoicesLinkedToBooking() throws Exception {
+        InspectionBookings payload = new InspectionBookings();
+        payload.setInspectionAddress("77 Invoice Ln");
+
+        Invoice inspection = new Invoice();
+        inspection.setType("Inspection");
+        inspection.setFee(new BigDecimal("450.00"));
+
+        Invoice radon = new Invoice();
+        radon.setType("Radon Test");
+        radon.setFee(new BigDecimal("150.00"));
+
+        payload.setInvoices(List.of(inspection, radon));
+
+        MvcResult postResult = mockMvc.perform(post("/api/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(payload)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        InspectionBookings returned = objectMapper.readValue(
+                postResult.getResponse().getContentAsString(), InspectionBookings.class);
+        UUID bookingId = returned.getId();
+
+        // Query invoices directly — the booking's own collection is lazy and
+        // would need an open transaction to walk. The point is that the rows
+        // exist AND each one has booking_id set (the bug: it was NULL).
+        List<Invoice> persistedInvoices = invoiceRepository.findAll();
+        assertThat(persistedInvoices)
+                .hasSize(2)
+                .allSatisfy(inv -> assertThat(inv.getBookings().getId()).isEqualTo(bookingId));
+        assertThat(persistedInvoices.stream().map(Invoice::getType))
+                .containsExactlyInAnyOrder("Inspection", "Radon Test");
     }
 
     @Test
