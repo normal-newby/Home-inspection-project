@@ -193,6 +193,69 @@ public class InspectionImagesServiceTest {
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    // GET THUMBNAIL FILE
+
+    @Test
+    void getThumbnailFile_thumbnailNotYetCreated_generatesThumbnailAndReturnsOk() throws IOException {
+        UUID id = UUID.randomUUID();
+        // Source image large enough that the thumb will actually scale.
+        createJpegFile("photo.jpg", 800, 600);
+
+        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.of("photo.jpg"));
+        when(helperFunctions.getDirectory()).thenReturn(tempDir);
+
+        ResponseEntity<Resource> result = inspectionImagesService.getThumbnailFile(id);
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(result.getHeaders().getContentType()).isEqualTo(MediaType.IMAGE_JPEG);
+        assertThat(result.getBody()).isNotNull();
+        assertThat(result.getBody().exists()).isTrue();
+        // Thumbnail file was materialized under thumbs/.
+        assertThat(tempDir.resolve("thumbs").resolve("photo.jpg")).exists();
+    }
+
+    @Test
+    void getThumbnailFile_thumbnailAlreadyExists_reusesFile() throws IOException {
+        UUID id = UUID.randomUUID();
+        Path thumbsDir = tempDir.resolve("thumbs");
+        Files.createDirectories(thumbsDir);
+        // Pre-seed the thumbnail; a source image is not needed since we take the cached branch.
+        Path cachedThumb = thumbsDir.resolve("photo.jpg");
+        BufferedImage img = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+        ImageIO.write(img, "jpg", cachedThumb.toFile());
+        long sizeBefore = Files.size(cachedThumb);
+
+        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.of("photo.jpg"));
+        when(helperFunctions.getDirectory()).thenReturn(tempDir);
+
+        ResponseEntity<Resource> result = inspectionImagesService.getThumbnailFile(id);
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        // File was not regenerated (byte-for-byte identical size means no rewrite happened).
+        assertThat(Files.size(cachedThumb)).isEqualTo(sizeBefore);
+    }
+
+    @Test
+    void getThumbnailFile_imageIdNotFound_returnsInternalServerError() {
+        UUID id = UUID.randomUUID();
+        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.empty());
+
+        ResponseEntity<Resource> result = inspectionImagesService.getThumbnailFile(id);
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Test
+    void getThumbnailFile_sourceImageMissingOnDisk_returnsInternalServerError() {
+        UUID id = UUID.randomUUID();
+        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.of("missing.jpg"));
+        when(helperFunctions.getDirectory()).thenReturn(tempDir);
+
+        ResponseEntity<Resource> result = inspectionImagesService.getThumbnailFile(id);
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     // UPDATE COVER PAGE IMAGE
 
     @Test

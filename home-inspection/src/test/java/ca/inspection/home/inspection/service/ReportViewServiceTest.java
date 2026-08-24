@@ -11,6 +11,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import static org.mockito.Mockito.verify;
+
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,6 +45,9 @@ public class ReportViewServiceTest {
 
     @Mock
     private ImageAnnotationRepository imageAnnotationRepository;
+
+    @Mock
+    private CompanyAssetService companyAssetService;
 
     @InjectMocks
     private ReportViewService reportViewService;
@@ -541,5 +546,71 @@ public class ReportViewServiceTest {
 
         assertThat(fieldImages.getInspectionImages()).containsExactly(image);
         assertThat(fieldNoImages.getInspectionImages()).isEmpty();
+    }
+
+    // Set Cover Page Image Base 64
+
+    @Test
+    void setCoverPageImageBase64_hasCoverImage_setsBase64FromService(){
+        InspectionImage cover = new InspectionImage();
+        cover.setImageUrl("cover.jpg");
+        InspectionReport report = new InspectionReport();
+        report.setCoverPageImage(cover);
+
+        when(inspectionImagesService.toBase64("cover.jpg", null))
+                .thenReturn("data:image/jpeg;base64,COVER");
+
+        reportViewService.setCoverPageImageBase64(report);
+
+        assertThat(cover.getBase64()).isEqualTo("data:image/jpeg;base64,COVER");
+    }
+
+    @Test
+    void setCoverPageImageBase64_noCoverImage_doesNothing(){
+        InspectionReport report = new InspectionReport();
+        report.setCoverPageImage(null);
+
+        reportViewService.setCoverPageImageBase64(report);
+
+        verifyNoInteractions(inspectionImagesService);
+    }
+
+    // Get Company Assets Base 64
+
+    @Test
+    void getCompanyAssetsBase64_noAssets_returnsEmptyList(){
+        when(companyAssetService.getAllAssets()).thenReturn(List.of());
+
+        List<String> result = reportViewService.getCompanyAssetsBase64();
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void getCompanyAssetsBase64_multipleAssets_returnsBase64ForEach(){
+        CompanyAsset a = new CompanyAsset();
+        a.setKey("logo");
+        CompanyAsset b = new CompanyAsset();
+        b.setKey("stamp");
+
+        when(companyAssetService.getAllAssets()).thenReturn(List.of(a, b));
+        when(companyAssetService.toBase64(a)).thenReturn("data:A");
+        when(companyAssetService.toBase64(b)).thenReturn("data:B");
+
+        List<String> result = reportViewService.getCompanyAssetsBase64();
+
+        assertThat(result).containsExactly("data:A", "data:B");
+    }
+
+    @Test
+    void getCompanyAssetsBase64_missingFileYieldsNull_preservesNullInList(){
+        CompanyAsset a = new CompanyAsset();
+
+        when(companyAssetService.getAllAssets()).thenReturn(List.of(a));
+        when(companyAssetService.toBase64(a)).thenReturn(null);
+
+        List<String> result = reportViewService.getCompanyAssetsBase64();
+
+        assertThat(result).containsExactly((String) null);
     }
 }
