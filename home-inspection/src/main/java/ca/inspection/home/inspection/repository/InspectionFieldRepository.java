@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -28,4 +29,13 @@ public interface InspectionFieldRepository extends JpaRepository<InspectionField
             @Param("place") String place,
             @Param("type") String type
     );
+
+    // Fetches the field with the pieces the recommendation panel needs, in one query.
+    @Query("""
+            SELECT f FROM InspectionField f
+            LEFT JOIN FETCH f.selectedValue
+            LEFT JOIN FETCH f.inspectionRecommendationField
+            WHERE f.id = :id
+            """)
+    Optional<InspectionField> findWithRecommendationAndValue(@Param("id") UUID id);
 }

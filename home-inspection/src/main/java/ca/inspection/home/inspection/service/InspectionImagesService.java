@@ -48,27 +48,25 @@ public class InspectionImagesService {
     private HelperFunctions helperFunctions;
 
     @Transactional
-    public InspectionImage saveImages(
-            MultipartFile file,
-            UUID bookingId
-    ) {
-        try {
-            //Find the report it belongs to
-            InspectionReport inspectionReport = inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId);
+    public InspectionImage saveImages(MultipartFile file, UUID bookingId) {
+        InspectionReport report = inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId);
+        return saveImages(file, report);
+    }
 
-            //make sure path exists
+    // Overload used when the caller already has the report loaded
+    @Transactional
+    public InspectionImage saveImages(MultipartFile file, InspectionReport report) {
+        try {
+            if (report == null) return null;
+
             Files.createDirectories(helperFunctions.getDirectory());
 
-            //creates filename
             String fileName = System.currentTimeMillis() + "_" + UUID.randomUUID().toString() + ".jpg";
             Path path = helperFunctions.getDirectory().resolve(fileName);
-
-            //saves to folder
             file.transferTo(path.toFile());
 
-            //saves to db
             InspectionImage inspectionImage = new InspectionImage();
-            inspectionImage.setInspectionReport(inspectionReport);
+            inspectionImage.setInspectionReport(report);
             inspectionImage.setImageUrl(fileName);
 
             return inspectionImagesRepository.save(inspectionImage);
@@ -153,7 +151,7 @@ public class InspectionImagesService {
             InspectionReport report = inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId);
 
             InspectionImage oldCover = report.getCoverPageImage();
-            InspectionImage image = saveImages(file, bookingId);
+            InspectionImage image = saveImages(file, report);
             report.setCoverPageImage(image);
             inspectionReportsRepository.save(report);
 

@@ -199,22 +199,20 @@ public class InspectionFieldServiceTest {
 
     @Test
     void deleteInspectionField_fieldExists_deleted(){
-        InspectionField field = new InspectionField();
         UUID fieldId = UUID.randomUUID();
-        field.setId(fieldId);
 
-        when(inspectionFieldRepository.findById(fieldId)).thenReturn(Optional.of(field));
+        when(inspectionFieldRepository.existsById(fieldId)).thenReturn(true);
 
         inspectionFieldService.deleteInspectionField(fieldId);
 
-        verify(inspectionFieldRepository).delete(field);
+        verify(inspectionFieldRepository).deleteById(fieldId);
     }
 
     @Test
     void deleteInspectionField_fieldNotFound_throwsRuntimeException(){
         UUID fieldId = UUID.randomUUID();
 
-        when(inspectionFieldRepository.findById(fieldId)).thenReturn(Optional.empty());
+        when(inspectionFieldRepository.existsById(fieldId)).thenReturn(false);
 
         assertThatThrownBy(() -> inspectionFieldService.deleteInspectionField(fieldId))
                 .isInstanceOf(RuntimeException.class)
@@ -227,21 +225,23 @@ public class InspectionFieldServiceTest {
 
     @Test
     void addImageToField_fieldAndImageExist_imageSaved(){
-        InspectionField field = new InspectionField();
+        InspectionField fieldRef = new InspectionField();
         UUID fieldId = UUID.randomUUID();
+        fieldRef.setId(fieldId);
         InspectionImage image = new InspectionImage();
         UUID imageId = UUID.randomUUID();
 
-        when(inspectionFieldRepository.findById(fieldId)).thenReturn(Optional.of(field));
+        when(inspectionFieldRepository.existsById(fieldId)).thenReturn(true);
         when(inspectionImagesRepository.findById(imageId)).thenReturn(Optional.of(image));
+        when(inspectionFieldRepository.getReferenceById(fieldId)).thenReturn(fieldRef);
 
         ResponseEntity<?> result = inspectionFieldService.addImageToField(fieldId, imageId);
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isEqualTo(Map.of("Image added", true));
-        assertThat(field.getInspectionImages()).containsExactly(image);
-        assertThat(image.getInspectionField()).isEqualTo(field);
+        assertThat(image.getInspectionField()).isEqualTo(fieldRef);
         assertThat(image.getUsed()).isTrue();
+        verify(inspectionImagesRepository).save(image);
     }
 
     @Test
@@ -249,7 +249,7 @@ public class InspectionFieldServiceTest {
         UUID fieldId = UUID.randomUUID();
         UUID imageId = UUID.randomUUID();
 
-        when(inspectionFieldRepository.findById(fieldId)).thenReturn(Optional.empty());
+        when(inspectionFieldRepository.existsById(fieldId)).thenReturn(false);
 
         ResponseEntity<?> result = inspectionFieldService.addImageToField(fieldId, imageId);
 
@@ -259,11 +259,10 @@ public class InspectionFieldServiceTest {
 
     @Test
     void addImageToField_imageNotFound_badRequest(){
-        InspectionField field = new InspectionField();
         UUID fieldId = UUID.randomUUID();
         UUID imageId = UUID.randomUUID();
 
-        when(inspectionFieldRepository.findById(fieldId)).thenReturn(Optional.of(field));
+        when(inspectionFieldRepository.existsById(fieldId)).thenReturn(true);
         when(inspectionImagesRepository.findById(imageId)).thenReturn(Optional.empty());
 
         ResponseEntity<?> result = inspectionFieldService.addImageToField(fieldId, imageId);
@@ -280,45 +279,28 @@ public class InspectionFieldServiceTest {
         UUID fieldId = UUID.randomUUID();
         InspectionImage image = new InspectionImage();
         UUID imageId = UUID.randomUUID();
-        field.getInspectionImages().add(image);
         image.setInspectionField(field);
         image.setUsed(true);
 
-        when(inspectionFieldRepository.findById(fieldId)).thenReturn(Optional.of(field));
         when(inspectionImagesRepository.findById(imageId)).thenReturn(Optional.of(image));
 
         ResponseEntity<?> result = inspectionFieldService.deleteImageFromField(fieldId, imageId);
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isEqualTo(Map.of("Image deleted", true));
-        assertThat(field.getInspectionImages()).isEmpty();
         assertThat(image.getInspectionField()).isNull();
         assertThat(image.getUsed()).isFalse();
-    }
-
-    @Test
-    void deleteImageFromField_fieldNotFound_badRequest(){
-        UUID fieldId = UUID.randomUUID();
-        UUID imageId = UUID.randomUUID();
-
-        when(inspectionFieldRepository.findById(fieldId)).thenReturn(Optional.empty());
-
-        ResponseEntity<?> result = inspectionFieldService.addImageToField(fieldId, imageId);
-
-        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(result.getBody()).isEqualTo("InspectionField not found");
+        verify(inspectionImagesRepository).save(image);
     }
 
     @Test
     void deleteImageFromField_imageNotFound_badRequest(){
-        InspectionField field = new InspectionField();
         UUID fieldId = UUID.randomUUID();
         UUID imageId = UUID.randomUUID();
 
-        when(inspectionFieldRepository.findById(fieldId)).thenReturn(Optional.of(field));
         when(inspectionImagesRepository.findById(imageId)).thenReturn(Optional.empty());
 
-        ResponseEntity<?> result = inspectionFieldService.addImageToField(fieldId, imageId);
+        ResponseEntity<?> result = inspectionFieldService.deleteImageFromField(fieldId, imageId);
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(result.getBody()).isEqualTo("InspectionImage not found");
@@ -565,7 +547,7 @@ public class InspectionFieldServiceTest {
         value.setDefaultImplication("default implication");
         field.setSelectedValue(value);
 
-        when(inspectionFieldRepository.findById(fieldId)).thenReturn(Optional.of(field));
+        when(inspectionFieldRepository.findWithRecommendationAndValue(fieldId)).thenReturn(Optional.of(field));
 
         InspectionRecommendationField result = inspectionFieldService.getRecommendationField(fieldId);
 
@@ -584,7 +566,7 @@ public class InspectionFieldServiceTest {
         value.setDefaultImplication("default implication");
         field.setSelectedValue(value);
 
-        when(inspectionFieldRepository.findById(fieldId)).thenReturn(Optional.of(field));
+        when(inspectionFieldRepository.findWithRecommendationAndValue(fieldId)).thenReturn(Optional.of(field));
 
         InspectionRecommendationField result = inspectionFieldService.getRecommendationField(fieldId);
 
@@ -603,7 +585,7 @@ public class InspectionFieldServiceTest {
         value.setDefaultImplication(null);
         field.setSelectedValue(value);
 
-        when(inspectionFieldRepository.findById(fieldId)).thenReturn(Optional.of(field));
+        when(inspectionFieldRepository.findWithRecommendationAndValue(fieldId)).thenReturn(Optional.of(field));
 
         InspectionRecommendationField result = inspectionFieldService.getRecommendationField(fieldId);
 
@@ -618,7 +600,7 @@ public class InspectionFieldServiceTest {
         field.setInspectionRecommendationField(null);
         field.setSelectedValue(null);
 
-        when(inspectionFieldRepository.findById(fieldId)).thenReturn(Optional.of(field));
+        when(inspectionFieldRepository.findWithRecommendationAndValue(fieldId)).thenReturn(Optional.of(field));
 
         InspectionRecommendationField result = inspectionFieldService.getRecommendationField(fieldId);
 
@@ -629,7 +611,7 @@ public class InspectionFieldServiceTest {
     void getRecommendationField_fieldNotFound_returnsNull(){
         UUID fieldId = UUID.randomUUID();
 
-        when(inspectionFieldRepository.findById(fieldId)).thenReturn(Optional.empty());
+        when(inspectionFieldRepository.findWithRecommendationAndValue(fieldId)).thenReturn(Optional.empty());
 
         InspectionRecommendationField result = inspectionFieldService.getRecommendationField(fieldId);
 

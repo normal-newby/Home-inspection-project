@@ -81,24 +81,28 @@ public class InspectionFieldService {
     }
 
     public void deleteInspectionField(UUID id){
-        InspectionField field = inspectionFieldRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("InspectionField not found"));
-
-        inspectionFieldRepository.delete(field);
+        if (!inspectionFieldRepository.existsById(id)){
+            throw new RuntimeException("InspectionField not found");
+        }
+        inspectionFieldRepository.deleteById(id);
     }
 
     //Images
 
     public ResponseEntity<?> addImageToField(UUID fieldId, UUID imageId){
         try {
-            InspectionField field = inspectionFieldRepository.findById(fieldId)
-                    .orElseThrow(() -> new RuntimeException("InspectionField not found"));
+            if (!inspectionFieldRepository.existsById(fieldId)){
+                throw new RuntimeException("InspectionField not found");
+            }
             InspectionImage image = inspectionImagesRepository.findById(imageId)
                     .orElseThrow(() -> new RuntimeException("InspectionImage not found"));
-            field.getInspectionImages().add(image);
-            image.setInspectionField(field);
+
+            // Image owns the FK, so writing on the image side is enough — no need to
+            // fetch the field entity or force-init the field's lazy image collection.
+            InspectionField fieldRef = inspectionFieldRepository.getReferenceById(fieldId);
+            image.setInspectionField(fieldRef);
             image.setUsed(true);
-            inspectionFieldRepository.save(field);
+            inspectionImagesRepository.save(image);
 
             return ResponseEntity.ok().body(Map.of("Image added", true));
         } catch (Exception e){
@@ -109,15 +113,13 @@ public class InspectionFieldService {
 
     public ResponseEntity<?> deleteImageFromField(UUID fieldId, UUID imageId){
         try {
-            InspectionField field = inspectionFieldRepository.findById(fieldId)
-                    .orElseThrow(() -> new RuntimeException("InspectionField not found"));
             InspectionImage image = inspectionImagesRepository.findById(imageId)
                     .orElseThrow(() -> new RuntimeException("InspectionImage not found"));
+
+            // Same as add: image side owns the FK — no lazy collection init needed.
             image.setUsed(false);
             image.setInspectionField(null);
             inspectionImagesRepository.save(image);
-            field.getInspectionImages().remove(image);
-            inspectionFieldRepository.save(field);
 
             return ResponseEntity.ok().body(Map.of("Image deleted", true));
         } catch (Exception e){
@@ -215,7 +217,8 @@ public class InspectionFieldService {
 
     public InspectionRecommendationField getRecommendationField(UUID fieldId){
         try {
-            InspectionField field = inspectionFieldRepository.findById(fieldId)
+            // JOIN FETCHes selectedValue + recommendation in the same query
+            InspectionField field = inspectionFieldRepository.findWithRecommendationAndValue(fieldId)
                     .orElseThrow(() -> new RuntimeException("Field not found"));
             InspectionRecommendationField recommendationField = field.getInspectionRecommendationField();
             InspectionFieldDefinitionValue definitionValue = field.getSelectedValue();
