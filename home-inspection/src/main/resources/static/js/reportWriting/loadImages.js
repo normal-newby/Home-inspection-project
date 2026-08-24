@@ -6,6 +6,8 @@ const bodyDiv = document.querySelector(".body_content");
 const progressBox = document.querySelector(".upload-progress");
 const progressBar = document.querySelector(".upload-progress-bar");
 const progressPercentage = document.querySelector(".upload-progress-percentage");
+const progressLabel = progressBox?.querySelector(".upload-progress-label");
+const defaultProgressLabelHTML = progressLabel?.innerHTML;
 
 function saveImage(image) {
     const formData = new FormData();
@@ -24,81 +26,82 @@ function saveImage(image) {
     });
 }
 
-function setProgressBar(hide, percent) {
+function setProgress(hide, percent, labelText) {
+    if (!progressBox) return;
     progressBox.hidden = hide;
     progressBar.style.width = percent + "%";
     progressPercentage.textContent = percent;
+    if (labelText != null && progressLabel) {
+        progressLabel.innerHTML =
+            `${labelText} <span class="upload-progress-percentage">${percent}</span> %`;
+    }
 }
 
-function resetProgressBar() {
-    setProgressBar(true, 0);
+function resetProgress() {
+    setProgress(true, 0);
+    if (progressLabel && defaultProgressLabelHTML != null) {
+        progressLabel.innerHTML = defaultProgressLabelHTML;
+    }
 }
 
 saveImagesButton.addEventListener("click", async (e) => {
     e.preventDefault();
-
-    resetProgressBar();
+    resetProgress();
 
     const input = document.getElementById("image-input");
     const files = input.files;
-
     if (files.length == 0){
         alert("Please select image");
         return;
     }
 
     const numberOfFiles = files.length;
-
     for (let i = 0; i < numberOfFiles; i++){
         await saveImage(files[i]);
-
         const percent = Math.round(((i+1) / numberOfFiles) * 100);
-        console.log(percent);
-        setProgressBar(false, percent);
+        setProgress(false, percent, "Uploading...");
     }
 
     initialize();
 });
 
+// Metadata cache: bookingId -> image list (fetched from /api/images/{bookingId})
 const imageCache = new Map();
-const actualImageCache = new Map();
 
-async function preloadImages(images, maxWidth = 200){
-    const uncached = images.filter(img => !actualImageCache.has(img.id));
-    
-    await Promise.all(uncached.map(async (image) => {
-        const response = await fetch(`http://localhost:8080/api/images/file/${image.id}`);
-        const blob = await response.blob();
-        const blobUrl = URL.createObjectURL(blob);
-
-        const imgElement = new Image();
-        imgElement.src = blobUrl;
-        await imgElement.decode().catch(() => {}); // Wait for image to load
-
-        const scale = Math.min(1, maxWidth / imgElement.naturalWidth);
-        const canvas = document.createElement("canvas");
-        canvas.width = imgElement.naturalWidth * scale;
-        canvas.height = imgElement.naturalHeight * scale;
-        canvas.getContext("2d").drawImage(imgElement, 0, 0, canvas.width, canvas.height);
-
-        actualImageCache.set(image.id, canvas.toDataURL("image/jpeg", 0.6));
-    }));
+function thumbUrl(imageId){
+    return `http://localhost:8080/api/images/file/${imageId}/thumb`;
 }
 
-function getBlobUrl(imageId){
-    return actualImageCache.get(imageId) ?? `http://localhost:8080/api/images/file/${imageId}`;
+function fullUrl(imageId){
+    return `http://localhost:8080/api/images/file/${imageId}`;
 }
 
 function invalidateImageCache(id = bookingId){
-    const images = imageCache.get(bookingId) ?? [];
-    images.forEach(img => {
-        const blobUrl = actualImageCache.get(img.id);
-        if (blobUrl) URL.revokeObjectURL(blobUrl); // free memory
-        actualImageCache.delete(img.id);
-    });
-    imageCache.delete(bookingId);
+    imageCache.delete(id);
 }
 
+// Preloads thumbnails
+async function preloadThumbs(images){
+    const total = images.length;
+    if (total === 0) return;
+
+    let done = 0;
+    setProgress(false, 0, "Loading images...");
+
+    await Promise.all(images.map(async (image) => {
+        try {
+            const img = new Image();
+            img.src = thumbUrl(image.id);
+            await img.decode().catch(() => {});
+        } finally {
+            done++;
+            const percent = Math.round((done / total) * 100);
+            setProgress(false, percent, "Loading images...");
+        }
+    }));
+
+    resetProgress();
+}
 
 export async function initImagesSlider(bookingId, container, getUsedForReport = false, rows = 1){
     const imagesTrack = container.querySelector(".images-track");
@@ -110,14 +113,12 @@ export async function initImagesSlider(bookingId, container, getUsedForReport = 
     let currentSlide = 0;
     let totalSlides = 0;
 
-    function loopImages(images){ //appends images by 6s to a container
+    function loopImages(images){
         imagesTrack.innerHTML = "";
 
-        // Filter images if needed
         let imagesToRender = images;
         if (getUsedForReport) {
             imagesToRender = images.filter(image => !image.used);
-            console.log(`Filtering images: ${images.length} total, ${imagesToRender.length} after filter (used=${getUsedForReport})`);
         }
 
         for (let i = 0; i < imagesToRender.length; i += imagesPerSlide){
@@ -127,9 +128,9 @@ export async function initImagesSlider(bookingId, container, getUsedForReport = 
 
             imagesToRender.slice(i, i + imagesPerSlide).forEach(image => {
                 const img = document.createElement("img");
-                img.src = getBlobUrl(image.id);
+                img.src = thumbUrl(image.id);
                 img.dataset.imageId = image.id;
-                img.loading = "eager";
+                img.loading = "lazy";
                 img.decoding = "async";
                 slide.appendChild(img);
             });
@@ -155,22 +156,20 @@ export async function initImagesSlider(bookingId, container, getUsedForReport = 
         updateSlider();
     });
 
-    //Use cached images if available, otherwise fetch from server
     if (!imageCache.has(bookingId)){
         const response = await fetch(`http://localhost:8080/api/images/${bookingId}`);
         const images = await response.json();
         imageCache.set(bookingId, images);
-        console.log("fetched");
     }
 
-    await preloadImages(imageCache.get(bookingId));
-
-    loopImages(imageCache.get(bookingId));
+    const images = imageCache.get(bookingId);
+    await preloadThumbs(images);
+    loopImages(images);
 
     return imagesTrack;
 }
 
-let currentImageId = null;
+export { fullUrl as getFullImageUrl, thumbUrl as getThumbImageUrl };
 
 async function initialize(){
     const track = await initImagesSlider(bookingId, bodyDiv, true);
@@ -195,4 +194,3 @@ function deleteImage(e, imageId){
         } else console.log("failed");
     });
 }
-

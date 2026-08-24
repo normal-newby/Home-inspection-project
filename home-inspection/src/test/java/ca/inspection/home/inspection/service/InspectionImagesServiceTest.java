@@ -148,19 +148,19 @@ public class InspectionImagesServiceTest {
     @Test
     void getImages_multipleImages_returnsSortedByUrl() {
         UUID id = UUID.randomUUID();
-        InspectionReport report = new InspectionReport();
 
-        InspectionImage imageB = new InspectionImage();
-        imageB.setImageUrl("b.jpg");
         InspectionImage imageA = new InspectionImage();
         imageA.setImageUrl("a.jpg");
+        InspectionImage imageB = new InspectionImage();
+        imageB.setImageUrl("b.jpg");
         InspectionImage imageC = new InspectionImage();
         imageC.setImageUrl("c.jpg");
-        report.setImages(new HashSet<>(List.of(imageB, imageA, imageC)));
 
-        when(inspectionReportsRepository.findByInspectionBooking_Id(id)).thenReturn(report);
+        // Repository sorts by imageUrl ASC; simulate that here.
+        when(inspectionImagesRepository.findByBookingIdOrdered(id))
+                .thenReturn(List.of(imageA, imageB, imageC));
 
-        Set<InspectionImage> result = inspectionImagesService.getImages(id);
+        List<InspectionImage> result = inspectionImagesService.getImages(id);
 
         assertThat(result).containsExactly(imageA, imageB, imageC);
     }
@@ -170,12 +170,9 @@ public class InspectionImagesServiceTest {
     @Test
     void getImageFile_imageExists_returnsOkWithJpegResource() throws IOException {
         UUID id = UUID.randomUUID();
-        InspectionImage image = new InspectionImage();
-        image.setId(id);
-        image.setImageUrl("photo.jpg");
         createJpegFile("photo.jpg", 5, 5);
 
-        when(inspectionImagesRepository.findById(id)).thenReturn(Optional.of(image));
+        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.of("photo.jpg"));
         when(helperFunctions.getDirectory()).thenReturn(tempDir);
 
         ResponseEntity<Resource> result = inspectionImagesService.getImageFile(id);
@@ -189,7 +186,7 @@ public class InspectionImagesServiceTest {
     @Test
     void getImageFile_imageNotFound_returnsInternalServerError() {
         UUID id = UUID.randomUUID();
-        when(inspectionImagesRepository.findById(id)).thenReturn(Optional.empty());
+        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.empty());
 
         ResponseEntity<Resource> result = inspectionImagesService.getImageFile(id);
 
@@ -270,7 +267,7 @@ public class InspectionImagesServiceTest {
         image.setImageUrl("photo.jpg");
         createJpegFile("photo.jpg", 10, 10);
 
-        when(inspectionImagesRepository.findById(id)).thenReturn(Optional.of(image));
+        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.of(image.getImageUrl()));
         when(helperFunctions.getDirectory()).thenReturn(tempDir);
 
         String result = inspectionImagesService.toBase64(id, null);
@@ -292,7 +289,7 @@ public class InspectionImagesServiceTest {
         ImageAnnotation circle = newAnnotation("circle", "#0000ff", "1.5");
         ImageAnnotation arrow = newAnnotation("arrow", "#ffff00", null);
 
-        when(inspectionImagesRepository.findById(id)).thenReturn(Optional.of(image));
+        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.of(image.getImageUrl()));
         when(helperFunctions.getDirectory()).thenReturn(tempDir);
 
         String result = inspectionImagesService.toBase64(id, Set.of(rectangle, ellipse, circle, arrow));
@@ -317,7 +314,7 @@ public class InspectionImagesServiceTest {
         annotation.setWidth(20.0);
         annotation.setHeight(20.0);
 
-        when(inspectionImagesRepository.findById(id)).thenReturn(Optional.of(image));
+        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.of(image.getImageUrl()));
         when(helperFunctions.getDirectory()).thenReturn(tempDir);
 
         String result = inspectionImagesService.toBase64(id, Set.of(annotation));
@@ -345,7 +342,7 @@ public class InspectionImagesServiceTest {
         annotation.setWidth(20.0);
         annotation.setHeight(20.0);
 
-        when(inspectionImagesRepository.findById(id)).thenReturn(Optional.of(image));
+        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.of(image.getImageUrl()));
         when(helperFunctions.getDirectory()).thenReturn(tempDir);
 
         String result = inspectionImagesService.toBase64(id, Set.of(annotation));
@@ -367,7 +364,7 @@ public class InspectionImagesServiceTest {
         ImageAnnotation text = newAnnotation("text", "#ff0000", "1");
         text.setContent("Hello");
 
-        when(inspectionImagesRepository.findById(id)).thenReturn(Optional.of(image));
+        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.of(image.getImageUrl()));
         when(helperFunctions.getDirectory()).thenReturn(tempDir);
 
         String result = inspectionImagesService.toBase64(id, Set.of(text));
@@ -378,7 +375,7 @@ public class InspectionImagesServiceTest {
     @Test
     void toBase64_imageNotFound_throwsNoSuchElementException() {
         UUID id = UUID.randomUUID();
-        when(inspectionImagesRepository.findById(id)).thenReturn(Optional.empty());
+        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> inspectionImagesService.toBase64(id, null))
                 .isInstanceOf(NoSuchElementException.class);
@@ -391,7 +388,7 @@ public class InspectionImagesServiceTest {
         image.setId(id);
         image.setImageUrl("missing.jpg");
 
-        when(inspectionImagesRepository.findById(id)).thenReturn(Optional.of(image));
+        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.of(image.getImageUrl()));
         when(helperFunctions.getDirectory()).thenReturn(tempDir);
 
         assertThatThrownBy(() -> inspectionImagesService.toBase64(id, null))

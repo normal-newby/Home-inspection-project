@@ -11,7 +11,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -34,13 +33,18 @@ public class InspectionImagesController {
     }
 
     @GetMapping("/{id}")
-    public Set<InspectionImage> getImages(@PathVariable UUID id) {
+    public List<InspectionImage> getImages(@PathVariable UUID id) {
         return inspectionImagesService.getImages(id);
     }
 
     @GetMapping("/file/{filename}")
     public ResponseEntity<Resource> getImageFile(@PathVariable UUID filename){
         return inspectionImagesService.getImageFile(filename);
+    }
+
+    @GetMapping("/file/{filename}/thumb")
+    public ResponseEntity<Resource> getThumbnail(@PathVariable UUID filename){
+        return inspectionImagesService.getThumbnailFile(filename);
     }
 
     @DeleteMapping("/{id}")

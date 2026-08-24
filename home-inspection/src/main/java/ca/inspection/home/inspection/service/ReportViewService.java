@@ -133,11 +133,10 @@ public class ReportViewService {
                 .sorted(fieldComparator)
                 .toList();
 
-        // Convert images to base64
         fields.forEach(field -> {
             if (field.getInspectionImages() != null && !field.getInspectionImages().isEmpty()){
                 field.getInspectionImages().forEach(image -> {
-                    String src = inspectionImagesService.toBase64(image.getId(), image.getAnnotations());
+                    String src = inspectionImagesService.toBase64(image.getImageUrl(), image.getAnnotations());
                     image.setBase64(src);
                 });
             }
@@ -175,7 +174,7 @@ public class ReportViewService {
     public void setCoverPageImageBase64(InspectionReport report){
         InspectionImage coverImage = report.getCoverPageImage();
         if (coverImage != null){
-            String base64 = inspectionImagesService.toBase64(coverImage.getId(), null);
+            String base64 = inspectionImagesService.toBase64(coverImage.getImageUrl(), null);
             coverImage.setBase64(base64);
         }
     }
