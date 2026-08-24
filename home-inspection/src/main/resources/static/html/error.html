@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Something went wrong</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="navbar">
+        <div class="container">
+            <div class="navbarBox"><a href="index.html">Home</a></div>
+            <div class="navbarBox"><a href="booking.html">Book Inspection</a></div>
+            <div class="navbarBox"><a href="profile.html">Profile</a></div>
+        </div>
+    </div>
+
+    <div class="page">
+        <div class="error-page">
+            <div class="status" id="status">Error</div>
+            <h1 id="title">Something went wrong</h1>
+            <p id="message">The page couldn't be loaded. If this keeps happening, check the server logs for details.</p>
+            <div class="path" id="path" style="display:none;"></div>
+            <div class="actions">
+                <a href="index.html" class="primary">Back to bookings</a>
+                <a href="javascript:history.back()">Go back</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/errorHandling/error.js"></script>
+</body>
+</html>

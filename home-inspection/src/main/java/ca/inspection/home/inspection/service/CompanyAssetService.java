@@ -2,6 +2,7 @@ package ca.inspection.home.inspection.service;
 
 import ca.inspection.home.inspection.entity.CompanyAsset;
 import ca.inspection.home.inspection.repository.CompanyAssetRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class CompanyAssetService {
     @Autowired
     private CompanyAssetRepository companyAssetRepository;
@@ -47,10 +49,11 @@ public class CompanyAssetService {
             asset.setPath(fileName);
             companyAssetRepository.save(asset);
 
+            log.info("Uploaded company asset key={}", key);
             return ResponseEntity.ok(Map.of("Saved", true, "Key", key));
 
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Failed to upload company asset key={}", key, e);
             return ResponseEntity.badRequest().body("Can't upload asset");
         }
     }
@@ -77,7 +80,7 @@ public class CompanyAssetService {
                     .body(resource);
 
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Failed to read company asset key={}", key, e);
             return ResponseEntity.badRequest().body("Cannot get asset file");
         }
     }
@@ -89,9 +92,10 @@ public class CompanyAssetService {
             if (asset == null) return ResponseEntity.noContent().build();
             Files.deleteIfExists(helperFunctions.getCompanyAssetDirectory().resolve(asset.getPath()));
             companyAssetRepository.delete(asset);
+            log.info("Deleted company asset key={}", key);
             return ResponseEntity.ok("Deleted asset with key: " + key);
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Failed to delete company asset key={}", key, e);
             return ResponseEntity.badRequest().body("Could not delete asset with key: " + key);
         }
     }
@@ -109,7 +113,7 @@ public class CompanyAssetService {
 
             return "data:" + contentType + ";base64," + Base64.getEncoder().encodeToString(bytes);
         } catch (Exception e){
-            e.printStackTrace();
+            log.warn("Failed to encode company asset path={}", asset.getPath(), e);
             return null;
         }
     }

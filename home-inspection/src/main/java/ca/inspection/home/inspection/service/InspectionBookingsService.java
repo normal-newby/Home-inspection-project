@@ -8,6 +8,7 @@ import ca.inspection.home.inspection.entity.InspectorProfile;
 import ca.inspection.home.inspection.entity.Invoice;
 import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
 import ca.inspection.home.inspection.repository.InspectionReportsRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class InspectionBookingsService {
     @Autowired
     private InspectionBookingsRepository inspectionBookingsRepository;
@@ -29,7 +31,7 @@ public class InspectionBookingsService {
     private InspectionReportsRepository inspectionReportsRepository;
 
     public InspectionBookings createBooking(InspectionBookings booking){
-        System.out.println("Creating booking!");
+        log.info("Creating booking for {} {}", booking.getClientFirstName(), booking.getClientLastName());
         booking.setInspectionNumber(inspectorProfileService.getAndUpdateNumber());
         // Set up invoices
         if (booking.getInvoices() != null){
@@ -57,7 +59,11 @@ public class InspectionBookingsService {
     }
 
     public BookingDetails getBookingDetails(UUID id){
-        return inspectionBookingsRepository.getBookingDetails(id);
+        BookingDetails details = inspectionBookingsRepository.getBookingDetails(id);
+        if (details == null){
+            throw new java.util.NoSuchElementException("Booking not found: " + id);
+        }
+        return details;
     }
 
     public InspectionReport getReportFromBooking(UUID bookingId){
@@ -75,7 +81,7 @@ public class InspectionBookingsService {
             inspectionBookingsRepository.save(booking);
             return ResponseEntity.ok().build();
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Failed to update booking {}", id, e);
             return ResponseEntity.badRequest().build();
         }
     }
@@ -85,9 +91,10 @@ public class InspectionBookingsService {
             InspectionBookings bookings = inspectionBookingsRepository.findById(id)
                             .orElseThrow();
             inspectionBookingsRepository.delete(bookings);
+            log.info("Deleted booking {}", id);
             return ResponseEntity.ok().build();
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Failed to delete booking {}", id, e);
             return ResponseEntity.badRequest().build();
         }
     }

@@ -2,6 +2,7 @@ package ca.inspection.home.inspection.service;
 
 import ca.inspection.home.inspection.entity.*;
 import ca.inspection.home.inspection.repository.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class InspectionFieldService {
     @Autowired
     private InspectionFieldRepository inspectionFieldRepository;
@@ -55,13 +57,13 @@ public class InspectionFieldService {
             inspectionField.setInspectionFieldDefinition(definition);
             inspectionField.setSelectedValue(definitionValue);
 
-            System.out.println(definition.getId());
-
             InspectionField saved = inspectionFieldRepository.save(inspectionField);
+            log.debug("Created inspection field {} for definition {}", saved.getId(), definition.getId());
 
             return ResponseEntity.ok(saved);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to create field for booking={} definition={} value={}",
+                    id, fieldDefinitionId, value, e);
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
@@ -76,6 +78,8 @@ public class InspectionFieldService {
             return fields.stream()
                     .collect(Collectors.groupingBy(field -> field.getInspectionFieldDefinition().getId()));
         } catch (Exception e){
+            log.warn("Failed to fetch existing fields for booking={} place={} type={}",
+                    bookingId, place, type, e);
             return Map.of();
         }
     }
@@ -106,7 +110,7 @@ public class InspectionFieldService {
 
             return ResponseEntity.ok().body(Map.of("Image added", true));
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Failed to add image {} to field {}", imageId, fieldId, e);
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
@@ -123,7 +127,7 @@ public class InspectionFieldService {
 
             return ResponseEntity.ok().body(Map.of("Image deleted", true));
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Failed to remove image {} from field {}", imageId, fieldId, e);
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
@@ -134,12 +138,11 @@ public class InspectionFieldService {
         try {
             InspectionField field = inspectionFieldRepository.findById(fieldId)
                     .orElseThrow(() -> new RuntimeException("InspectionField not found"));
-            System.out.println(note);
             field.setNote(note);
             inspectionFieldRepository.save(field);
             return ResponseEntity.ok().build();
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Failed to save note on field {}", fieldId, e);
             return ResponseEntity.badRequest().build();
         }
     }
@@ -150,7 +153,7 @@ public class InspectionFieldService {
                     .orElseThrow(() -> new RuntimeException("InspectionField not found"));
             return field.getNote();
         } catch (Exception e){
-            e.printStackTrace();
+            log.warn("Failed to read note from field {}", fieldId, e);
             return null;
         }
     }
@@ -165,7 +168,7 @@ public class InspectionFieldService {
             inspectionFieldRepository.save(field);
             return ResponseEntity.ok().build();
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Failed to update summary flag on field {}", fieldId, e);
             return ResponseEntity.badRequest().build();
         }
     }
@@ -177,7 +180,7 @@ public class InspectionFieldService {
             Boolean value = field.getIncludeInSummary();
             return value != null ? value : false;
         } catch (Exception e){
-            e.printStackTrace();
+            log.warn("Failed to read summary flag on field {}", fieldId, e);
             return false;
         }
     }
@@ -192,7 +195,7 @@ public class InspectionFieldService {
             imageAnnotationRepository.save(annotation);
             return ResponseEntity.ok().build();
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Failed to add annotation to image {}", imageId, e);
             return ResponseEntity.badRequest().build();
         }
     }
@@ -208,7 +211,7 @@ public class InspectionFieldService {
             imageAnnotationRepository.delete(annotation);
             return ResponseEntity.ok().build();
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Failed to delete annotation {}", annotationId, e);
             return ResponseEntity.badRequest().build();
         }
     }
@@ -231,7 +234,7 @@ public class InspectionFieldService {
 
             return recommendationField;
         } catch (Exception e){
-            e.printStackTrace();
+            log.warn("Failed to load recommendation for field {}", fieldId, e);
             return null;
         }
     }
@@ -270,7 +273,7 @@ public class InspectionFieldService {
 
             return ResponseEntity.ok(saved);
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Failed to save recommendation for field {}", fieldId, e);
             return ResponseEntity.badRequest().build();
         }
     }

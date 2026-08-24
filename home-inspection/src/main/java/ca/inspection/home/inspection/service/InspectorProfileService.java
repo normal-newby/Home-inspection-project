@@ -3,6 +3,7 @@ package ca.inspection.home.inspection.service;
 import ca.inspection.home.inspection.entity.InspectionReport;
 import ca.inspection.home.inspection.entity.InspectorProfile;
 import ca.inspection.home.inspection.repository.InspectorProfileRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +18,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class InspectorProfileService {
 
     @Autowired
@@ -36,7 +38,7 @@ public class InspectorProfileService {
             inspectorProfileRepository.save(profile);
             return ResponseEntity.ok().build();
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Failed to save inspector profile", e);
             return ResponseEntity.badRequest().build();
         }
     }
@@ -52,9 +54,10 @@ public class InspectorProfileService {
             profile.setAppendixPdf(filename);
             inspectorProfileRepository.save(profile);
 
+            log.info("Uploaded inspector appendix pdf");
             return ResponseEntity.ok(Map.of("Saved", true));
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Failed to upload inspector appendix pdf", e);
             return ResponseEntity.badRequest().build();
         }
     }
@@ -65,7 +68,7 @@ public class InspectorProfileService {
 
             return helperFunctions.getDirectory().resolve(profile.getAppendixPdf());
         } catch (Exception e){
-            e.printStackTrace();
+            log.warn("Failed to resolve inspector appendix pdf path", e);
             return null;
         }
     }

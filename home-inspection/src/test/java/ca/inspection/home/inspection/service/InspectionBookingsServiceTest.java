@@ -172,7 +172,7 @@ public class InspectionBookingsServiceTest {
     // GET BOOKING DETAILS
 
     @Test
-    void getBookingDetails_delegatesToRepository() {
+    void getBookingDetails_bookingExists_returnsProjection() {
         UUID id = UUID.randomUUID();
         BookingDetails details = mock(BookingDetails.class);
 
@@ -181,6 +181,16 @@ public class InspectionBookingsServiceTest {
         BookingDetails result = inspectionBookingsService.getBookingDetails(id);
 
         assertThat(result).isEqualTo(details);
+    }
+
+    @Test
+    void getBookingDetails_bookingNotFound_throwsNoSuchElementException() {
+        UUID id = UUID.randomUUID();
+        when(inspectionBookingsRepository.getBookingDetails(id)).thenReturn(null);
+
+        assertThatThrownBy(() -> inspectionBookingsService.getBookingDetails(id))
+                .isInstanceOf(NoSuchElementException.class)
+                .hasMessageContaining(id.toString());
     }
 
     // GET REPORT FROM BOOKING

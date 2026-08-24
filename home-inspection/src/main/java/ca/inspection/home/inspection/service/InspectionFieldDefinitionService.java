@@ -3,6 +3,7 @@ package ca.inspection.home.inspection.service;
 import ca.inspection.home.inspection.entity.InspectionFieldDefinition;
 import ca.inspection.home.inspection.entity.InspectionReport;
 import ca.inspection.home.inspection.repository.InspectionFieldDefinitionRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class InspectionFieldDefinitionService {
     @Autowired
     private InspectionFieldDefinitionRepository inspectionFieldDefinitionRepository;
@@ -22,7 +24,7 @@ public class InspectionFieldDefinitionService {
 
             return inspectionFieldDefinitionRepository.findAllWithValues(place, type);
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Failed to load field definitions for place={} type={}", place, type, e);
             return null;
         }
     }
@@ -35,7 +37,7 @@ public class InspectionFieldDefinitionService {
             inspectionFieldDefinitionRepository.save(definition);
             return ResponseEntity.ok().build();
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Failed to set expandedByDefault on definition {}", id, e);
             return ResponseEntity.badRequest().build();
         }
     }
@@ -44,7 +46,7 @@ public class InspectionFieldDefinitionService {
         try {
             return inspectionFieldDefinitionRepository.findWithValues(id);
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Failed to load field definition with values {}", id, e);
             return null;
         }
     }

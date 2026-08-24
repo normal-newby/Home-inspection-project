@@ -3,6 +3,7 @@ package ca.inspection.home.inspection.service;
 import ca.inspection.home.inspection.DTO.DefinitionValueDTO;
 import ca.inspection.home.inspection.entity.InspectionRecommendationFieldDefinition;
 import ca.inspection.home.inspection.repository.InspectionRecommendationFieldValueRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class InspectionRecommendationFieldDefinitionService {
     @Autowired
     private InspectionRecommendationFieldValueRepository repository;
@@ -33,7 +35,9 @@ public class InspectionRecommendationFieldDefinitionService {
             DefinitionValueDTO dto = new DefinitionValueDTO(saved.getId(), saved.getValue());
             return ResponseEntity.ok(dto);
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Failed to add recommendation definition type={} value={}",
+                    definition == null ? null : definition.getType(),
+                    definition == null ? null : definition.getValue(), e);
             return ResponseEntity.badRequest().build();
         }
     }
@@ -46,7 +50,7 @@ public class InspectionRecommendationFieldDefinitionService {
 
             return ResponseEntity.ok("Deleted recommendation definition");
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Failed to delete recommendation definition {}", id, e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }

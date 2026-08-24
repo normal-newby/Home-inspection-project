@@ -38,3 +38,4 @@ database.db-wal
 database.db-shm
 
 .env
+logs

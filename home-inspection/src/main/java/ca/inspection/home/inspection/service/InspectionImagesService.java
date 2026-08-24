@@ -8,6 +8,7 @@ import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
 import ca.inspection.home.inspection.repository.InspectionImagesRepository;
 import ca.inspection.home.inspection.repository.InspectionReportsRepository;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class InspectionImagesService {
     @Autowired
     private InspectionImagesRepository inspectionImagesRepository;
@@ -71,7 +73,7 @@ public class InspectionImagesService {
 
             return inspectionImagesRepository.save(inspectionImage);
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Failed to save uploaded image (report={})", report == null ? null : report.getId(), e);
             return null;
         }
     }
@@ -163,7 +165,7 @@ public class InspectionImagesService {
 
             return ResponseEntity.ok("Cover Page Image saved!");
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Failed to save cover page image for booking {}", bookingId, e);
             return ResponseEntity.badRequest().body("Cover page cannot be saved");
         }
     }
@@ -286,7 +288,7 @@ public class InspectionImagesService {
             return ResponseEntity.ok().build();
 
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Failed to delete image {}", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

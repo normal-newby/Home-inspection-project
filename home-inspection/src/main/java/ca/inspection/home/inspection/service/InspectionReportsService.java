@@ -6,6 +6,7 @@ import ca.inspection.home.inspection.entity.InspectionReport;
 import ca.inspection.home.inspection.entity.InspectorProfile;
 import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
 import ca.inspection.home.inspection.repository.InspectionReportsRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
@@ -25,6 +26,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 @Service
+@Slf4j
 public class InspectionReportsService {
     @Autowired
     private InspectionReportsRepository inspectionReportsRepository;
@@ -66,7 +68,7 @@ public class InspectionReportsService {
             inspectionReportsRepository.save(report);
             return ResponseEntity.ok(report);
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Failed to update report data for booking {}", bookingId, e);
             return ResponseEntity.badRequest().build();
         }
     }
@@ -82,9 +84,10 @@ public class InspectionReportsService {
             report.setAppendixPdf(fileName);
             inspectionReportsRepository.save(report);
 
+            log.info("Uploaded appendix pdf for booking {}", bookingId);
             return ResponseEntity.ok(report);
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Failed to upload appendix pdf for booking {}", bookingId, e);
             return ResponseEntity.badRequest().build();
         }
     }
@@ -99,10 +102,11 @@ public class InspectionReportsService {
             return ResponseEntity.ok(Map.of("summary", summary));
         } catch (IllegalStateException e){
             // Missing / unconfigured API key
+            log.warn("Gemini unavailable for booking {}: {}", bookingId, e.getMessage());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                     .body(Map.of("error", e.getMessage()));
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Failed to generate Gemini summary for booking {}", bookingId, e);
             return ResponseEntity.internalServerError()
                     .body(Map.of("error", "Failed to generate summary"));
         }
@@ -121,7 +125,7 @@ public class InspectionReportsService {
             if (!Files.exists(path)) return null;
             return Files.readAllBytes(path);
         } catch (Exception e){
-            e.printStackTrace();
+            log.warn("Failed to read appendix pdf for report {}", report == null ? null : report.getId(), e);
             return null;
         }
     }
