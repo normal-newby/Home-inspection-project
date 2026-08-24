@@ -153,15 +153,15 @@ public class InspectionImagesService {
             InspectionReport report = inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId);
 
             InspectionImage oldCover = report.getCoverPageImage();
-            if (oldCover != null) {
-                report.setCoverPageImage(null);
-                inspectionReportsRepository.save(report);
-                deleteImage(oldCover.getId());
-            }
-
             InspectionImage image = saveImages(file, bookingId);
             report.setCoverPageImage(image);
             inspectionReportsRepository.save(report);
+
+            // Only remove the old cover from disk/db after the new one is safely in place,
+            // and only once — no intermediate save-with-null.
+            if (oldCover != null) {
+                deleteImage(oldCover.getId());
+            }
 
             return ResponseEntity.ok("Cover Page Image saved!");
         } catch (Exception e){

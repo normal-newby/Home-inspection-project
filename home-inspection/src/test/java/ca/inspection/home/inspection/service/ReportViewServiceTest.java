@@ -233,13 +233,14 @@ public class ReportViewServiceTest {
         InspectionField field = fieldWithTypeAndPlace("roofing", "description");
         InspectionImage image = new InspectionImage();
         image.setId(UUID.randomUUID());
+        image.setImageUrl("photo.jpg");
         field.setInspectionImages(List.of(image));
 
         InspectionReport report = new InspectionReport();
         report.setFields(Set.of(field));
 
         // Return mock base 64 when function called
-        when(inspectionImagesService.toBase64(eq(image.getId()), any()))
+        when(inspectionImagesService.toBase64(eq(image.getImageUrl()), any()))
                 .thenReturn("data:image/jpeg;base64,FAKE");
 
         reportViewService.getSortedFields(report);

@@ -12,7 +12,13 @@ import java.util.UUID;
 
 @Repository
 public interface InspectionBookingsRepository extends JpaRepository<InspectionBookings, UUID> {
-    @Query("SELECT b FROM InspectionBookings b ORDER BY b.createdAt DESC")
+    // JOIN FETCH invoices in the same query so BookingDetails.getInvoices() doesn't
+    // trigger a per-row lazy load when the list is serialized.
+    @Query("""
+        SELECT DISTINCT b FROM InspectionBookings b
+        LEFT JOIN FETCH b.invoices
+        ORDER BY b.createdAt DESC
+    """)
     List<BookingDetails> findBookingDetailsByOrderByCreatedAtDesc();
 
     @Query("""

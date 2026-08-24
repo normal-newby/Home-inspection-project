@@ -44,23 +44,35 @@ function resetProgress() {
     }
 }
 
+const UPLOAD_CONCURRENCY = 4;
+
 saveImagesButton.addEventListener("click", async (e) => {
     e.preventDefault();
     resetProgress();
 
     const input = document.getElementById("image-input");
-    const files = input.files;
-    if (files.length == 0){
+    const files = Array.from(input.files);
+    if (files.length === 0){
         alert("Please select image");
         return;
     }
 
-    const numberOfFiles = files.length;
-    for (let i = 0; i < numberOfFiles; i++){
-        await saveImage(files[i]);
-        const percent = Math.round(((i+1) / numberOfFiles) * 100);
-        setProgress(false, percent, "Uploading...");
+    const total = files.length;
+    let done = 0;
+    setProgress(false, 0, "Uploading...");
+
+    // Parallel uploading
+    let next = 0;
+    async function worker(){
+        while (true) {
+            const i = next++;
+            if (i >= total) return;
+            await saveImage(files[i]);
+            done++;
+            setProgress(false, Math.round((done / total) * 100), "Uploading...");
+        }
     }
+    await Promise.all(Array.from({length: Math.min(UPLOAD_CONCURRENCY, total)}, worker));
 
     initialize();
 });
