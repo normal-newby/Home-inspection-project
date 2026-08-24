@@ -28,7 +28,29 @@
 	</scm>
 	<properties>
 		<java.version>25</java.version>
+		<!-- Default: skip @Tag("integration") tests on `mvn test`. Overridden by profiles below. -->
+		<test.excludedGroups>integration</test.excludedGroups>
+		<test.groups></test.groups>
 	</properties>
+
+	<profiles>
+		<profile>
+			<id>includeIT</id>
+			<activation><property><name>includeIT</name></property></activation>
+			<properties>
+				<test.excludedGroups></test.excludedGroups>
+				<test.groups></test.groups>
+			</properties>
+		</profile>
+		<profile>
+			<id>onlyIT</id>
+			<activation><property><name>onlyIT</name></property></activation>
+			<properties>
+				<test.excludedGroups></test.excludedGroups>
+				<test.groups>integration</test.groups>
+			</properties>
+		</profile>
+	</profiles>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -127,6 +149,17 @@
                     <forkCount>1</forkCount>
                     <reuseForks>true</reuseForks>
                     <parallel>none</parallel>
+                    <!-- Split unit vs integration tests via JUnit 5 tags.
+                         mvn test                 -> unit tests only (fast)
+                         mvn test -DincludeIT     -> everything
+                         mvn test -DonlyIT        -> integration tests only -->
+                    <excludedGroups>${test.excludedGroups}</excludedGroups>
+                    <groups>${test.groups}</groups>
+                    <includes>
+                        <include>**/*Test.java</include>
+                        <include>**/*Tests.java</include>
+                        <include>**/*IT.java</include>
+                    </includes>
                 </configuration>
             </plugin>
 		</plugins>
