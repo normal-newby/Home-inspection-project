@@ -209,6 +209,48 @@ public class InspectionFieldServiceTest {
     }
 
     @Test
+    void deleteInspectionField_releasesItsImagesBackToThePool(){
+        UUID fieldId = UUID.randomUUID();
+        InspectionField field = new InspectionField();
+        field.setId(fieldId);
+
+        InspectionImage first = new InspectionImage();
+        first.setInspectionField(field);
+        first.setUsed(true);
+        InspectionImage second = new InspectionImage();
+        second.setInspectionField(field);
+        second.setUsed(true);
+
+        when(inspectionFieldRepository.existsById(fieldId)).thenReturn(true);
+        when(inspectionImagesRepository.findByInspectionField_IdIn(List.of(fieldId)))
+                .thenReturn(List.of(first, second));
+
+        inspectionFieldService.deleteInspectionField(fieldId);
+
+        // Images outlive the field and go back to being unused.
+        assertThat(first.getUsed()).isFalse();
+        assertThat(first.getInspectionField()).isNull();
+        assertThat(second.getUsed()).isFalse();
+        assertThat(second.getInspectionField()).isNull();
+        verify(inspectionImagesRepository).saveAllAndFlush(List.of(first, second));
+        verify(inspectionFieldRepository).deleteById(fieldId);
+    }
+
+    @Test
+    void deleteInspectionField_noImages_skipsTheImageWrite(){
+        UUID fieldId = UUID.randomUUID();
+
+        when(inspectionFieldRepository.existsById(fieldId)).thenReturn(true);
+        when(inspectionImagesRepository.findByInspectionField_IdIn(List.of(fieldId)))
+                .thenReturn(List.of());
+
+        inspectionFieldService.deleteInspectionField(fieldId);
+
+        verify(inspectionImagesRepository, never()).saveAllAndFlush(any());
+        verify(inspectionFieldRepository).deleteById(fieldId);
+    }
+
+    @Test
     void deleteInspectionField_fieldNotFound_throwsRuntimeException(){
         UUID fieldId = UUID.randomUUID();
 

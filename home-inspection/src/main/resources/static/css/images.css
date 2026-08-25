@@ -46,6 +46,26 @@
     opacity: 0.85;
 }
 
+.image-counts {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.4rem;
+    margin: -0.5rem 0 1rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+}
+
+.image-count-remaining {
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.image-count-remaining.none-left {
+    color: var(--muted);
+    font-weight: 400;
+}
+
 .nav-btn {
     background: var(--paper);
     border: 1px solid var(--border);

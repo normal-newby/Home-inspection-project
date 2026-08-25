@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -104,10 +105,23 @@ public class InspectionFieldService {
                 annotationMap.getOrDefault(img.getId(), new HashSet<>())));
     }
 
+    @Transactional
     public void deleteInspectionField(UUID id){
         if (!inspectionFieldRepository.existsById(id)){
             throw new RuntimeException("InspectionField not found");
         }
+        
+        // Does not delete images
+        List<InspectionImage> images = inspectionImagesRepository.findByInspectionField_IdIn(List.of(id));
+        if (!images.isEmpty()){
+            images.forEach(image -> {
+                image.setInspectionField(null);
+                image.setUsed(false);
+            });
+            inspectionImagesRepository.saveAllAndFlush(images);
+            log.debug("Released {} image(s) from deleted field {}", images.size(), id);
+        }
+
         inspectionFieldRepository.deleteById(id);
     }
 

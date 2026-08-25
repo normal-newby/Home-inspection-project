@@ -42,7 +42,7 @@ public class InspectionField {
     @JoinColumn(name = "inspection_field_definition_value_id")
     private InspectionFieldDefinitionValue selectedValue;
 
-    @OneToMany(mappedBy = "inspectionField", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "inspectionField", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JsonManagedReference("inspectionField-images")
     private List<InspectionImage> inspectionImages = new ArrayList<>(); //multiple images per field
 
