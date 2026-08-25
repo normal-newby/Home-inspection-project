@@ -27,9 +27,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-// Boots the full Spring context on a random port, wires up the real controller
-// → service → repository → SQLite chain. Only external I/O we don't want to
-// touch is the PDF microservice, and we don't hit those endpoints here.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -150,6 +147,91 @@ public class InspectionBookingsFlowIT {
                 .allSatisfy(inv -> assertThat(inv.getBookings().getId()).isEqualTo(bookingId));
         assertThat(persistedInvoices.stream().map(Invoice::getType))
                 .containsExactlyInAnyOrder("Inspection", "Radon Test");
+    }
+
+    @Test
+    void createBooking_impossibleDate_isRejectedWithAReadableMessage() throws Exception {
+        InspectionBookings payload = new InspectionBookings();
+        payload.setInspectionAddress("30 Feb Ave");
+        payload.setMonth("February");
+        payload.setDay(30);
+        payload.setYear(2026);
+
+        mockMvc.perform(post("/api/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(payload)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("not a valid date")));
+
+        // Nothing was written, and the inspection counter wasn't burned either.
+        assertThat(bookingsRepository.findAll()).isEmpty();
+        assertThat(inspectorProfileRepository.findById(1L).orElseThrow().getInspectionNumber()).isZero();
+    }
+
+    @Test
+    void createBooking_halfEnteredDate_isRejected() throws Exception {
+        InspectionBookings payload = new InspectionBookings();
+        payload.setMonth("March");
+        payload.setYear(2026);
+
+        mockMvc.perform(post("/api/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(payload)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void createBooking_dateAndTime_roundTripThroughTheApi() throws Exception {
+        InspectionBookings payload = new InspectionBookings();
+        payload.setInspectionAddress("12 Timely Cres");
+        payload.setMonth("March");
+        payload.setDay(12);
+        payload.setYear(2026);
+        payload.setStartTime("09:30");
+        payload.setDurationMinutes(150);
+
+        MvcResult created = mockMvc.perform(post("/api/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(payload)))
+                .andExpect(status().isOk())
+                .andReturn();
+        UUID id = UUID.fromString(objectMapper.readTree(created.getResponse().getContentAsString())
+                .get("id").asString());
+
+        // The booking form reads these back off the projection when reopening a booking.
+        mockMvc.perform(get("/api/bookings/{id}", id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.startTime").value("09:30"))
+                .andExpect(jsonPath("$.durationMinutes").value(150));
+    }
+
+    @Test
+    void updateBooking_editFormPayload_keepsTheInspectionNumber() throws Exception {
+        InspectionBookings payload = new InspectionBookings();
+        payload.setInspectionAddress("9 Renumber Rd");
+        MvcResult created = mockMvc.perform(post("/api/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(payload)))
+                .andExpect(status().isOk())
+                .andReturn();
+        UUID id = UUID.fromString(objectMapper.readTree(created.getResponse().getContentAsString())
+                .get("id").asString());
+        Integer assignedNumber = bookingsRepository.findById(id).orElseThrow().getInspectionNumber();
+        assertThat(assignedNumber).isEqualTo(1);
+
+        // The edit form posts only the fields it renders — no inspection number.
+        InspectionBookings edit = new InspectionBookings();
+        edit.setInspectionAddress("9 Renumber Rd");
+        edit.setCity("Toronto");
+
+        mockMvc.perform(put("/api/bookings/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(edit)))
+                .andExpect(status().isOk());
+
+        InspectionBookings after = bookingsRepository.findById(id).orElseThrow();
+        assertThat(after.getCity()).isEqualTo("Toronto");
+        assertThat(after.getInspectionNumber()).isEqualTo(assignedNumber);
     }
 
     @Test

@@ -38,6 +38,9 @@ public class InspectionBookingsServiceTest {
     @Mock
     private InspectionReportsRepository inspectionReportsRepository;
 
+    @Mock
+    private GoogleCalendarService googleCalendarService;
+
     @InjectMocks
     private InspectionBookingsService inspectionBookingsService;
 
@@ -128,6 +131,57 @@ public class InspectionBookingsServiceTest {
         // Without this, cascade-save writes invoices with a null booking_id.
         assertThat(invoice1.getBookings()).isEqualTo(booking);
         assertThat(invoice2.getBookings()).isEqualTo(booking);
+    }
+
+    @Test
+    void createBooking_impossibleDate_isRejectedBeforeAnythingIsSaved() {
+        InspectionBookings booking = new InspectionBookings();
+        booking.setMonth("February");
+        booking.setDay(30);
+        booking.setYear(2026);
+
+        assertThatThrownBy(() -> inspectionBookingsService.createBooking(booking))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("not a valid date");
+
+        verify(inspectionBookingsRepository, never()).save(any());
+        verify(inspectorProfileService, never()).getAndUpdateNumber();
+    }
+
+    @Test
+    void createBooking_calendarReturnsEventId_storesItOnTheBooking() {
+        InspectionBookings booking = new InspectionBookings();
+
+        when(inspectorProfileService.getAndUpdateNumber()).thenReturn(7);
+        when(inspectorProfileService.getProfile()).thenReturn(new InspectorProfile());
+        when(inspectionBookingsRepository.save(booking)).thenReturn(booking);
+        when(inspectionReportsRepository.save(any(InspectionReport.class)))
+                .thenAnswer(res -> res.getArgument(0));
+        when(googleCalendarService.syncBooking(booking)).thenReturn("google-event-1");
+
+        InspectionBookings result = inspectionBookingsService.createBooking(booking);
+
+        assertThat(result.getGoogleEventId()).isEqualTo("google-event-1");
+        // Once for the booking itself, once to record the event id.
+        verify(inspectionBookingsRepository, times(2)).save(booking);
+    }
+
+    @Test
+    void createBooking_calendarUnavailable_stillReturnsTheBooking() {
+        InspectionBookings booking = new InspectionBookings();
+
+        when(inspectorProfileService.getAndUpdateNumber()).thenReturn(7);
+        when(inspectorProfileService.getProfile()).thenReturn(new InspectorProfile());
+        when(inspectionBookingsRepository.save(booking)).thenReturn(booking);
+        when(inspectionReportsRepository.save(any(InspectionReport.class)))
+                .thenAnswer(res -> res.getArgument(0));
+        when(googleCalendarService.syncBooking(booking)).thenThrow(new RuntimeException("Google is down"));
+
+        InspectionBookings result = inspectionBookingsService.createBooking(booking);
+
+        // A calendar outage must not cost the inspector the booking.
+        assertThat(result).isEqualTo(booking);
+        assertThat(result.getGoogleEventId()).isNull();
     }
 
     // FIND ALL
@@ -256,6 +310,42 @@ public class InspectionBookingsServiceTest {
     }
 
     @Test
+    void updateBooking_carriesOverFieldsTheEditFormDoesNotPost() {
+        UUID id = UUID.randomUUID();
+        InspectionBookings existing = new InspectionBookings();
+        existing.setInspectionNumber(1042);
+        existing.setGoogleEventId("google-event-1");
+
+        // What the edit form actually posts: no inspection number, no event id.
+        InspectionBookings incoming = new InspectionBookings();
+
+        when(inspectionBookingsRepository.findById(id)).thenReturn(Optional.of(existing));
+        when(inspectionBookingsRepository.save(incoming)).thenReturn(incoming);
+        // What a disconnected calendar does: hands the booking's own event id straight back.
+        when(googleCalendarService.syncBooking(incoming))
+                .thenAnswer(res -> ((InspectionBookings) res.getArgument(0)).getGoogleEventId());
+
+        inspectionBookingsService.updateBooking(id, incoming);
+
+        assertThat(incoming.getInspectionNumber()).isEqualTo(1042);
+        assertThat(incoming.getGoogleEventId()).isEqualTo("google-event-1");
+    }
+
+    @Test
+    void updateBooking_impossibleDate_throwsInsteadOfSaving() {
+        UUID id = UUID.randomUUID();
+        InspectionBookings booking = new InspectionBookings();
+        booking.setMonth("April");
+        booking.setDay(31);
+        booking.setYear(2026);
+
+        assertThatThrownBy(() -> inspectionBookingsService.updateBooking(id, booking))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        verify(inspectionBookingsRepository, never()).save(any());
+    }
+
+    @Test
     void updateBooking_repositoryThrows_returnsBadRequest() {
         UUID id = UUID.randomUUID();
         InspectionBookings booking = new InspectionBookings();
@@ -276,6 +366,37 @@ public class InspectionBookingsServiceTest {
         booking.setId(id);
 
         when(inspectionBookingsRepository.findById(id)).thenReturn(Optional.of(booking));
+
+        ResponseEntity<?> result = inspectionBookingsService.deleteBooking(id);
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        verify(inspectionBookingsRepository).delete(booking);
+    }
+
+    @Test
+    void deleteBooking_removesTheCalendarEventFirst() {
+        UUID id = UUID.randomUUID();
+        InspectionBookings booking = new InspectionBookings();
+        booking.setId(id);
+        booking.setGoogleEventId("google-event-1");
+
+        when(inspectionBookingsRepository.findById(id)).thenReturn(Optional.of(booking));
+
+        inspectionBookingsService.deleteBooking(id);
+
+        verify(googleCalendarService).deleteEvent(booking);
+        verify(inspectionBookingsRepository).delete(booking);
+    }
+
+    @Test
+    void deleteBooking_calendarFailure_stillDeletesTheBooking() {
+        UUID id = UUID.randomUUID();
+        InspectionBookings booking = new InspectionBookings();
+        booking.setId(id);
+        booking.setGoogleEventId("google-event-1");
+
+        when(inspectionBookingsRepository.findById(id)).thenReturn(Optional.of(booking));
+        doThrow(new RuntimeException("Google is down")).when(googleCalendarService).deleteEvent(booking);
 
         ResponseEntity<?> result = inspectionBookingsService.deleteBooking(id);
 
