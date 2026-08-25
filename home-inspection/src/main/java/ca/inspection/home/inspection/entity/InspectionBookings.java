@@ -63,6 +63,8 @@ public class InspectionBookings {
 
     private Boolean paidInFull;
 
+    private Boolean removeTax;
+
     @OneToOne(mappedBy = "inspectionBooking", cascade = CascadeType.ALL, optional = true, fetch = FetchType.LAZY)
     @JsonManagedReference("reportBooking")
     private InspectionReport inspectionReport;

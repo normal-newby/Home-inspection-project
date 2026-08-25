@@ -50,7 +50,8 @@ public class ReportViewController {
 
         InspectorProfile profile = inspectorProfileService.getProfile();
         InspectionBookings booking = inspectionBookingsService.findById(bookingId);
-        InvoiceAmount amount = inspectionBookingsService.buildInvoiceAmount(booking.getInvoices());
+        InvoiceAmount amount = inspectionBookingsService.buildInvoiceAmount(
+                booking.getInvoices(), Boolean.TRUE.equals(booking.getRemoveTax()));
         InspectionReport report = inspectionReportsRepository.findByInspectionBooking_Id(bookingId);
 
         reportViewService.getOtherFields(report);

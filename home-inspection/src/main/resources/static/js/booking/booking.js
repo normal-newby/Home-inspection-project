@@ -8,7 +8,7 @@ const fields = ["inspectionAddress", "suite", "city", "postalCode", "province", 
     "clientFirstName", "clientLastName", "email", "phone", // Client
     "month", "day", "year", "startTime", "durationMinutes", // Date
     "referredBy", "bookedBy", // Data
-    "paidInFull", // Invoice
+    "paidInFull", "removeTax", // Invoice
 ];
 
 // Save & Load
@@ -100,6 +100,9 @@ function calculateTotals() {
     gstSpan.textContent = `$${gst.toFixed(2)}`;
     totalSpan.textContent = `$${(total + hst + gst).toFixed(2)}`;
 }
+
+// Flipping the switch only changes the arithmetic, so just redraw the totals.
+removeTaxBox.addEventListener("change", calculateTotals);
 
 function createInvoice(invoice){
     const invoiceItem = document.createElement("div");

@@ -134,12 +134,12 @@ public class InspectionBookingsService {
         }
     }
 
-    public InvoiceAmount buildInvoiceAmount(List<Invoice> invoices){
+    public InvoiceAmount buildInvoiceAmount(List<Invoice> invoices, boolean removeTax){
         BigDecimal subtotal = invoices.stream()
                 .map(Invoice::getFee)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal hst = subtotal.multiply(new BigDecimal("0.08"));
-        BigDecimal gst = subtotal.multiply(new BigDecimal("0.05"));
+        BigDecimal hst = removeTax ? BigDecimal.ZERO : subtotal.multiply(new BigDecimal("0.08"));
+        BigDecimal gst = removeTax ? BigDecimal.ZERO : subtotal.multiply(new BigDecimal("0.05"));
         BigDecimal total = subtotal.add(hst).add(gst);
         return new InvoiceAmount(
                 subtotal.setScale(2, RoundingMode.HALF_UP),

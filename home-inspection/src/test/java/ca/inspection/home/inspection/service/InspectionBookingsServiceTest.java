@@ -50,7 +50,7 @@ public class InspectionBookingsServiceTest {
     void buildInvoiceAmount_singleInvoice_calculatesTaxesCorrectly() {
         Invoice invoice = new Invoice(UUID.randomUUID(), "Inspection", new BigDecimal("500.00"), null);
 
-        InvoiceAmount result = inspectionBookingsService.buildInvoiceAmount(List.of(invoice));
+        InvoiceAmount result = inspectionBookingsService.buildInvoiceAmount(List.of(invoice), false);
 
         assertThat(result.getSubtotal()).isEqualByComparingTo("500.00");
         assertThat(result.getHst()).isEqualByComparingTo("40.00");
@@ -63,7 +63,7 @@ public class InspectionBookingsServiceTest {
         Invoice a = new Invoice(UUID.randomUUID(), "Home Inspection", new BigDecimal("400.00"), null);
         Invoice b = new Invoice(UUID.randomUUID(), "Radon Test", new BigDecimal("100.00"), null);
 
-        InvoiceAmount result = inspectionBookingsService.buildInvoiceAmount(List.of(a, b));
+        InvoiceAmount result = inspectionBookingsService.buildInvoiceAmount(List.of(a, b), false);
 
         assertThat(result.getSubtotal()).isEqualByComparingTo("500.00");
         assertThat(result.getTotal()).isEqualByComparingTo("565.00");
@@ -71,7 +71,7 @@ public class InspectionBookingsServiceTest {
 
     @Test
     void buildInvoiceAmount_emptyList_returnsZero() {
-        InvoiceAmount result = inspectionBookingsService.buildInvoiceAmount(List.of());
+        InvoiceAmount result = inspectionBookingsService.buildInvoiceAmount(List.of(), false);
 
         assertThat(result.getSubtotal()).isEqualByComparingTo("0.00");
         assertThat(result.getTotal()).isEqualByComparingTo("0.00");
@@ -82,10 +82,29 @@ public class InspectionBookingsServiceTest {
         // 333.33 * 0.08 = 26.6664 -> 26.67, * 0.05 = 16.6665 -> 16.67
         Invoice invoice = new Invoice(UUID.randomUUID(), "Inspection", new BigDecimal("333.33"), null);
 
-        InvoiceAmount result = inspectionBookingsService.buildInvoiceAmount(List.of(invoice));
+        InvoiceAmount result = inspectionBookingsService.buildInvoiceAmount(List.of(invoice), false);
 
         assertThat(result.getHst()).isEqualByComparingTo("26.67");
         assertThat(result.getGst()).isEqualByComparingTo("16.67");
+    }
+
+    @Test
+    void buildInvoiceAmount_taxRemoved_chargesTheSubtotalOnly() {
+        Invoice invoice = new Invoice(UUID.randomUUID(), "Inspection", new BigDecimal("500.00"), null);
+
+        InvoiceAmount result = inspectionBookingsService.buildInvoiceAmount(List.of(invoice), true);
+
+        assertThat(result.getSubtotal()).isEqualByComparingTo("500.00");
+        assertThat(result.getHst()).isEqualByComparingTo("0.00");
+        assertThat(result.getGst()).isEqualByComparingTo("0.00");
+        assertThat(result.getTotal()).isEqualByComparingTo("500.00");
+    }
+
+    @Test
+    void buildInvoiceAmount_taxRemovedWithNoInvoices_isZero() {
+        InvoiceAmount result = inspectionBookingsService.buildInvoiceAmount(List.of(), true);
+
+        assertThat(result.getTotal()).isEqualByComparingTo("0.00");
     }
 
     // CREATE BOOKING

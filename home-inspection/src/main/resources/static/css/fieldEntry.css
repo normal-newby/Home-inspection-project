@@ -262,8 +262,14 @@
     margin-top: 0.25rem;
 }
 
+.fee-container > .checkbox-field-right,
 .checkbox-field-right {
     justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.fee-container > .checkbox-field-right {
+    margin-top: 0.5rem;
 }
 
 .checkbox-field label {

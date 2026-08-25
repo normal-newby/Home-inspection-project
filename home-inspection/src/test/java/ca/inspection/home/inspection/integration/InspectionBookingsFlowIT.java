@@ -51,6 +51,9 @@ public class InspectionBookingsFlowIT {
     @Autowired
     private InvoiceRepository invoiceRepository;
 
+    @Autowired
+    private ca.inspection.home.inspection.service.InspectionBookingsService bookingsService;
+
     @BeforeEach
     void resetState() {
         reportsRepository.deleteAll();
@@ -232,6 +235,40 @@ public class InspectionBookingsFlowIT {
         InspectionBookings after = bookingsRepository.findById(id).orElseThrow();
         assertThat(after.getCity()).isEqualTo("Toronto");
         assertThat(after.getInspectionNumber()).isEqualTo(assignedNumber);
+    }
+
+    @Test
+    void removeTax_roundTripsAndZeroesTheTaxLines() throws Exception {
+        InspectionBookings payload = new InspectionBookings();
+        payload.setInspectionAddress("5 Tax Free Way");
+        payload.setRemoveTax(true);
+
+        Invoice inspection = new Invoice();
+        inspection.setType("Inspection");
+        inspection.setFee(new BigDecimal("500.00"));
+        payload.setInvoices(List.of(inspection));
+
+        MvcResult created = mockMvc.perform(post("/api/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(payload)))
+                .andExpect(status().isOk())
+                .andReturn();
+        UUID id = UUID.fromString(objectMapper.readTree(created.getResponse().getContentAsString())
+                .get("id").asString());
+
+        // The booking form reads the flag back off the projection when reopening.
+        mockMvc.perform(get("/api/bookings/{id}", id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.removeTax").value(true));
+
+        InspectionBookings saved = bookingsRepository.findById(id).orElseThrow();
+        assertThat(saved.getRemoveTax()).isTrue();
+
+        // What the invoice page prints: subtotal only, no tax.
+        var amount = bookingsService.buildInvoiceAmount(invoiceRepository.findAll(), true);
+        assertThat(amount.getHst()).isEqualByComparingTo("0.00");
+        assertThat(amount.getGst()).isEqualByComparingTo("0.00");
+        assertThat(amount.getTotal()).isEqualByComparingTo("500.00");
     }
 
     @Test

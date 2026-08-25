@@ -25,5 +25,6 @@ public interface BookingDetails {
     String getReferredBy();
     String getBookedBy();
     Boolean getPaidInFull();
+    Boolean getRemoveTax();
     List<Invoice> getInvoices();
 }
