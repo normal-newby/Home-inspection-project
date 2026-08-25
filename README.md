@@ -38,11 +38,53 @@ go to http://localhost:8080 on your web browser once it does start.
 2. Fill in all sections.
 3. Click save.
 
+### Linking Google Calendar (optional)
+
+With a Google account linked, every booking you save is added to your calendar
+automatically, and edits or deletions follow it there.
+
+**One-time setup.** The app talks to Google as your own OAuth application, so it
+needs credentials:
+
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/), create a
+   project, and enable the **Google Calendar API** for it.
+2. Under **APIs & Services -> OAuth consent screen**, set the app up as
+   **External**, and add your own Google account as a **test user**.
+3. Under **APIs & Services -> Credentials**, create an **OAuth client ID** of type
+   **Web application**. Add this as an authorised redirect URI, exactly:
+
+   ```
+   http://localhost:8080/api/google/calendar/callback
+   ```
+
+4. Copy the client id and secret into `home-inspection/.env`:
+
+   ```
+   GOOGLE_CLIENT_ID=your-client-id
+   GOOGLE_CLIENT_SECRET=your-client-secret
+   ```
+
+5. Restart the app.
+
+**Connecting.** Open **Profile**, scroll to **Google Calendar**, and click
+**Connect Google Calendar**. Approve the consent screen and you land back on the
+profile page, connected. From there you can choose which calendar bookings go to
+and switch syncing off without unlinking. **Disconnect** revokes the app's access.
+
+If Google is unreachable when a booking is saved, the booking is still saved --
+only the calendar entry is skipped, and the reason is written to the log.
+
 ## 2. Booking an Inspection
 
 1. Click **Book Inspection** in the navbar.
 2. Fill in all sections
 3. Click save.
+
+The **Date of Inspection** card has a date picker beside the month / day / year
+fields -- either one updates the other. Dates that don't exist (February 30, and
+the like) are refused before the booking is saved. **Start Time** and **Length**
+are optional: with a start time the calendar event is a real time block, without
+one it becomes an all-day entry.
 
 ### Editing or Deleting a Booking
 

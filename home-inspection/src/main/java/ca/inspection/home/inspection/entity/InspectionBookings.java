@@ -46,6 +46,12 @@ public class InspectionBookings {
     private Integer day;
     private Integer year;
 
+    // Start of the inspection as "HH:mm" (24h)
+    private String startTime;
+
+    // How long the inspection is expected to run, in minutes.
+    private Integer durationMinutes;
+
     // Metadata
     private String referredBy;
     private String bookedBy;
@@ -60,6 +66,9 @@ public class InspectionBookings {
     @OneToOne(mappedBy = "inspectionBooking", cascade = CascadeType.ALL, optional = true, fetch = FetchType.LAZY)
     @JsonManagedReference("reportBooking")
     private InspectionReport inspectionReport;
+
+    // Id of the event this booking owns in the linked Google Calendar
+    private String googleEventId;
 
     @Column(updatable = false)
     @CreationTimestamp

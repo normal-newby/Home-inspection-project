@@ -262,6 +262,10 @@
     margin-top: 0.25rem;
 }
 
+.checkbox-field-right {
+    justify-content: flex-end;
+}
+
 .checkbox-field label {
     text-transform: uppercase;
     font-size: 0.78rem;
@@ -311,6 +315,57 @@
     font-size: 0.78rem;
     color: var(--muted);
     margin-top: -0.5rem;
+}
+
+/* ── Inline validation message ── */
+.field-error {
+    display: none;
+    margin-top: 0.9rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: 3px;
+    background: #fdf0ec;
+    border: 1px solid #eec3b4;
+    color: #93380f;
+    font-size: 0.85rem;
+}
+
+.field-error.show { display: block; }
+
+/* ── Google Calendar link ── */
+.calendar-status {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.calendar-dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+}
+
+.calendar-dot.connected { background: #3f9c62; }
+
+.calendar-account {
+    color: var(--muted);
+}
+
+.calendar-hint {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-top: 0.75rem;
+}
+
+.calendar-hint code {
+    font-size: 0.78rem;
+    background: var(--paper);
+    padding: 0.1rem 0.3rem;
+    border-radius: 2px;
 }
 
 /* ── Success banner ── */

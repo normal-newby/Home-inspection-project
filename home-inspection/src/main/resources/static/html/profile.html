@@ -155,6 +155,43 @@
             </div>
         </div>
  
+        <!-- Google Calendar -->
+        <div class="card" id="googleCalendarCard">
+            <div class="card-title">Google Calendar</div>
+
+            <div class="calendar-status">
+                <span class="calendar-dot" id="calendarDot"></span>
+                <span id="calendarStatusText">Checking connection…</span>
+                <span class="calendar-account" id="calendarAccount"></span>
+            </div>
+
+            <div class="field-error" id="calendarError"></div>
+
+            <div id="calendarConnected" style="display: none;">
+                <div class="field">
+                    <label for="googleCalendarId">Add bookings to</label>
+                    <select id="googleCalendarId"></select>
+                </div>
+
+                <div class="checkbox-field">
+                    <input type="checkbox" id="googleCalendarEnabled">
+                    <label for="googleCalendarEnabled">Add new bookings to this calendar</label>
+                </div>
+            </div>
+
+            <p class="calendar-hint" id="calendarSetupHint" style="display: none;">
+                To turn this on, create an OAuth client (type: Web application) in the Google Cloud
+                Console with <code>http://localhost:8080/api/google/calendar/callback</code> as an
+                authorised redirect URI, then put its id and secret in <code>.env</code> as
+                <code>GOOGLE_CLIENT_ID</code> and <code>GOOGLE_CLIENT_SECRET</code> and restart the app.
+            </p>
+
+            <div class="actions" style="margin-top: 1rem;">
+                <button type="button" id="calendarDisconnectBtn" class="btn btn-secondary" style="display: none;">Disconnect</button>
+                <button type="button" id="calendarConnectBtn" class="btn btn-primary">Connect Google Calendar</button>
+            </div>
+        </div>
+
         <div class="actions">
             <button type="button" id="resetBtn" class="btn btn-secondary">Reset</button>
             <button type="button" id="saveBtn" class="btn btn-primary">Save Profile</button>
@@ -168,6 +205,7 @@
 <script type = "module" src = "../js/profile/profile.js"></script>
 <script type = "module" src = "../js/formFactory.js"></script>
 <script type = "module" src = "../js/profile/companyAssets.js"></script>
+<script type = "module" src = "../js/profile/googleCalendar.js"></script>
 
 </body>
 </html>

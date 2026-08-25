@@ -1,5 +1,6 @@
 package ca.inspection.home.inspection.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -46,4 +47,27 @@ public class InspectorProfile {
     private String agreementBody;
 
     private String appendixPdf;
+
+    // --- Google Calendar link ---
+    // Long lived grant from the OAuth consent flow.
+    @JsonIgnore
+    @Column(columnDefinition = "TEXT")
+    private String googleRefreshToken;
+
+    @JsonIgnore
+    @Column(columnDefinition = "TEXT")
+    private String googleAccessToken;
+
+    // Epoch seconds at which googleAccessToken stops working.
+    @JsonIgnore
+    private Long googleTokenExpiry;
+
+    // Which Google account is linked, shown on the profile page.
+    private String googleAccountEmail;
+
+    // Target calendar; "primary" unless the inspector picks another one.
+    private String googleCalendarId;
+
+    // Master switch: bookings only reach Google while this is true.
+    private Boolean googleCalendarEnabled;
 }

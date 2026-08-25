@@ -1,23 +1,32 @@
 import { collectForm, saveForm, loadForm } from "../formFactory.js";
+import { assertValidDate, syncPickerFromForm, showDateError } from "./bookingDate.js";
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
 const URI = id ? `http://localhost:8080/api/bookings/${id}` : `http://localhost:8080/api/bookings`
 const fields = ["inspectionAddress", "suite", "city", "postalCode", "province", // Address
     "clientFirstName", "clientLastName", "email", "phone", // Client
-    "month", "day", "year", // Date
+    "month", "day", "year", "startTime", "durationMinutes", // Date
     "referredBy", "bookedBy", // Data
     "paidInFull", // Invoice
 ];
 
 // Save & Load
-const saveBtn = document.getElementById("saveBtn");
+const bookingFormEl = document.getElementById("booking-form");
 const method = id ? "PUT" : "POST";
-saveBtn.addEventListener("click", async () => {
-    const saved = await saveWithInvoices();
-    // New inspection lands on its own booking page; edits go back to the list.
-    if (!id && saved && saved.id) {
-        window.location.href = `booking.html?id=${saved.id}`;
+
+bookingFormEl.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!assertValidDate()) return;
+
+    const result = await saveWithInvoices();
+    if (!result.ok) {
+        showDateError(result.message);
+        return;
+    }
+    // New inspection lands on its own booking page
+    if (!id && result.booking && result.booking.id) {
+        window.location.href = `booking.html?id=${result.booking.id}`;
     } else {
         window.location.href = "index.html";
     }
@@ -40,13 +49,16 @@ async function saveWithInvoices() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(bookingForm)
         });
-        console.log(res);
-        if (!res.ok) throw new Error('Failed to save form');
+        if (!res.ok) {
+            // The server rejects impossible dates with a readable message
+            const body = await res.json().catch(() => null);
+            return { ok: false, message: body?.message ?? "Could not save this booking. Please try again." };
+        }
         // POST returns the created booking (with id); PUT returns an empty body.
-        return method === "POST" ? await res.json() : null;
+        return { ok: true, booking: method === "POST" ? await res.json() : null };
     } catch (err) {
         console.error('Error saving form:', err);
-        return null;
+        return { ok: false, message: "Could not reach the server. Please try again." };
     }
 }
 
@@ -54,6 +66,8 @@ async function loadWithInvoices() {
     const invoices = await loadForm(URI, fields);
     invoices.forEach(invoice => createInvoice(invoice));
     calculateTotals();
+    // The saved date only reaches the picker once the fields have been filled in.
+    syncPickerFromForm();
 }
 
 // Invoice
@@ -66,6 +80,7 @@ const subtotalSpan = document.getElementById("subtotalAmount");
 const hstSpan = document.getElementById("hstAmount");
 const gstSpan = document.getElementById("gstAmount");
 const totalSpan = document.getElementById("totalAmount");
+const removeTaxBox = document.getElementById("removeTax");
 const HST_RATE = 0.08;
 const GST_RATE = 0.05;
 
@@ -74,8 +89,12 @@ function calculateTotals() {
     invoiceList.querySelectorAll(".invoice-fee").forEach(span => {
         total += parseFloat(span.textContent.replace("$", ""));
     });
-    const hst = total * HST_RATE;
-    const gst = total * GST_RATE;
+    let hst = total * HST_RATE;
+    let gst = total * GST_RATE;
+    if (removeTaxBox.checked){
+        hst = 0;
+        gst = 0;
+    }
     subtotalSpan.textContent = `$${total.toFixed(2)}`;
     hstSpan.textContent = `$${hst.toFixed(2)}`;
     gstSpan.textContent = `$${gst.toFixed(2)}`;

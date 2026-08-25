@@ -20,6 +20,8 @@ public interface BookingDetails {
     String getMonth();
     Integer getDay();
     Integer getYear();
+    String getStartTime();
+    Integer getDurationMinutes();
     String getReferredBy();
     String getBookedBy();
     Boolean getPaidInFull();

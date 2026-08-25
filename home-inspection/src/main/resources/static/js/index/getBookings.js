@@ -1,5 +1,16 @@
 const bookingsContainer = document.querySelector(".bookings-container");
 
+function formatWhen(booking) {
+    if (!booking.month || !booking.day || !booking.year) return "Date not set";
+    const date = `${booking.day} ${booking.month}, ${booking.year}`;
+    if (!booking.startTime) return date;
+
+    const [hours, minutes] = booking.startTime.split(":").map(Number);
+    const suffix = hours < 12 ? "AM" : "PM";
+    const hour12 = hours % 12 === 0 ? 12 : hours % 12;
+    return `${date} at ${hour12}:${String(minutes).padStart(2, "0")} ${suffix}`;
+}
+
 function createBooking(booking) {
     // Main element (contains everything)
     const bookingElement = document.createElement("div");
@@ -41,7 +52,7 @@ function createBooking(booking) {
 
     const bookingDate = document.createElement("div");
     bookingDate.className = "booking-date";
-    bookingDate.textContent = `${booking.day} ${booking.month}, ${booking.year}`;
+    bookingDate.textContent = formatWhen(booking);
     bookingLeft.appendChild(bookingDate);
 
     bookingCard.appendChild(bookingLeft);

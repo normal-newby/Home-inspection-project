@@ -35,11 +35,27 @@ public class InspectorProfileService {
     public ResponseEntity<?> saveProfile(InspectorProfile profile) {
         try {
             profile.setId(1L);
+            carryOverServerOwnedFields(profile);
             inspectorProfileRepository.save(profile);
             return ResponseEntity.ok().build();
         } catch (Exception e){
             log.error("Failed to save inspector profile", e);
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    private void carryOverServerOwnedFields(InspectorProfile incoming) {
+        InspectorProfile existing = inspectorProfileRepository.findById(1L).orElse(null);
+        if (existing == null) return;
+
+        if (incoming.getAppendixPdf() == null) incoming.setAppendixPdf(existing.getAppendixPdf());
+        if (incoming.getGoogleRefreshToken() == null) incoming.setGoogleRefreshToken(existing.getGoogleRefreshToken());
+        if (incoming.getGoogleAccessToken() == null) incoming.setGoogleAccessToken(existing.getGoogleAccessToken());
+        if (incoming.getGoogleTokenExpiry() == null) incoming.setGoogleTokenExpiry(existing.getGoogleTokenExpiry());
+        if (incoming.getGoogleAccountEmail() == null) incoming.setGoogleAccountEmail(existing.getGoogleAccountEmail());
+        if (incoming.getGoogleCalendarId() == null) incoming.setGoogleCalendarId(existing.getGoogleCalendarId());
+        if (incoming.getGoogleCalendarEnabled() == null) {
+            incoming.setGoogleCalendarEnabled(existing.getGoogleCalendarEnabled());
         }
     }
 

@@ -30,8 +30,13 @@ public class InspectionBookingsService {
     @Autowired
     private InspectionReportsRepository inspectionReportsRepository;
 
+    @Autowired
+    private GoogleCalendarService googleCalendarService;
+
     public InspectionBookings createBooking(InspectionBookings booking){
         log.info("Creating booking for {} {}", booking.getClientFirstName(), booking.getClientLastName());
+        // Rejects impossible dates (Feb 30, half-filled dates) before anything is written.
+        BookingSchedule.of(booking);
         booking.setInspectionNumber(inspectorProfileService.getAndUpdateNumber());
         // Set up invoices
         if (booking.getInvoices() != null){
@@ -47,7 +52,21 @@ public class InspectionBookingsService {
 
         report = inspectionReportsRepository.save(report);
         saved.setInspectionReport(report);
+
+        pushToCalendar(saved);
         return saved;
+    }
+
+    private void pushToCalendar(InspectionBookings booking){
+        try {
+            String eventId = googleCalendarService.syncBooking(booking);
+            if (!java.util.Objects.equals(eventId, booking.getGoogleEventId())) {
+                booking.setGoogleEventId(eventId);
+                inspectionBookingsRepository.save(booking);
+            }
+        } catch (Exception e){
+            log.warn("Could not sync booking {} to Google Calendar: {}", booking.getId(), e.getMessage());
+        }
     }
 
     public List<BookingDetails> findAll(){
@@ -73,12 +92,23 @@ public class InspectionBookingsService {
     }
 
     public ResponseEntity<?> updateBooking(UUID id, InspectionBookings booking){
+        BookingSchedule.of(booking);
         try {
             booking.setId(id);
+            inspectionBookingsRepository.findById(id).ifPresent(existing -> {
+                if (booking.getInspectionNumber() == null){
+                    booking.setInspectionNumber(existing.getInspectionNumber());
+                }
+                if (booking.getGoogleEventId() == null){
+                    booking.setGoogleEventId(existing.getGoogleEventId());
+                }
+            });
             if (booking.getInvoices() != null){
                 booking.getInvoices().forEach(invoice -> invoice.setBookings(booking));
             }
             inspectionBookingsRepository.save(booking);
+
+            pushToCalendar(booking);
             return ResponseEntity.ok().build();
         } catch (Exception e){
             log.error("Failed to update booking {}", id, e);
@@ -90,6 +120,11 @@ public class InspectionBookingsService {
         try {
             InspectionBookings bookings = inspectionBookingsRepository.findById(id)
                             .orElseThrow();
+            try {
+                googleCalendarService.deleteEvent(bookings);
+            } catch (Exception e){
+                log.warn("Could not remove Google Calendar event for booking {}: {}", id, e.getMessage());
+            }
             inspectionBookingsRepository.delete(bookings);
             log.info("Deleted booking {}", id);
             return ResponseEntity.ok().build();
