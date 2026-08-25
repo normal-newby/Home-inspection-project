@@ -92,6 +92,34 @@ function invalidateImageCache(id = bookingId){
     imageCache.delete(id);
 }
 
+async function getImages(id = bookingId){
+    if (!imageCache.has(id)){
+        const response = await fetch(`http://localhost:8080/api/images/${id}`);
+        imageCache.set(id, await response.json());
+    }
+    return imageCache.get(id);
+}
+
+function renderImageCounts(images){
+    const box = document.querySelector(".image-counts");
+    if (!box) return;
+
+    const total = images.length;
+    const remaining = images.filter(image => !image.used).length;
+
+    box.querySelector(".image-count-total").textContent =
+        `${total} ${total === 1 ? "image" : "images"}`;
+
+    const remainingEl = box.querySelector(".image-count-remaining");
+    remainingEl.textContent = remaining === 0 ? "all used" : `${remaining} remaining`;
+    remainingEl.classList.toggle("none-left", remaining === 0);
+}
+
+export async function refreshImageCounts(){
+    invalidateImageCache();
+    renderImageCounts(await getImages());
+}
+
 // Preloads thumbnails
 async function preloadThumbs(images){
     const total = images.length;
@@ -168,15 +196,10 @@ export async function initImagesSlider(bookingId, container, getUsedForReport = 
         updateSlider();
     });
 
-    if (!imageCache.has(bookingId)){
-        const response = await fetch(`http://localhost:8080/api/images/${bookingId}`);
-        const images = await response.json();
-        imageCache.set(bookingId, images);
-    }
-
-    const images = imageCache.get(bookingId);
+    const images = await getImages(bookingId);
     await preloadThumbs(images);
     loopImages(images);
+    renderImageCounts(images);
 
     return imagesTrack;
 }
@@ -202,7 +225,7 @@ function deleteImage(e, imageId){
     .then(res => {
         if (res.ok){
             invalidateImageCache();
-            console.log("Deleted");
+            initialize();
         } else console.log("failed");
     });
 }

@@ -181,11 +181,12 @@
             <td>Subtotal</td>
             <td th:text="${invoiceAmount.subtotal}"></td>
         </tr>
-        <tr>
+        <!-- Tax free jobs drop the tax lines entirely rather than printing $0.00 rows. -->
+        <tr th:unless="${booking.removeTax}">
             <td>HST</td>
             <td th:text="${invoiceAmount.hst}"></td>
         </tr>
-        <tr>
+        <tr th:unless="${booking.removeTax}">
             <td>GST</td>
             <td th:text="${invoiceAmount.gst}"></td>
         </tr>

@@ -1,7 +1,12 @@
 function populateForm(fields, profile) {
     fields.forEach(f => {
         const el = document.getElementById(f);
-        if (el) el.value = profile[f] ?? '';
+        if (!el) return;
+        if (el.type === "checkbox") {
+            el.checked = Boolean(profile[f]);
+        } else {
+            el.value = profile[f] ?? '';
+        }
     });
 }
  

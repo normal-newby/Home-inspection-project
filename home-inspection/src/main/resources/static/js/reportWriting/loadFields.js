@@ -1,5 +1,5 @@
 import { bookingId } from "./getReport.js";
-import { initImagesSlider } from "./loadImages.js";
+import { initImagesSlider, refreshImageCounts } from "./loadImages.js";
 import { addAnnotationCanvas } from "./imageAnnotation.js";
 import { setUpRecommendationsPanel } from "./recommendations.js";
 import { fetchExisting, saveFunction } from "../fetchExisting.js";
@@ -373,16 +373,20 @@ function saveNewInspectionField(value, fieldDefinitionId){
 function deleteInspectionField(id){
     fetch(`http://localhost:8080/api/fields/${id}`,
         { method : "DELETE" }
-    );
+    )
+    // Deleting a field hands its images back to the pool, so the tally moves.
+    .then(() => refreshImageCounts())
+    .catch(error => console.log(error));
 }
 
 function selectImageFunction(bookingId, selectImageDiv, imageId, fieldId, images){
     fetch(`http://localhost:8080/api/fields/${fieldId}/${imageId}`,
         { method: "PUT" }
     )
-    .then(() => {
-        console.log("Image linked");
+    .then(async () => {
         images.push({ id: imageId });
+        // Drops the freshly used image out of the "not yet used" gallery and the tally.
+        await refreshImageCounts();
         addExistingImages(bookingId, selectImageDiv, fieldId, images); // Refresh gallery
         showExistingImage(images, fieldId); // Refresh existing images
     })
@@ -396,6 +400,7 @@ function deleteImageFromField(thumb, imageId, fieldId){
         .then(() => {
             thumb.remove();
             clearCanvas();
+            refreshImageCounts(); // The image is back in the pool.
         })
         .catch(error => console.log(error)
     );
