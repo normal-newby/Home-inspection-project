@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -194,8 +195,8 @@ public class InspectionImagesService {
                     Color color = Color.decode(annotation.getColor() == null ? "#ff0000" : annotation.getColor());
                     graphics2D.setColor(color);
 
-                    float stroke = 10 * Float.parseFloat(
-                            annotation.getStrokeWidth() == null ? "1" : annotation.getStrokeWidth());
+                    double sizeSteps = parseSize(annotation.getStrokeWidth());
+                    float stroke = (float)(10 * sizeSteps);
                     graphics2D.setStroke(new BasicStroke(stroke));
 
                     double scaleX = imgWidth / annotation.getImageDisplayWidth();
@@ -220,7 +221,10 @@ public class InspectionImagesService {
                             graphics2D.setFont(font);
                             graphics2D.drawString(annotation.getContent(), x, y);
                         }
-                        case "arrow" -> drawArrow(graphics2D, x, y, width, height);
+
+                        case "arrow" -> drawArrow(graphics2D, x, y, width, height,
+                                sizeSteps, (scaleX + scaleY) / 2,
+                                Boolean.TRUE.equals(annotation.getFixedLength()));
                     }
                 }
             }
@@ -239,35 +243,38 @@ public class InspectionImagesService {
         }
     }
 
-    private void drawArrow(Graphics2D graphics2D, int x, int y, int width, int height){
-        double endX = x + width;
-        double endY = y + height;
+    private static double parseSize(String strokeWidth){
+        try {
+            return strokeWidth == null || strokeWidth.isBlank() ? 1 : Double.parseDouble(strokeWidth);
+        } catch (NumberFormatException e){
+            return 1;
+        }
+    }
 
-        double dx = endX - x;
-        double dy = endY - y;
-        double angle = Math.atan2(dy, dx);
-
-        width = Math.abs(width);
-        height = Math.abs(height);
-
-        double length = Math.max(width, height);
-        double shaftLength = length / 2;
-        double strokeWidth = length / 3;
+    private void drawArrow(Graphics2D graphics2D, int x, int y, int width, int height,
+                           double sizeSteps, double scale, boolean fixedLength){
+        ArrowGeometry arrow = ArrowGeometry.of(width, height, sizeSteps, scale, fixedLength);
+        if (arrow.isDegenerate()) return;
 
         AffineTransform original = graphics2D.getTransform();
 
         graphics2D.translate(x, y);
-        graphics2D.rotate(angle);
+        graphics2D.rotate(arrow.angle());
 
-        // Shaft
-        graphics2D.fill(new java.awt.geom.Rectangle2D.Double(
-                0, -strokeWidth / 2, shaftLength, strokeWidth
-        ));
+        // Shaft stops where the head starts, so the tip lands on the point that was dragged to.
+        if (arrow.shaftLength() > 0) {
+            graphics2D.fill(new java.awt.geom.Rectangle2D.Double(
+                    0, -arrow.shaftWidth() / 2, arrow.shaftLength(), arrow.shaftWidth()
+            ));
+        }
 
         // Head (triangle)
-        int[] xPoints = {(int) shaftLength, (int) length, (int) shaftLength};
-        int[] yPoints = {(int) -strokeWidth, 0, (int) strokeWidth};
-        graphics2D.fillPolygon(xPoints, yPoints, 3);
+        Path2D.Double head = new Path2D.Double();
+        head.moveTo(arrow.shaftLength(), -arrow.headHalfWidth());
+        head.lineTo(arrow.length(), 0);
+        head.lineTo(arrow.shaftLength(), arrow.headHalfWidth());
+        head.closePath();
+        graphics2D.fill(head);
 
         graphics2D.setTransform(original);
     }

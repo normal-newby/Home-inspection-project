@@ -1,3 +1,48 @@
+// Arrow stuff
+const ARROW_SHAFT_WIDTH_PER_STEP = 5; 
+const ARROW_HEAD_LENGTH_RATIO = 2.6; 
+const ARROW_HEAD_WIDTH_RATIO = 1.6; 
+const ARROW_MAX_HEAD_SHARE = 0.6;
+const ARROW_FIXED_HEAD_MULTIPLE = 2;
+
+const CLIP_STEP_RADIANS = Math.PI / 4;
+
+function fixedArrowLength(size){
+    return size * ARROW_SHAFT_WIDTH_PER_STEP * ARROW_HEAD_LENGTH_RATIO * ARROW_FIXED_HEAD_MULTIPLE;
+}
+
+function arrowGeometry(ann){
+    const size = Number(ann.strokeWidth) > 0 ? Number(ann.strokeWidth) : 1;
+    const shaftWidth = size * ARROW_SHAFT_WIDTH_PER_STEP;
+    const angle = Math.atan2(ann.height, ann.width);
+    const headHalfWidth = shaftWidth * ARROW_HEAD_WIDTH_RATIO;
+
+    if (ann.fixedLength){
+        if (Math.hypot(ann.width, ann.height) === 0){
+            return { length: 0, angle, shaftLength: 0, shaftWidth, headHalfWidth };
+        }
+        const headLength = shaftWidth * ARROW_HEAD_LENGTH_RATIO;
+        return {
+            length: headLength * ARROW_FIXED_HEAD_MULTIPLE,
+            angle,
+            shaftLength: headLength * (ARROW_FIXED_HEAD_MULTIPLE - 1),
+            shaftWidth,
+            headHalfWidth
+        };
+    }
+
+    const length = Math.hypot(ann.width, ann.height);
+    const headLength = Math.min(shaftWidth * ARROW_HEAD_LENGTH_RATIO, length * ARROW_MAX_HEAD_SHARE);
+
+    return { length, angle, shaftLength: length - headLength, shaftWidth, headHalfWidth };
+}
+
+function clipToAngleSteps(dx, dy){
+    const length = Math.hypot(dx, dy);
+    const angle = Math.round(Math.atan2(dy, dx) / CLIP_STEP_RADIANS) * CLIP_STEP_RADIANS;
+    return { width: Math.cos(angle) * length, height: Math.sin(angle) * length };
+}
+
 export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageId, sharedState){ 
     // Create canvas
     const wrapper = existingImageDiv.querySelector(".image-canvas-wrapper");
@@ -15,6 +60,8 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
     const strokeSlider = toolsDiv.querySelector("#stroke-size");
     const strokeSizeValue = toolsDiv.querySelector("#stroke-size-value");
     const textInput = toolsDiv.querySelector("#text-tool");
+    const clipAngleBox = toolsDiv.querySelector("#clip-arrow-angle");
+    const fixLengthBox = toolsDiv.querySelector("#fix-arrow-length");
 
     const successMessage = toolsDiv.querySelector("#success-message");
 
@@ -114,44 +161,49 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
     }
 
     function drawArrow(ctx, ann) {
-        const x = ann.x;
-        const y = ann.y;
-        const endX = ann.width + x;
-        const endY = ann.height + y;
-
-        const dx = endX - x;
-        const dy = endY - y;
-        const angle = Math.atan2(dy, dx);
-
-        const width = Math.abs(ann.width);
-        const height = Math.abs(ann.height);
-
-        const length = Math.max(width, height);
-        const headLength = length/2;
-        const shaftLength = length/2;
-
-        const strokeWidth = length/3;
-        const color = ann.color || "#ff0000";
+        const arrow = arrowGeometry(ann);
+        if (arrow.length < 1) return; // a click that never became a drag
 
         ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate(angle);
+        ctx.translate(ann.x, ann.y);
+        ctx.rotate(arrow.angle);
+        ctx.fillStyle = ann.color || "#ff0000";
 
-        // Shaft
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.rect(0, -strokeWidth / 2, shaftLength, strokeWidth);
-        ctx.fill();
+        // Shaft stops where the head starts, so the tip lands on the point dragged to.
+        if (arrow.shaftLength > 0){
+            ctx.beginPath();
+            ctx.rect(0, -arrow.shaftWidth / 2, arrow.shaftLength, arrow.shaftWidth);
+            ctx.fill();
+        }
 
         // Head (triangle)
         ctx.beginPath();
-        ctx.moveTo(shaftLength, -strokeWidth);
-        ctx.lineTo(length, 0);
-        ctx.lineTo(shaftLength, strokeWidth);
+        ctx.moveTo(arrow.shaftLength, -arrow.headHalfWidth);
+        ctx.lineTo(arrow.length, 0);
+        ctx.lineTo(arrow.shaftLength, arrow.headHalfWidth);
         ctx.closePath();
         ctx.fill();
 
         ctx.restore();
+    }
+
+    function arrowVector(endX, endY){
+        let dx = endX - startX;
+        let dy = endY - startY;
+
+        if (clipAngleBox?.checked){
+            ({ width: dx, height: dy } = clipToAngleSteps(dx, dy));
+        }
+
+        if (fixLengthBox?.checked){
+            const dragged = Math.hypot(dx, dy);
+            if (dragged === 0) return { width: 0, height: 0 };
+            const fixed = fixedArrowLength(strokeSize);
+            dx = (dx / dragged) * fixed;
+            dy = (dy / dragged) * fixed;
+        }
+
+        return { width: dx, height: dy };
     }
 
     function deleteAnnotation(ann) {
@@ -233,15 +285,16 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
                 }
                 drawEllipse(x, y, width, height);
             } else if (isDrawing && curTool === "arrow") {
-                const preview = {
+                const { width, height } = arrowVector(e.offsetX, e.offsetY);
+                drawArrow(ctx, {
                     x: startX,
                     y: startY,
-                    width: e.offsetX - startX,
-                    height: e.offsetY - startY,
+                    width,
+                    height,
                     color: colourPicker.value,
-                    strokeWidth: strokeSize
-                };
-                drawArrow(ctx, preview);
+                    strokeWidth: strokeSize,
+                    fixedLength: Boolean(fixLengthBox?.checked)
+                });
             }
         }
     });
@@ -283,14 +336,17 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
                 };
                 annotations.push(ann);
             } else if (curTool === "arrow") {
+                // Saved already clipped, so the report draws the same arrow as the screen.
+                const { width, height } = arrowVector(e.offsetX, e.offsetY);
                 const ann = {
                     type: "arrow",
                     x: startX,
                     y: startY,
-                    width: e.offsetX - startX,
-                    height: e.offsetY - startY,
+                    width,
+                    height,
                     color: colourPicker.value,
-                    strokeWidth: strokeSize
+                    strokeWidth: strokeSize,
+                    fixedLength: Boolean(fixLengthBox?.checked)
                 };
                 annotations.push(ann);
             } else if (curTool === "text") {

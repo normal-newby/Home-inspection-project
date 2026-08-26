@@ -112,8 +112,20 @@
 
                         <!-- Other -->
                         <input type="color" id="color-picker" value="#ff0000">
-                        <label for="stroke-size" class="stroke-label">Stroke: <span id="stroke-size-value">1</span>px</label>
+                        <label for="stroke-size" class="stroke-label">Size: <span id="stroke-size-value">1</span></label>
                         <input type="range" id="stroke-size" min="1" max="10" value="1">
+
+                        <!-- Arrows only: snap the direction to 45° steps -->
+                        <span class="clip-angle-field">
+                            <input type="checkbox" id="clip-arrow-angle">
+                            <label for="clip-arrow-angle" class="stroke-label">Clip 45°</label>
+                        </span>
+
+                        <!-- Arrows only: lock the length to the head, so the drag only aims it -->
+                        <span class="clip-angle-field">
+                            <input type="checkbox" id="fix-arrow-length">
+                            <label for="fix-arrow-length" class="stroke-label">Fix length</label>
+                        </span>
 
                         <span id="success-message"></span>
                     </div>

@@ -56,4 +56,8 @@ public class ImageAnnotation {
 
     @Column(name = "stroke_width")
     private String strokeWidth;
+
+    // Arrows only
+    @Column(name = "fixed_length")
+    private Boolean fixedLength;
 }

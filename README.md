@@ -166,11 +166,18 @@ With a field's edit panel open and an image selected:
    **Text** (type your text into the box next to "Add Text" first, then
    click **Add Text**).
 2. Click and drag on the image to draw the shape (or click once for text).
-3. Adjust **color** and **stroke size** using the controls in the toolbar
-   before drawing.
-4. To remove an annotation, click **Delete Mode**, then click the
+3. Adjust **color** and **Size** using the controls in the toolbar before
+   drawing. Size sets the stroke width for shapes, the text size, and the
+   thickness and head size of arrows.
+4. Tick **Clip 45°** to snap arrows to the nearest 45° as you draw them,
+   for arrows that line up square with the photo.
+5. Tick **Fix length** to lock every arrow to the same size — half head, half
+   shaft, scaled by the **Size** slider — so dragging only aims it. Handy for
+   pointing at something without a long tail across the photo.
+   Both options affect arrows only, and can be combined.
+6. To remove an annotation, click **Delete Mode**, then click the
    annotation on the image.
-5. Click **Save** to persist your annotations.
+7. Click **Save** to persist your annotations.
 
 Annotations are baked into the image when the final PDF is generated.
 
