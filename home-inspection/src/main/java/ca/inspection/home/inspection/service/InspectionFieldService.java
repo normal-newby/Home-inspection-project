@@ -167,7 +167,7 @@ public class InspectionFieldService {
     }
 
     // Condition name (blank items)
-    
+
     public ResponseEntity<?> saveConditionName(UUID fieldId, String conditionName, boolean saveAsPermanentValue){
         try {
             InspectionField field = inspectionFieldRepository.findById(fieldId)

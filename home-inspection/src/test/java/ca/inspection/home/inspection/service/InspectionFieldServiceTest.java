@@ -5,6 +5,7 @@ import ca.inspection.home.inspection.repository.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -259,6 +260,121 @@ public class InspectionFieldServiceTest {
         assertThatThrownBy(() -> inspectionFieldService.deleteInspectionField(fieldId))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("InspectionField not found");
+    }
+
+    // CONDITION NAME TESTS
+
+    private InspectionField blankItemField(UUID fieldId, InspectionFieldDefinition definition){
+        InspectionFieldDefinitionValue blank = new InspectionFieldDefinitionValue();
+        blank.setValue("blank item");
+
+        InspectionField field = new InspectionField();
+        field.setId(fieldId);
+        field.setSelectedValue(blank);
+        field.setInspectionFieldDefinition(definition);
+        return field;
+    }
+
+    private InspectionFieldDefinition definitionWithValues(UUID definitionId, String... values){
+        InspectionFieldDefinition definition = new InspectionFieldDefinition();
+        definition.setId(definitionId);
+        List<InspectionFieldDefinitionValue> possible = new ArrayList<>();
+        for (String value : values){
+            InspectionFieldDefinitionValue definitionValue = new InspectionFieldDefinitionValue();
+            definitionValue.setValue(value);
+            possible.add(definitionValue);
+        }
+        definition.setPossibleValues(possible);
+        return definition;
+    }
+
+    @Test
+    void saveConditionName_temporaryOnly_namesTheFieldWithoutTouchingTheDefinition(){
+        UUID fieldId = UUID.randomUUID();
+        InspectionField field = blankItemField(fieldId, definitionWithValues(UUID.randomUUID()));
+
+        when(inspectionFieldRepository.findById(fieldId)).thenReturn(Optional.of(field));
+
+        ResponseEntity<?> result = inspectionFieldService.saveConditionName(fieldId, "Cracked parging", false);
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(field.getConditionName()).isEqualTo("Cracked parging");
+        assertThat(field.getDisplayValue()).isEqualTo("Cracked parging");
+        verify(inspectionFieldRepository).save(field);
+        verify(definitionValueRepository, never()).save(any());
+    }
+
+    @Test
+    void saveConditionName_permanent_addsTheValueToTheDefinition(){
+        UUID fieldId = UUID.randomUUID();
+        UUID definitionId = UUID.randomUUID();
+        InspectionFieldDefinition definition = definitionWithValues(definitionId, "blank item", "Asphalt Shingles");
+        InspectionField field = blankItemField(fieldId, definition);
+
+        when(inspectionFieldRepository.findById(fieldId)).thenReturn(Optional.of(field));
+        when(inspectionFieldDefinitionRepository.findWithValues(definitionId)).thenReturn(definition);
+
+        ResponseEntity<?> result = inspectionFieldService.saveConditionName(fieldId, "Cedar Shakes", true);
+
+        assertThat(result.getBody()).isEqualTo(Map.of(
+                "conditionName", "Cedar Shakes",
+                "savedPermanently", true,
+                "alreadyExisted", false
+        ));
+
+        ArgumentCaptor<InspectionFieldDefinitionValue> saved =
+                ArgumentCaptor.forClass(InspectionFieldDefinitionValue.class);
+        verify(definitionValueRepository).save(saved.capture());
+        assertThat(saved.getValue().getValue()).isEqualTo("Cedar Shakes");
+        assertThat(saved.getValue().getInspectionFieldDefinition()).isEqualTo(definition);
+        // The field keeps its own name too, so this report reads the same either way.
+        assertThat(field.getConditionName()).isEqualTo("Cedar Shakes");
+    }
+
+    @Test
+    void saveConditionName_permanentButAlreadyOffered_doesNotDuplicateIt(){
+        UUID fieldId = UUID.randomUUID();
+        UUID definitionId = UUID.randomUUID();
+        InspectionFieldDefinition definition = definitionWithValues(definitionId, "blank item", "Cedar Shakes");
+        InspectionField field = blankItemField(fieldId, definition);
+
+        when(inspectionFieldRepository.findById(fieldId)).thenReturn(Optional.of(field));
+        when(inspectionFieldDefinitionRepository.findWithValues(definitionId)).thenReturn(definition);
+
+        // Same wording, different casing and padding — still the same option.
+        ResponseEntity<?> result = inspectionFieldService.saveConditionName(fieldId, "  cedar shakes  ", true);
+
+        assertThat(result.getBody()).isEqualTo(Map.of(
+                "conditionName", "cedar shakes",
+                "savedPermanently", false,
+                "alreadyExisted", true
+        ));
+        verify(definitionValueRepository, never()).save(any());
+    }
+
+    @Test
+    void saveConditionName_emptyName_clearsTheNameAndSkipsThePermanentCopy(){
+        UUID fieldId = UUID.randomUUID();
+        InspectionField field = blankItemField(fieldId, definitionWithValues(UUID.randomUUID()));
+        field.setConditionName("Old name");
+
+        when(inspectionFieldRepository.findById(fieldId)).thenReturn(Optional.of(field));
+
+        inspectionFieldService.saveConditionName(fieldId, "   ", true);
+
+        assertThat(field.getConditionName()).isNull();
+        verify(definitionValueRepository, never()).save(any());
+    }
+
+    @Test
+    void saveConditionName_fieldNotFound_returnsBadRequest(){
+        UUID fieldId = UUID.randomUUID();
+
+        when(inspectionFieldRepository.findById(fieldId)).thenReturn(Optional.empty());
+
+        ResponseEntity<?> result = inspectionFieldService.saveConditionName(fieldId, "Anything", false);
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     // IMAGE TESTS
