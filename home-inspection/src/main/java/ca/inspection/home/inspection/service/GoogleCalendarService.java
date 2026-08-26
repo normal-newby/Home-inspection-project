@@ -97,6 +97,10 @@ public class GoogleCalendarService {
         if (notBlank(profile.getGoogleRefreshToken())) {
             try {
                 calendars = listCalendars();
+                if (!writable(calendars, calendarId(profile))) {
+                    status.put("warning", "\"" + calendarId(profile) + "\" is not a calendar this Google "
+                            + "account can write to. Pick one below and save.");
+                }
             } catch (RuntimeException e) {
                 log.warn("Could not list Google calendars: {}", e.getMessage());
                 status.put("warning", "Could not reach Google Calendar. Try reconnecting.");
@@ -147,11 +151,15 @@ public class GoogleCalendarService {
         }
 
         InspectorProfile profile = inspectorProfileService.getProfile();
+        String previousAccount = profile.getGoogleAccountEmail();
+        String account = fetchAccountEmail(accessToken);
+
         profile.setGoogleRefreshToken(refreshToken);
         profile.setGoogleAccessToken(accessToken);
         profile.setGoogleTokenExpiry(expiryFrom(tokens));
-        profile.setGoogleAccountEmail(fetchAccountEmail(accessToken));
-        if (!notBlank(profile.getGoogleCalendarId())) {
+        profile.setGoogleAccountEmail(account);
+        // Calendar ids belong to the account that granted access
+        if (!notBlank(profile.getGoogleCalendarId()) || switchedAccount(previousAccount, account)) {
             profile.setGoogleCalendarId(DEFAULT_CALENDAR_ID);
         }
         profile.setGoogleCalendarEnabled(true);
@@ -167,6 +175,8 @@ public class GoogleCalendarService {
         profile.setGoogleAccessToken(null);
         profile.setGoogleTokenExpiry(null);
         profile.setGoogleAccountEmail(null);
+        // The chosen calendar only means something under the grant being revoked here.
+        profile.setGoogleCalendarId(null);
         profile.setGoogleCalendarEnabled(false);
         inspectorProfileRepository.save(profile);
 
@@ -258,7 +268,9 @@ public class GoogleCalendarService {
             log.info("Deleted Google Calendar event {} for booking {}",
                     booking.getGoogleEventId(), booking.getId());
         } catch (EventGoneException e) {
-            log.debug("Google event {} was already gone", booking.getGoogleEventId());
+            log.warn("Google event {} was not deleted: calendar {} has no such event. It was already "
+                            + "removed, or the booking was synced to a different calendar.",
+                    booking.getGoogleEventId(), calendarId(profile));
         }
     }
 
@@ -355,6 +367,15 @@ public class GoogleCalendarService {
     private boolean syncEnabled(InspectorProfile profile) {
         return notBlank(profile.getGoogleRefreshToken())
                 && !Boolean.FALSE.equals(profile.getGoogleCalendarEnabled());
+    }
+
+    private static boolean writable(List<Map<String, String>> calendars, String calendarId) {
+        return DEFAULT_CALENDAR_ID.equals(calendarId)
+                || calendars.stream().anyMatch(calendar -> calendarId.equals(calendar.get("id")));
+    }
+
+    private static boolean switchedAccount(String previous, String current) {
+        return notBlank(previous) && notBlank(current) && !previous.equalsIgnoreCase(current);
     }
 
     private static String calendarId(InspectorProfile profile) {

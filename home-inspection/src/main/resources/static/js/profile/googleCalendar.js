@@ -43,12 +43,13 @@ function render(status) {
         option.textContent = calendar.name;
         calendarSelect.appendChild(option);
     });
-    // The saved calendar may not be in the list (renamed, or access removed); keep it
-    // selectable rather than silently switching the inspector to another calendar.
+
     if (calendarId && !Array.from(calendarSelect.options).some(o => o.value === calendarId)) {
         const option = document.createElement("option");
         option.value = calendarId;
-        option.textContent = calendarId;
+        option.textContent = connected && calendarId !== "primary"
+            ? `${calendarId} — not available on this account`
+            : calendarId;
         calendarSelect.appendChild(option);
     }
     calendarSelect.value = calendarId ?? "primary";

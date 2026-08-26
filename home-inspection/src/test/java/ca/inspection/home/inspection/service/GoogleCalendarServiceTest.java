@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -203,5 +204,71 @@ public class GoogleCalendarServiceTest {
         assertThat(profile.getGoogleAccountEmail()).isNull();
         assertThat(profile.getGoogleCalendarEnabled()).isFalse();
         verify(inspectorProfileRepository).save(profile);
+    }
+
+    @Test
+    void disconnect_forgetsTheChosenCalendar() {
+        InspectorProfile profile = new InspectorProfile();
+        profile.setGoogleAccountEmail("inspector@example.com");
+        profile.setGoogleCalendarId("someone.else@gmail.com");
+        when(inspectorProfileService.getProfile()).thenReturn(profile);
+
+        googleCalendarService.disconnect();
+
+        assertThat(profile.getGoogleCalendarId()).isNull();
+    }
+
+    // STATUS: a calendar the account cannot write to
+
+    @Test
+    void status_calendarMissingFromTheAccount_isCalledOut() {
+        InspectorProfile profile = new InspectorProfile();
+        profile.setGoogleRefreshToken("refresh-token");
+        profile.setGoogleCalendarId("someone.else@gmail.com");
+        when(inspectorProfileService.getProfile()).thenReturn(profile);
+
+        GoogleCalendarService service = serviceListing(
+                List.of(Map.of("id", "inspector@example.com", "name", "Work")));
+
+        Map<String, Object> status = service.status();
+
+        assertThat(status).containsEntry("calendarId", "someone.else@gmail.com");
+        assertThat((String) status.get("warning")).contains("someone.else@gmail.com");
+    }
+
+    @Test
+    void status_chosenCalendarIsWritable_hasNoWarning() {
+        InspectorProfile profile = new InspectorProfile();
+        profile.setGoogleRefreshToken("refresh-token");
+        profile.setGoogleCalendarId("inspector@example.com");
+        when(inspectorProfileService.getProfile()).thenReturn(profile);
+
+        GoogleCalendarService service = serviceListing(
+                List.of(Map.of("id", "inspector@example.com", "name", "Work")));
+
+        assertThat(service.status()).doesNotContainKey("warning");
+    }
+
+    @Test
+    void status_primaryNeedsNoListing() {
+        InspectorProfile profile = new InspectorProfile();
+        profile.setGoogleRefreshToken("refresh-token");
+        when(inspectorProfileService.getProfile()).thenReturn(profile);
+
+        GoogleCalendarService service = serviceListing(List.of());
+
+        assertThat(service.status()).doesNotContainKey("warning");
+    }
+
+    private GoogleCalendarService serviceListing(List<Map<String, String>> calendars) {
+        GoogleCalendarService service = new GoogleCalendarService() {
+            @Override
+            public List<Map<String, String>> listCalendars() {
+                return calendars;
+            }
+        };
+        ReflectionTestUtils.setField(service, "inspectorProfileService", inspectorProfileService);
+        ReflectionTestUtils.setField(service, "inspectorProfileRepository", inspectorProfileRepository);
+        return service;
     }
 }
