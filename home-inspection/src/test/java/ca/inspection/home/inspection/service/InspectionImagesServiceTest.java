@@ -90,6 +90,46 @@ public class InspectionImagesServiceTest {
         return false;
     }
 
+    private static boolean isReddish(BufferedImage img, int x, int y) {
+        if (x < 0 || y < 0 || x >= img.getWidth() || y >= img.getHeight()) return false;
+        Color c = new Color(img.getRGB(x, y));
+        return c.getRed() > 100 && c.getRed() - c.getGreen() > 50 && c.getRed() - c.getBlue() > 50;
+    }
+
+    private int paintedRunInColumn(BufferedImage img, int column) {
+        int run = 0;
+        for (int y = 0; y < img.getHeight(); y++) {
+            if (isReddish(img, column, y)) run++;
+        }
+        return run;
+    }
+
+    private int[] paintedBounds(BufferedImage img) {
+        int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, maxX = -1, maxY = -1;
+        for (int y = 0; y < img.getHeight(); y++) {
+            for (int x = 0; x < img.getWidth(); x++) {
+                if (!isReddish(img, x, y)) continue;
+                minX = Math.min(minX, x);
+                minY = Math.min(minY, y);
+                maxX = Math.max(maxX, x);
+                maxY = Math.max(maxY, y);
+            }
+        }
+        return maxX < 0 ? null : new int[]{minX, minY, maxX, maxY};
+    }
+
+    private BufferedImage render(ImageAnnotation annotation, int imageWidth, int imageHeight)
+            throws IOException {
+        UUID id = UUID.randomUUID();
+        String fileName = "photo-" + id + ".jpg";
+        createJpegFile(fileName, imageWidth, imageHeight);
+
+        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.of(fileName));
+        when(helperFunctions.getDirectory()).thenReturn(tempDir);
+
+        return decodeBase64Image(inspectionImagesService.toBase64(id, Set.of(annotation)));
+    }
+
     private ImageAnnotation newAnnotation(String type, String color, String strokeWidth) {
         ImageAnnotation annotation = new ImageAnnotation();
         annotation.setType(type);
@@ -487,5 +527,128 @@ public class InspectionImagesServiceTest {
         ResponseEntity<Void> result = inspectionImagesService.deleteImage(id);
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    // ANNOTATION SCALING (what the report burns in vs what the canvas drew)
+
+    @Test
+    void toBase64_strokeThickness_scalesWithThePhotoNotAFixedMultiplier() throws IOException {
+        // Drawn on a 200px wide view of a 800px wide photo: 4x. The canvas stroked it at
+        // 2px, so the burned in line should be about 8px — the old code drew a fixed 20px,
+        // which is why annotations printed fatter than they were drawn.
+        ImageAnnotation rectangle = newAnnotation("rectangle", "#ff0000", "2");
+        rectangle.setImageDisplayWidth(200.0);
+        rectangle.setImageDisplayHeight(200.0);
+        rectangle.setX(50.0);
+        rectangle.setY(50.0);
+        rectangle.setWidth(100.0);
+        rectangle.setHeight(100.0);
+
+        BufferedImage rendered = render(rectangle, 800, 800);
+
+        // A column through the middle of the rectangle crosses its top and bottom edges.
+        int painted = paintedRunInColumn(rendered, 400);
+        assertThat(painted).isBetween(12, 20); // two edges of roughly 8px, allowing for jpeg edges
+    }
+
+    @Test
+    void toBase64_strokeThickness_keepsTheSameProportionAtEveryPhotoSize() throws IOException {
+        ImageAnnotation small = newAnnotation("rectangle", "#ff0000", "2");
+        small.setImageDisplayWidth(200.0);
+        small.setImageDisplayHeight(200.0);
+        small.setX(50.0);
+        small.setY(50.0);
+        small.setWidth(100.0);
+        small.setHeight(100.0);
+
+        ImageAnnotation large = newAnnotation("rectangle", "#ff0000", "2");
+        large.setImageDisplayWidth(200.0);
+        large.setImageDisplayHeight(200.0);
+        large.setX(50.0);
+        large.setY(50.0);
+        large.setWidth(100.0);
+        large.setHeight(100.0);
+
+        int thin = paintedRunInColumn(render(small, 400, 400), 200);   // 2x
+        int thick = paintedRunInColumn(render(large, 800, 800), 400);  // 4x
+
+        // Twice the photo, twice the ink: the annotation covers the same fraction either way.
+        assertThat((double) thick / thin).isCloseTo(2.0, within(0.35));
+    }
+
+    @Test
+    void toBase64_ellipse_isCentredOnThePointItWasDrawnAround() throws IOException {
+        // The canvas stores an ellipse as centre + radii; drawOval takes a bounding box.
+        ImageAnnotation ellipse = newAnnotation("ellipse", "#ff0000", "1");
+        ellipse.setImageDisplayWidth(400.0);
+        ellipse.setImageDisplayHeight(400.0);
+        ellipse.setX(200.0);   // centre
+        ellipse.setY(200.0);
+        ellipse.setWidth(100.0);  // radii
+        ellipse.setHeight(50.0);
+
+        int[] bounds = paintedBounds(render(ellipse, 400, 400));
+
+        assertThat(bounds).isNotNull();
+        // Spans centre +/- radius on each axis, rather than starting at the centre.
+        assertThat(bounds[0]).isCloseTo(100, within(4));  // minX
+        assertThat(bounds[2]).isCloseTo(300, within(4));  // maxX
+        assertThat(bounds[1]).isCloseTo(150, within(4));  // minY
+        assertThat(bounds[3]).isCloseTo(250, within(4));  // maxY
+    }
+
+    @Test
+    void toBase64_ellipse_scalesUpWithThePhoto() throws IOException {
+        ImageAnnotation ellipse = newAnnotation("ellipse", "#ff0000", "1");
+        ellipse.setImageDisplayWidth(200.0);
+        ellipse.setImageDisplayHeight(200.0);
+        ellipse.setX(100.0);
+        ellipse.setY(100.0);
+        ellipse.setWidth(50.0);
+        ellipse.setHeight(50.0);
+
+        int[] bounds = paintedBounds(render(ellipse, 400, 400)); // 2x
+
+        assertThat(bounds).isNotNull();
+        assertThat(bounds[0]).isCloseTo(100, within(6));
+        assertThat(bounds[2]).isCloseTo(300, within(6));
+    }
+
+    @Test
+    void toBase64_text_keepsScalingWithThePhoto() throws IOException {
+        // Guards the text path while the stroke maths around it changed: the canvas uses a
+        // font of strokeWidth * 10, and the report has to scale that by the same factor.
+        ImageAnnotation text = newAnnotation("text", "#ff0000", "2");
+        text.setImageDisplayWidth(200.0);
+        text.setImageDisplayHeight(200.0);
+        text.setX(20.0);
+        text.setY(100.0);
+        text.setContent("Hello");
+
+        int[] atOneX = paintedBounds(render(text, 200, 200));
+        int[] atThreeX = paintedBounds(render(text, 600, 600));
+
+        assertThat(atOneX).isNotNull();
+        assertThat(atThreeX).isNotNull();
+        double heightOneX = atOneX[3] - atOneX[1] + 1;
+        double heightThreeX = atThreeX[3] - atThreeX[1] + 1;
+        assertThat(heightThreeX / heightOneX).isCloseTo(3.0, within(0.4));
+    }
+
+    @Test
+    void toBase64_missingDisplaySize_rendersAtFullSizeInsteadOfFailing() throws IOException {
+        // Rows written before the display size was recorded must not blow up the report.
+        ImageAnnotation rectangle = newAnnotation("rectangle", "#ff0000", "2");
+        rectangle.setImageDisplayWidth(null);
+        rectangle.setImageDisplayHeight(null);
+        rectangle.setX(20.0);
+        rectangle.setY(20.0);
+        rectangle.setWidth(60.0);
+        rectangle.setHeight(60.0);
+
+        int[] bounds = paintedBounds(render(rectangle, 200, 200));
+
+        assertThat(bounds).isNotNull();
+        assertThat(bounds[0]).isCloseTo(20, within(4));
     }
 }

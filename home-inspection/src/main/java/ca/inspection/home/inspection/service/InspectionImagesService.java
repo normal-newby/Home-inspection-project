@@ -195,12 +195,15 @@ public class InspectionImagesService {
                     Color color = Color.decode(annotation.getColor() == null ? "#ff0000" : annotation.getColor());
                     graphics2D.setColor(color);
 
-                    double sizeSteps = parseSize(annotation.getStrokeWidth());
-                    float stroke = (float)(10 * sizeSteps);
-                    graphics2D.setStroke(new BasicStroke(stroke));
+                    // Ensures proper scaling versus scaled down photo in annotation js
+                    double scaleX = scaleFor(annotation.getImageDisplayWidth(), imgWidth);
+                    double scaleY = scaleFor(annotation.getImageDisplayHeight(), imgHeight);
+                    double scale = (scaleX + scaleY) / 2;
 
-                    double scaleX = imgWidth / annotation.getImageDisplayWidth();
-                    double scaleY = imgHeight / annotation.getImageDisplayHeight();
+                    double sizeSteps = parseSize(annotation.getStrokeWidth());
+
+                    float stroke = (float) Math.max(1, sizeSteps * scale);
+                    graphics2D.setStroke(new BasicStroke(stroke));
 
                     int x = (int)(annotation.getX() * scaleX);
                     int y = (int)(annotation.getY() * scaleY);
@@ -210,10 +213,10 @@ public class InspectionImagesService {
                     String type = annotation.getType();
                     switch (type) {
                         case "rectangle" -> graphics2D.drawRect(x, y, width, height);
-                        case "ellipse" -> graphics2D.drawOval(x, y, width, height);
-                        case "circle" -> graphics2D.drawOval(x, y, width, height);
+                        case "ellipse", "circle" ->
+                                graphics2D.drawOval(x - width, y - height, width * 2, height * 2);
                         case "text" -> {
-                            int fontSize = (int)(stroke * scaleX);
+                            int fontSize = (int) Math.round(sizeSteps * CANVAS_TEXT_PX_PER_STEP * scale);
                             Font font = new Font("Arial Unicode MS", Font.PLAIN, fontSize);
                             if (font.canDisplayUpTo(annotation.getContent()) != -1){
                                 font = new Font("SansSerif", Font.PLAIN, fontSize);
@@ -241,6 +244,12 @@ public class InspectionImagesService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static final double CANVAS_TEXT_PX_PER_STEP = 10;
+
+    private static double scaleFor(Double displayed, double actual){
+        return displayed == null || displayed <= 0 ? 1 : actual / displayed;
     }
 
     private static double parseSize(String strokeWidth){
