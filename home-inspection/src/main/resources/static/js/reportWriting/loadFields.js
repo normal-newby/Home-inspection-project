@@ -21,6 +21,17 @@ const existingImageImage = document.querySelector(".existing-image-image");
 const saveNoteButton = document.getElementById("save-note");
 const noteTextArea = document.getElementById("note-text");
 
+// Condition name — only shown for "blank item" fields, which the inspector names themselves.
+const BLANK_ITEM = "blank item";
+const conditionNameSection = document.querySelector(".condition-name-section");
+const conditionNameInput = document.getElementById("condition-name");
+const savePermanentValueBox = document.getElementById("save-permanent-value");
+const saveConditionNameButton = document.getElementById("save-condition-name");
+const conditionNameMessage = document.querySelector(".condition-name-message");
+
+// The blank item currently open in the panel: { field, button } or null.
+let openBlankItem = null;
+
 const includeInSummaryRow = document.querySelector(".include-summary-row");
 const includeInSummaryBox = document.getElementById("include-in-summary");
 
@@ -151,7 +162,7 @@ function createField(field, existingFields = []){
 
 async function renderFields(valuesDiv, field, existingFields = null){
     existingFields.forEach(existingField => {
-        createExistingField(valuesDiv, existingField); // For already inputted fields
+        createExistingField(valuesDiv, existingField, field); // For already inputted fields
     });
 
     //Create buttons
@@ -180,11 +191,11 @@ function createButton(parent, value, fieldId){ //Creates buttons for possible va
     parent.appendChild(button);
 }
 
-function createExistingField(parent, field){ // Creates buttons for already inputted values, with the possibility to delete or change image
+function createExistingField(parent, field, definition){ // Creates buttons for already inputted values, with the possibility to delete or change image
     const button = document.createElement("button");
     button.classList.add("value-button");
     button.classList.add("selected-button");
-    button.textContent = field.selectedValue.value;
+    button.textContent = fieldLabel(field);
     button.dataset.id = field.id;
 
     button.addEventListener("contextmenu", (e) => { // Right click to delete
@@ -204,6 +215,8 @@ function createExistingField(parent, field){ // Creates buttons for already inpu
         showExistingImage(field.inspectionImages, button.dataset.id);
         selectImageDiv.hidden = false;
 
+        openConditionName(field, button, definition, parent);
+
         addExistingImages(bookingId, selectImageDiv, button.dataset.id, field.inspectionImages); // Add images to select from
 
         fetchExisting(`http://localhost:8080/api/fields/${button.dataset.id}/note`, noteTextArea); // Fetch existing note for the field
@@ -218,6 +231,88 @@ function createExistingField(parent, field){ // Creates buttons for already inpu
     }); 
     parent.appendChild(button);
 }
+
+/** What a selected field's button reads: the typed condition name, or the picked value. */
+function fieldLabel(field){
+    const name = field.conditionName;
+    return name && name.trim() ? name.trim() : field.selectedValue.value;
+}
+
+function isBlankItem(field){
+    return field.selectedValue?.value?.toLowerCase() === BLANK_ITEM;
+}
+
+function setConditionMessage(text, isError = false){
+    conditionNameMessage.textContent = text ?? "";
+    conditionNameMessage.classList.toggle("error", Boolean(isError));
+}
+
+/** Shows the Condition Name panel for blank items, and hides it for everything else. */
+function openConditionName(field, button, definition, valuesDiv){
+    if (!isBlankItem(field)){
+        openBlankItem = null;
+        conditionNameSection.hidden = true;
+        return;
+    }
+
+    openBlankItem = { field, button, definition, valuesDiv };
+    conditionNameSection.hidden = false;
+    conditionNameInput.value = field.conditionName ?? "";
+    savePermanentValueBox.checked = false;
+    setConditionMessage("");
+}
+
+saveConditionNameButton.addEventListener("click", async () => {
+    if (!openBlankItem) return;
+    const { field, button, definition, valuesDiv } = openBlankItem;
+    const name = conditionNameInput.value.trim();
+
+    // Adding a permanent value changes every future report, so make sure that's intended.
+    let permanent = savePermanentValueBox.checked;
+    if (permanent && !name){
+        setConditionMessage("Enter a condition name first.", true);
+        return;
+    }
+    if (permanent){
+        permanent = confirm(
+            `Save "${name}" as a permanent value?
+
+` +
+            `It will appear as a choice on this item in every future report.`
+        );
+        if (!permanent) savePermanentValueBox.checked = false;
+    }
+
+    try {
+        const response = await fetch(
+            `http://localhost:8080/api/fields/${field.id}/condition-name?saveAsPermanentValue=${permanent}`,
+            {
+                method: "PUT",
+                headers: { "Content-Type": "text/plain" },
+                body: name
+            }
+        );
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const result = await response.json();
+
+        // Keep the in-memory field in step so reopening the panel shows the saved name.
+        field.conditionName = name || null;
+        button.textContent = fieldLabel(field);
+
+        if (result.savedPermanently){
+            // Show the new option immediately instead of waiting for the next page load.
+            if (definition && valuesDiv) createButton(valuesDiv, { value: name }, definition.id);
+            setConditionMessage("Saved, and added as a permanent value.");
+        } else if (result.alreadyExisted){
+            setConditionMessage("Saved. That value was already on the list.");
+        } else {
+            setConditionMessage("Saved for this report.");
+        }
+    } catch (error){
+        console.error("Error saving condition name:", error);
+        setConditionMessage("Could not save the condition name.", true);
+    }
+});
 
 async function addExistingImages(bookingId, selectImageDiv, fieldId, images){
     const track = await initImagesSlider(bookingId, selectImageDiv, true, 4); // Initialize slider with only images not used for report

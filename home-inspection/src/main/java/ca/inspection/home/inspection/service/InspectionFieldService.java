@@ -110,7 +110,7 @@ public class InspectionFieldService {
         if (!inspectionFieldRepository.existsById(id)){
             throw new RuntimeException("InspectionField not found");
         }
-        
+
         // Does not delete images
         List<InspectionImage> images = inspectionImagesRepository.findByInspectionField_IdIn(List.of(id));
         if (!images.isEmpty()){
@@ -164,6 +164,61 @@ public class InspectionFieldService {
             log.error("Failed to remove image {} from field {}", imageId, fieldId, e);
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    // Condition name (blank items)
+    
+    public ResponseEntity<?> saveConditionName(UUID fieldId, String conditionName, boolean saveAsPermanentValue){
+        try {
+            InspectionField field = inspectionFieldRepository.findById(fieldId)
+                    .orElseThrow(() -> new RuntimeException("InspectionField not found"));
+
+            String name = conditionName == null ? "" : conditionName.trim();
+            field.setConditionName(name.isEmpty() ? null : name);
+            inspectionFieldRepository.save(field);
+
+            boolean savedPermanently = false;
+            boolean alreadyExisted = false;
+            if (saveAsPermanentValue && !name.isEmpty()){
+                PermanentValueResult result = savePermanentValue(field, name);
+                savedPermanently = result.saved();
+                alreadyExisted = result.alreadyExisted();
+            }
+
+            return ResponseEntity.ok(Map.of(
+                    "conditionName", name,
+                    "savedPermanently", savedPermanently,
+                    "alreadyExisted", alreadyExisted
+            ));
+        } catch (Exception e){
+            log.error("Failed to save condition name on field {}", fieldId, e);
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    private record PermanentValueResult(boolean saved, boolean alreadyExisted) {}
+
+    /** Adds the name to the definition's option list, unless it already offers it. */
+    private PermanentValueResult savePermanentValue(InspectionField field, String name){
+        InspectionFieldDefinition definition = inspectionFieldDefinitionRepository
+                .findWithValues(field.getInspectionFieldDefinition().getId());
+
+        boolean exists = definition.getPossibleValues().stream()
+                .map(InspectionFieldDefinitionValue::getValue)
+                .filter(Objects::nonNull)
+                .anyMatch(existing -> existing.trim().equalsIgnoreCase(name));
+        if (exists){
+            log.debug("Definition {} already offers \"{}\"", definition.getId(), name);
+            return new PermanentValueResult(false, true);
+        }
+
+        InspectionFieldDefinitionValue value = new InspectionFieldDefinitionValue();
+        value.setInspectionFieldDefinition(definition);
+        value.setValue(name);
+        inspectionFieldDefinitionValueRepository.save(value);
+
+        log.info("Saved \"{}\" as a permanent value on definition {}", name, definition.getId());
+        return new PermanentValueResult(true, false);
     }
 
     // Notes

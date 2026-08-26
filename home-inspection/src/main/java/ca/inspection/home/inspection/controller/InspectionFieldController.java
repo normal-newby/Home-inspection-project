@@ -55,6 +55,16 @@ public class InspectionFieldController {
         return inspectionFieldService.deleteImageFromField(fieldId, imageId);
     }
 
+    // Condition name (blank items)
+
+    @PutMapping("/{fieldId}/condition-name")
+    public ResponseEntity<?> updateConditionName(
+            @PathVariable UUID fieldId,
+            @RequestBody(required = false) String conditionName,
+            @RequestParam(defaultValue = "false") boolean saveAsPermanentValue){
+        return inspectionFieldService.saveConditionName(fieldId, conditionName, saveAsPermanentValue);
+    }
+
     //Notes
 
     @PostMapping("/{fieldId}/note")

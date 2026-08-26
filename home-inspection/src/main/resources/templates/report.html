@@ -268,7 +268,7 @@
             <tr th:each="field : ${section.value}">
                 <td th:text="${field.inspectionFieldDefinition.fieldName}"></td>
                 <td th:text="${field.inspectionRecommendationField?.implication}"></td>
-                <td th:text="${field.selectedValue.value}"></td>
+                <td th:text="${field.displayValue}"></td>
                 <td th:text="${field.inspectionRecommendationField.getLocationDisplay()}"></td>
                 <td th:text="${field.inspectionRecommendationField.room}"></td>
                 <td th:text="${field.inspectionRecommendationField.task}"></td>
@@ -311,28 +311,21 @@
 
                 <!-- Card Header: Field Name + Value -->
                 <div th:class="${field.inspectionRecommendationField != null or
-                    (field.note != null and !#strings.isEmpty(field.note) and (field.selectedValue == null or field.selectedValue.value != 'blank item')) or
+                    (field.note != null and !#strings.isEmpty(field.note)) or
                     (field.inspectionImages != null and !#lists.isEmpty(field.inspectionImages))}
                 ? 'report-field-header'
                 : 'report-field-header report-field-header--no-border'">
                     <span class="report-field-name" th:text="${field.inspectionFieldDefinition.fieldName}"></span>
+                    <!-- displayValue is the named condition for blank items, the picked option otherwise. -->
                     <div class="report-field-value report-field-value--right"
-                        th:if="${field.inspectionFieldDefinition.fieldType != 'recommendations' and field.selectedValue != null and field.selectedValue.value != 'blank item'}"
-                        th:text="${field.selectedValue.value}"></div>
-                    <div class="report-field-value report-field-value--right"
-                        th:if="${field.inspectionFieldDefinition.fieldType != 'recommendations' and field.selectedValue != null and field.selectedValue.value == 'blank item'}"
-                        th:text="${field.note}"></div>
+                        th:if="${field.inspectionFieldDefinition.fieldType != 'recommendations' and field.displayValue != null}"
+                        th:text="${field.displayValue}"></div>
                 </div>
 
                 <div class="report-field-condition"
                      th:if="${field.inspectionFieldDefinition.fieldType == 'recommendations'}">
                     <span class="report-meta-label">Condition</span>
-                    <span class="report-field-value-text"
-                          th:if="${field.selectedValue != null and field.selectedValue.value != 'blank item'}"
-                          th:text="${field.selectedValue.value}"></span>
-                    <span class="report-field-value-text"
-                          th:if="${field.selectedValue == null or field.selectedValue.value == 'blank item'}"
-                          th:text="${field.note}"></span>
+                    <span class="report-field-value-text" th:text="${field.displayValue}"></span>
                 </div>
 
                 <!-- Meta Row: Floor Level + Location -->
@@ -377,7 +370,7 @@
 
                 <!-- Note -->
                 <div class="report-field-note"
-                     th:if="${field.note != null and !#strings.isEmpty(field.note) and (field.selectedValue == null or field.selectedValue.value != 'blank item')}">
+                     th:if="${field.note != null and !#strings.isEmpty(field.note)}">
                     <span class="report-meta-label">Note</span>
                     <span th:text="${field.note}"></span>
                 </div>
@@ -390,7 +383,7 @@
                              th:id="'img-' + ${field.id} + '-' + ${img.id}"
                              onerror="this.closest('.report-field-image-wrap').style.display='none'"/>
                         <div class="report-field-image-caption"
-                             th:text="|${iterStat.count}. ${(field.selectedValue != null and !#strings.isEmpty(field.selectedValue.value)) ? field.selectedValue.value : field.note}|">
+                             th:text="|${iterStat.count}. ${!#strings.isEmpty(field.displayValue) ? field.displayValue : field.note}|">
                         </div>
                     </div>
                 </div>

@@ -50,9 +50,29 @@ public class InspectionField {
     @JsonManagedReference("inspectionField-recommendation")
     private InspectionRecommendationField inspectionRecommendationField; //only used if fieldType is recommendations
 
+    // Placeholder for blank item condition
+    @Column(name = "condition_name")
+    private String conditionName;
+
     @Column(name = "note")
     private String note;
 
     @Column(name = "include_in_summary")
     private Boolean includeInSummary;
+
+    public boolean isBlankItem() {
+        return selectedValue != null
+                && InspectionFieldDefinitionValue.BLANK_ITEM.equalsIgnoreCase(selectedValue.getValue());
+    }
+
+    public String getDisplayValue() {
+        if (conditionName != null && !conditionName.isBlank()) {
+            return conditionName.trim();
+        }
+
+        if (isBlankItem()) {
+            return null;
+        }
+        return selectedValue == null ? null : selectedValue.getValue();
+    }
 }

@@ -119,6 +119,23 @@
                     </div>
                 </div>
             
+                <!-- Blank items only: the inspector names the condition themselves -->
+                <div class="condition-name-section" hidden>
+                    <div class="condition-name-header">
+                        <label for="condition-name">Condition Name</label>
+                        <div class="permanent-value-row">
+                            <input type="checkbox" id="save-permanent-value">
+                            <label for="save-permanent-value">Save as permanent value</label>
+                        </div>
+                    </div>
+                    <textarea id="condition-name" rows="2"
+                              placeholder="Name this condition, e.g. Cracked parging at front wall"></textarea>
+                    <div class="condition-name-actions">
+                        <button id="save-condition-name">Save Condition Name</button>
+                        <span class="condition-name-message"></span>
+                    </div>
+                </div>
+
                 <div class="images-section">
                     <button class="nav-btn prev">←</button>
                     <div class="images-viewport">

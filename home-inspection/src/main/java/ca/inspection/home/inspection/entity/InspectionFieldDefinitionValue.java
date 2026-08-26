@@ -16,6 +16,9 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class InspectionFieldDefinitionValue {
+
+    public static final String BLANK_ITEM = "blank item";
+
     @GeneratedValue
     @Id
     @Column(name = "id", columnDefinition = "TEXT")

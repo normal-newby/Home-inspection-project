@@ -162,6 +162,10 @@ public class GeminiService {
             for (InspectionField field : issues) {
                 InspectionRecommendationField r = field.getInspectionRecommendationField();
                 data.append("  - ");
+                // The condition the inspector recorded
+                if (notBlank(field.getDisplayValue())) {
+                    data.append("Condition: ").append(field.getDisplayValue().trim()).append(" | ");
+                }
                 if (notBlank(r.getTask())) {
                     data.append("Issue: ").append(r.getTask().trim());
                 }

@@ -119,10 +119,23 @@ Click a value to record it against this booking's report.
 - **Right-click** a selected value to delete it.
 - **Double-click** a selected value to open the edit panel — from here you
   can:
+  - Name the condition, if the value is a **blank item** (see below)
   - Attach or change images (see §3.3)
   - Add a note (free text specific to this field)
   - If the field type is **Recommendations**, set recommendation details
     and toggle whether it appears in the report's summary table (see §3.4)
+
+**Blank items.** All fields offer a **blank item** option for conditions the
+canned wording doesn't cover. Double-click a selected blank item and the edit
+panel shows a **Condition Name** box: whatever you type there is what the report
+prints for that field, and it's kept on that booking only.
+
+Tick **Save as permanent value** beside it to also add the name to that field's
+option list — after confirming, it becomes a button you can pick on every future
+report. Leaving it unticked keeps the name to this report.
+
+The note field is now free for actual notes on blank items; previously the note
+doubled as the item's name.
 
 Fields you use often can be **pinned** so they're always expanded — click
 **Pin** on a field's header (toggles to **Unpin**). Fields with existing

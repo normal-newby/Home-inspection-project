@@ -242,3 +242,107 @@
 #show-recommendation-button[hidden] { 
     display: none; 
 }
+
+/* ── Condition name (blank items) ── */
+.condition-name-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin: 0 0 1rem;
+}
+
+.condition-name-section[hidden] {
+    display: none;
+}
+
+.condition-name-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.condition-name-header > label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.permanent-value-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.permanent-value-row label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+}
+
+#save-permanent-value {
+    accent-color: var(--accent);
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+}
+
+#condition-name {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.65rem 0.85rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 300;
+    color: var(--ink);
+    resize: vertical;
+    line-height: 1.6;
+    transition: border-color 0.15s;
+}
+
+#condition-name:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: #fff;
+}
+
+.condition-name-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+#save-condition-name {
+    background: var(--accent);
+    color: #fff;
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    padding: 0.5rem 1.2rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+#save-condition-name:hover {
+    background: #943b08;
+    border-color: #943b08;
+}
+
+.condition-name-message {
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+
+.condition-name-message.error {
+    color: #c0392b;
+}
