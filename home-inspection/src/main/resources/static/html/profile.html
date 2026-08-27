@@ -18,177 +18,217 @@
 </div>
 
 <div class="page">
- 
+
     <div class="page-header">
         <h1>Inspector Profile</h1>
         <p>This information appears on your cover letters, invoices, and reports.</p>
     </div>
- 
+
     <div class="banner" id="successBanner">
         ✓ Profile saved successfully.
     </div>
- 
+
     <form id="profileForm">
- 
+
+        <!-- Every card is closed until its title is clicked, so the page opens as a short list of sections. -->
+
         <!-- Personal & Business Info -->
-        <div class="card">
-            <div class="card-title">Personal &amp; Business</div>
-            <div class="form-grid">
-                <div class="field">
-                    <label for="name">Full Name</label>
-                    <input type="text" id="name" placeholder="John Smith"/>
-                </div>
-                <div class="field">
-                    <label for="company">Company Name</label>
-                    <input type="text" id="company" placeholder="Smith Inspections Inc."/>
-                </div>
-                <div class="field">
-                    <label for="phone">Phone</label>
-                    <input type="tel" id="phone" placeholder="(416) 555-0100"/>
-                </div>
-                <div class="field">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" placeholder="john@smithinspections.ca"/>
-                </div>
-                <div class="field">
-                    <label for="website">Website</label>
-                    <input type="url" id="website" placeholder="https://www.abc.ca"/>
-                </div>
-                <div class="field">
-                    <label for="logoPath">Logo Path</label>
-                    <input type="text" id="logoPath" placeholder="/images/logo.png"/>
-                </div>
-                <div class="field">
-                    <label for="inspectionNumber">Inspection Number</label>
-                    <input type="number" id="inspectionNumber" placeholder="1000"/>
+        <div class="card collapsible" data-card="personal">
+            <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-personal">
+                <span class="card-title">Personal &amp; Business</span>
+                <span class="card-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="card-body" id="card-personal" hidden>
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" placeholder="John Smith"/>
+                    </div>
+                    <div class="field">
+                        <label for="company">Company Name</label>
+                        <input type="text" id="company" placeholder="Smith Inspections Inc."/>
+                    </div>
+                    <div class="field">
+                        <label for="phone">Phone</label>
+                        <input type="tel" id="phone" placeholder="(416) 555-0100"/>
+                    </div>
+                    <div class="field">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" placeholder="john@smithinspections.ca"/>
+                    </div>
+                    <div class="field">
+                        <label for="website">Website</label>
+                        <input type="url" id="website" placeholder="https://www.abc.ca"/>
+                    </div>
+                    <div class="field">
+                        <label for="logoPath">Logo Path</label>
+                        <input type="text" id="logoPath" placeholder="/images/logo.png"/>
+                    </div>
+                    <div class="field">
+                        <label for="inspectionNumber">Inspection Number</label>
+                        <input type="number" id="inspectionNumber" placeholder="1000"/>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Address -->
-        <div class="card">
-            <div class="card-title">Location</div>
-            <div class="form-grid">
-                <div class="field">
-                    <label for="address">Address</label>
-                    <input type="text" id="address" placeholder="123 Main Street"/>
-                </div>
-                <div class="field">
-                    <label for="city">City</label>
-                    <input type="text" id="city" placeholder="Toronto"/>
-                </div>
-                <div class="field">
-                    <label for="province">Province</label>
-                    <input type="text" id="province" placeholder="Ontario"/>
-                </div>
-                <div class="field">
-                    <label for="postalCode">Postal Code</label>
-                    <input type="text" id="postalCode" placeholder="M2N 6S3"/>
+        <div class="card collapsible" data-card="location">
+            <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-location">
+                <span class="card-title">Location</span>
+                <span class="card-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="card-body" id="card-location" hidden>
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="address">Address</label>
+                        <input type="text" id="address" placeholder="123 Main Street"/>
+                    </div>
+                    <div class="field">
+                        <label for="city">City</label>
+                        <input type="text" id="city" placeholder="Toronto"/>
+                    </div>
+                    <div class="field">
+                        <label for="province">Province</label>
+                        <input type="text" id="province" placeholder="Ontario"/>
+                    </div>
+                    <div class="field">
+                        <label for="postalCode">Postal Code</label>
+                        <input type="text" id="postalCode" placeholder="M2N 6S3"/>
+                    </div>
                 </div>
             </div>
         </div>
- 
+
         <!-- Document Bodies -->
-        <div class="card">
-            <div class="card-title">Cover Letter Body</div>
-            <div class="form-grid full">
-                <div class="field">
-                    <label for="coverLetterBody">Body Paragraphs</label>
-                    <textarea id="coverLetterBody" rows="20" placeholder="Thank you for choosing our inspection services..."></textarea>
-                </div>
-            </div>
-        </div>
- 
-        <div class="card">
-            <div class="card-title">Summary Letter Body</div>
-            <div class="form-grid full">
-                <div class="field">
-                    <label for="summaryLetterBody">Body Paragraphs</label>
-                    <textarea id="summaryLetterBody" rows="20" placeholder="The following is a summary of findings..."></textarea>
-                </div>
-            </div>
-        </div>
- 
-        <div class="card">
-            <div class="card-title">Agreement</div>
-            <div class="form-grid full">
-                <div class="field">
-                    <label for="agreementBody">Agreement Text</label>
-                    <textarea id="agreementBody" rows="20" placeholder="This inspection agreement is entered into..."></textarea>
+        <div class="card collapsible" data-card="cover-letter">
+            <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-cover-letter">
+                <span class="card-title">Cover Letter Body</span>
+                <span class="card-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="card-body" id="card-cover-letter" hidden>
+                <div class="form-grid full">
+                    <div class="field">
+                        <label for="coverLetterBody">Body Paragraphs</label>
+                        <textarea id="coverLetterBody" rows="20" placeholder="Thank you for choosing our inspection services..."></textarea>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-title">Default Appendix PDF</div>
-            <div class="form-grid full">
-                <div class="field">
-                    <span class="appendixPdfLabel">Current: none</span>
-                    <input type="file" id="appendixPdf" name="appendixPdf" accept=".pdf" />
+        <div class="card collapsible" data-card="summary-letter">
+            <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-summary-letter">
+                <span class="card-title">Summary Letter Body</span>
+                <span class="card-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="card-body" id="card-summary-letter" hidden>
+                <div class="form-grid full">
+                    <div class="field">
+                        <label for="summaryLetterBody">Body Paragraphs</label>
+                        <textarea id="summaryLetterBody" rows="20" placeholder="The following is a summary of findings..."></textarea>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-title">Cover Page Images</div>
-            
-            <div class="form-grid">
-                <div class="field">
-                    <label for="assetKey">Asset Key</label>
-                    <input id="assetKey" rows="1" placeholder="Enter asset key for cover page image..."></input>
+        <div class="card collapsible" data-card="agreement">
+            <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-agreement">
+                <span class="card-title">Agreement</span>
+                <span class="card-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="card-body" id="card-agreement" hidden>
+                <div class="form-grid full">
+                    <div class="field">
+                        <label for="agreementBody">Agreement Text</label>
+                        <textarea id="agreementBody" rows="20" placeholder="This inspection agreement is entered into..."></textarea>
+                    </div>
                 </div>
-                <div class="field">
-                    <span class="assetFile">Upload File</span>
-                    <input type="file" id="assetFile" name="assetFile" accept="image/*" />
-                </div>
-            </div>
-
-            <div class="actions" style="margin-top: 1rem;">
-                <button type="button" id="uploadAssetBtn" class="btn btn-primary">Upload Asset</button>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="field">
-                <label>Current Images</label>
-                <div class="asset-list" id="asset-list"></div>
             </div>
         </div>
- 
+
+        <div class="card collapsible" data-card="appendix">
+            <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-appendix">
+                <span class="card-title">Default Appendix PDF</span>
+                <span class="card-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="card-body" id="card-appendix" hidden>
+                <div class="form-grid full">
+                    <div class="field">
+                        <span class="appendixPdfLabel">Current: none</span>
+                        <input type="file" id="appendixPdf" name="appendixPdf" accept=".pdf" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card collapsible" data-card="cover-images">
+            <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-cover-images">
+                <span class="card-title">Cover Page Images</span>
+                <span class="card-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="card-body" id="card-cover-images" hidden>
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="assetKey">Asset Key</label>
+                        <input id="assetKey" rows="1" placeholder="Enter asset key for cover page image..."></input>
+                    </div>
+                    <div class="field">
+                        <span class="assetFile">Upload File</span>
+                        <input type="file" id="assetFile" name="assetFile" accept="image/*" />
+                    </div>
+                </div>
+
+                <div class="actions" style="margin-top: 1rem;">
+                    <button type="button" id="uploadAssetBtn" class="btn btn-primary">Upload Asset</button>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="field">
+                    <label>Current Images</label>
+                    <div class="asset-list" id="asset-list"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- Google Calendar -->
-        <div class="card" id="googleCalendarCard">
-            <div class="card-title">Google Calendar</div>
-
-            <div class="calendar-status">
-                <span class="calendar-dot" id="calendarDot"></span>
-                <span id="calendarStatusText">Checking connection…</span>
-                <span class="calendar-account" id="calendarAccount"></span>
-            </div>
-
-            <div class="field-error" id="calendarError"></div>
-
-            <div id="calendarConnected" style="display: none;">
-                <div class="field">
-                    <label for="googleCalendarId">Add bookings to</label>
-                    <select id="googleCalendarId"></select>
+        <div class="card collapsible" id="googleCalendarCard" data-card="google-calendar">
+            <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-google-calendar">
+                <span class="card-title">Google Calendar</span>
+                <span class="card-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="card-body" id="card-google-calendar" hidden>
+                <div class="calendar-status">
+                    <span class="calendar-dot" id="calendarDot"></span>
+                    <span id="calendarStatusText">Checking connection…</span>
+                    <span class="calendar-account" id="calendarAccount"></span>
                 </div>
 
-                <div class="checkbox-field">
-                    <input type="checkbox" id="googleCalendarEnabled">
-                    <label for="googleCalendarEnabled">Add new bookings to this calendar</label>
+                <div class="field-error" id="calendarError"></div>
+
+                <div id="calendarConnected" style="display: none;">
+                    <div class="field">
+                        <label for="googleCalendarId">Add bookings to</label>
+                        <select id="googleCalendarId"></select>
+                    </div>
+
+                    <div class="checkbox-field">
+                        <input type="checkbox" id="googleCalendarEnabled">
+                        <label for="googleCalendarEnabled">Add new bookings to this calendar</label>
+                    </div>
                 </div>
-            </div>
 
-            <p class="calendar-hint" id="calendarSetupHint" style="display: none;">
-                To turn this on, create an OAuth client (type: Web application) in the Google Cloud
-                Console with <code>http://localhost:8080/api/google/calendar/callback</code> as an
-                authorised redirect URI, then put its id and secret in <code>.env</code> as
-                <code>GOOGLE_CLIENT_ID</code> and <code>GOOGLE_CLIENT_SECRET</code> and restart the app.
-            </p>
+                <p class="calendar-hint" id="calendarSetupHint" style="display: none;">
+                    To turn this on, create an OAuth client (type: Web application) in the Google Cloud
+                    Console with <code>http://localhost:8080/api/google/calendar/callback</code> as an
+                    authorised redirect URI, then put its id and secret in <code>.env</code> as
+                    <code>GOOGLE_CLIENT_ID</code> and <code>GOOGLE_CLIENT_SECRET</code> and restart the app.
+                </p>
 
-            <div class="actions" style="margin-top: 1rem;">
-                <button type="button" id="calendarDisconnectBtn" class="btn btn-secondary" style="display: none;">Disconnect</button>
-                <button type="button" id="calendarConnectBtn" class="btn btn-primary">Connect Google Calendar</button>
+                <div class="actions" style="margin-top: 1rem;">
+                    <button type="button" id="calendarDisconnectBtn" class="btn btn-secondary" style="display: none;">Disconnect</button>
+                    <button type="button" id="calendarConnectBtn" class="btn btn-primary">Connect Google Calendar</button>
+                </div>
             </div>
         </div>
 
@@ -198,10 +238,11 @@
         </div>
 
         <div class="resultBanner"></div>
- 
+
     </form>
 </div>
 
+<script type = "module" src = "../js/profile/profileCards.js"></script>
 <script type = "module" src = "../js/profile/profile.js"></script>
 <script type = "module" src = "../js/formFactory.js"></script>
 <script type = "module" src = "../js/profile/companyAssets.js"></script>

@@ -18,8 +18,80 @@
     border-bottom: 1px solid var(--border);
 }
 
+/* ── Collapsible card (profile) ── */
+.card.collapsible {
+    padding: 1rem 2.5rem;
+    margin-bottom: 0.75rem;
+    transition: padding 0.15s, margin-bottom 0.15s;
+}
+
+.card.collapsible.open {
+    padding: 2rem 2.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.card-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 0;
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.card-toggle .card-title {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+    transition: color 0.15s;
+}
+
+.card-toggle:hover .card-title,
+.card.collapsible.open .card-title {
+    color: var(--ink);
+}
+
+.card-toggle:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+}
+
+.card.collapsible.open .card-toggle {
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.card-chevron {
+    flex: none;
+    width: 0;
+    height: 0;
+    border-left: 5px solid var(--muted);
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    transition: transform 0.15s, border-left-color 0.15s;
+}
+
+.card.collapsible.open .card-chevron {
+    transform: rotate(90deg);
+}
+
+.card-toggle:hover .card-chevron {
+    border-left-color: var(--ink);
+}
+
+.card-body[hidden] {
+    display: none;
+}
+
 .form-grid {
     display: grid;
+
     grid-template-columns: 1fr 1fr;
     gap: 1.25rem 2rem;
 }
