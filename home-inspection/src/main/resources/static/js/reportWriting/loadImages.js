@@ -142,33 +142,16 @@ export async function refreshImageCounts(){
     renderImageCounts(await getImages());
 }
 
-// Preloads thumbnails
-async function preloadThumbs(images){
-    const total = images.length;
-    if (total === 0) return;
-
-    let done = 0;
-    setProgress(false, 0, "Loading images...");
-
-    await Promise.all(images.map(async (image) => {
-        try {
-            const img = new Image();
-            img.src = thumbUrl(image.id);
-            await img.decode().catch(() => {});
-        } finally {
-            done++;
-            const percent = Math.round((done / total) * 100);
-            setProgress(false, percent, "Loading images...");
-        }
-    }));
-
-    resetProgress();
-}
+const sliderControllers = new WeakMap();
 
 export async function initImagesSlider(bookingId, container, getUsedForReport = false, rows = 1){
     const imagesTrack = container.querySelector(".images-track");
     const nextButton = container.querySelector(".next");
     const prevButton = container.querySelector(".prev");
+
+    sliderControllers.get(container)?.abort();
+    const controller = new AbortController();
+    sliderControllers.set(container, controller);
 
     const imagesPerSlide = rows * 6;
 
@@ -200,6 +183,9 @@ export async function initImagesSlider(bookingId, container, getUsedForReport = 
             imagesTrack.appendChild(slide);
         }
         totalSlides = Math.ceil(imagesToRender.length/imagesPerSlide);
+
+        currentSlide = 0;
+        updateSlider();
     }
 
     function updateSlider() {
@@ -210,18 +196,19 @@ export async function initImagesSlider(bookingId, container, getUsedForReport = 
         if (!(currentSlide > 0)) return;
         currentSlide--;
         updateSlider();
-    });
+    }, { signal: controller.signal });
 
     nextButton.addEventListener("click", () => {
         if (!(currentSlide < totalSlides-1)) return;
         currentSlide++;
         updateSlider();
-    });
+    }, { signal: controller.signal });
 
     const images = await getImages(bookingId);
-    await preloadThumbs(images);
+    // No preloading, fetches along the way
     loopImages(images);
     renderImageCounts(images);
+    resetProgress();
 
     return imagesTrack;
 }
