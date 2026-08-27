@@ -181,6 +181,10 @@ public class InspectionImagesService {
             Path filePath = helperFunctions.getDirectory().resolve(imageUrl);
             BufferedImage img = ImageIO.read(filePath.toFile());
 
+            // Down to print size before anything else: annotations are placed against the
+            // dimensions read below, so scaling first keeps them proportional for free.
+            img = scaleForReport(img);
+
             //resize
             double imgWidth = img.getWidth();
             double imgHeight = img.getHeight();
@@ -247,6 +251,34 @@ public class InspectionImagesService {
     }
 
     private static final double CANVAS_TEXT_PX_PER_STEP = 10;
+
+    private static final int DEFAULT_REPORT_IMAGE_MAX_WIDTH = 1600;
+
+    @Value("${report.image.max-width:1600}")
+    private int reportImageMaxWidth = DEFAULT_REPORT_IMAGE_MAX_WIDTH;
+
+    private int maxReportWidth(){
+        return reportImageMaxWidth > 0 ? reportImageMaxWidth : DEFAULT_REPORT_IMAGE_MAX_WIDTH;
+    }
+
+    // Scale to 1600 (no big difference in quality)
+    private BufferedImage scaleForReport(BufferedImage source){
+        int maxWidth = maxReportWidth();
+        if (source == null || source.getWidth() <= maxWidth) return source;
+
+        int width = maxWidth;
+        int height = Math.max(1, (int) Math.round(
+                source.getHeight() * ((double) maxWidth / source.getWidth())));
+
+        BufferedImage scaled = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        Graphics2D graphics2D = scaled.createGraphics();
+        graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        graphics2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        graphics2D.drawImage(source, 0, 0, width, height, null);
+        graphics2D.dispose();
+
+        return scaled;
+    }
 
     private static double scaleFor(Double displayed, double actual){
         return displayed == null || displayed <= 0 ? 1 : actual / displayed;
