@@ -635,6 +635,45 @@ public class InspectionImagesServiceTest {
         assertThat(heightThreeX / heightOneX).isCloseTo(3.0, within(0.4));
     }
 
+    // REPORT IMAGE DOWNSCALING
+
+    @Test
+    void toBase64_photoLargerThanPrintSize_isScaledDownToTheCap() throws IOException {
+        // A phone photo carries far more pixels than a letter page can show, and every one of
+        // them costs memory through decode, annotate, re-encode and base64.
+        BufferedImage rendered = render(newAnnotation("rectangle", "#ff0000", "1"), 4000, 3000);
+
+        assertThat(rendered.getWidth()).isEqualTo(1600);
+        assertThat(rendered.getHeight()).isEqualTo(1200); // aspect ratio kept
+    }
+
+    @Test
+    void toBase64_photoAlreadySmallEnough_isLeftAtItsOwnSize() throws IOException {
+        BufferedImage rendered = render(newAnnotation("rectangle", "#ff0000", "1"), 800, 600);
+
+        assertThat(rendered.getWidth()).isEqualTo(800);
+        assertThat(rendered.getHeight()).isEqualTo(600);
+    }
+
+    @Test
+    void toBase64_scaledPhoto_keepsAnnotationsInTheSamePlace() throws IOException {
+        // The annotation covers the middle quarter of the canvas it was drawn on, so it has to
+        // land on the middle quarter of the scaled photo too.
+        ImageAnnotation rectangle = newAnnotation("rectangle", "#ff0000", "2");
+        rectangle.setImageDisplayWidth(400.0);
+        rectangle.setImageDisplayHeight(400.0);
+        rectangle.setX(100.0);
+        rectangle.setY(100.0);
+        rectangle.setWidth(200.0);
+        rectangle.setHeight(200.0);
+
+        int[] bounds = paintedBounds(render(rectangle, 4000, 4000));
+
+        assertThat(bounds).isNotNull();
+        assertThat(bounds[0]).isCloseTo(400, within(10));   // a quarter of 1600
+        assertThat(bounds[2]).isCloseTo(1200, within(10));  // three quarters of 1600
+    }
+
     @Test
     void toBase64_missingDisplaySize_rendersAtFullSizeInsteadOfFailing() throws IOException {
         // Rows written before the display size was recorded must not blow up the report.
