@@ -1,4 +1,5 @@
 import { bookingId } from "./getReport.js";
+import { confirmDialog, notify } from "../ui/dialog.js";
 
 const saveImagesButton = document.getElementById("save-images-button");
 const bodyDiv = document.querySelector(".body_content");
@@ -68,7 +69,7 @@ saveImagesButton.addEventListener("click", async (e) => {
     const input = document.getElementById("image-input");
     const files = Array.from(input.files);
     if (files.length === 0){
-        alert("Please select image");
+        notify("Pick at least one image first.", { error: true });
         return;
     }
 
@@ -224,9 +225,13 @@ async function initialize(){
 
 initialize();
 
-function deleteImage(e, imageId){
+async function deleteImage(e, imageId){
     e.preventDefault();
-    if (!confirm("Are you sure you want to delete this image?")) return;
+    const confirmed = await confirmDialog(
+        "The photo is deleted from this report for good, along with any annotations on it.",
+        { title: "Delete this image?", confirmLabel: "Delete image", danger: true }
+    );
+    if (!confirmed) return;
 
     fetch(`http://localhost:8080/api/images/${imageId}`, {
         method: "DELETE"

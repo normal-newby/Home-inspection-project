@@ -3,6 +3,7 @@ import { initImagesSlider, refreshImageCounts } from "./loadImages.js";
 import { addAnnotationCanvas } from "./imageAnnotation.js";
 import { setUpRecommendationsPanel } from "./recommendations.js";
 import { fetchExisting, saveFunction } from "../fetchExisting.js";
+import { confirmDialog, notify } from "../ui/dialog.js";
 
 const params = new URLSearchParams(window.location.search);
 let place = params.get("place");
@@ -202,12 +203,14 @@ function createExistingField(parent, field, definition){ // Creates buttons for 
         e.preventDefault();
 
         // Deleting was unconfirmed and a right-click is easy to land by accident.
-        if (!confirm(`Delete "${fieldLabel(field)}" from this report?
-
-Any images on it go back to the unused pool.`)) return;
+        const confirmed = await confirmDialog(
+            "Any images on it go back to the unused pool.",
+            { title: `Delete "${fieldLabel(field)}"?`, confirmLabel: "Delete item", danger: true }
+        );
+        if (!confirmed) return;
 
         if (!await deleteInspectionField(button.dataset.id)){
-            alert("Could not delete that item.");
+            notify("Could not delete that item.", { error: true });
             return;
         }
 
@@ -292,11 +295,9 @@ saveConditionNameButton.addEventListener("click", async () => {
         return;
     }
     if (permanent){
-        permanent = confirm(
-            `Save "${name}" as a permanent value?
-
-` +
-            `It will appear as a choice on this item in every future report.`
+        permanent = await confirmDialog(
+            "It will appear as a choice on this item in every future report.",
+            { title: `Save "${name}" as a permanent value?`, confirmLabel: "Save permanently" }
         );
         if (!permanent) savePermanentValueBox.checked = false;
     }
@@ -479,10 +480,13 @@ function showExistingImage(images, fieldId){
 
         thumb.addEventListener("contextmenu", async (e) => {
             e.preventDefault();
-            if (confirm("Are you sure you want to remove this image from the field?")) {
-                if (!await flushAnnotations()) return;
-                deleteImageFromField(thumb, image.id, fieldId);
-            }
+            const confirmed = await confirmDialog(
+                "The photo goes back to the unused pool. Its annotations are kept.",
+                { title: "Remove this image from the item?", confirmLabel: "Remove image", danger: true }
+            );
+            if (!confirmed) return;
+            if (!await flushAnnotations()) return;
+            deleteImageFromField(thumb, image.id, fieldId);
         });
                     
         gallery.appendChild(thumb);
@@ -588,34 +592,50 @@ searchBar.addEventListener("input", () => { //search function for fields
     });
 });
 
+function markActiveTabs(){
+    buttons.forEach(b => b.classList.toggle("active", b.getAttribute("data-target") === place));
+    lowerButtons.forEach(b => b.classList.toggle("active", b.getAttribute("data-target") === type));
+}
+
+async function closeFieldPanel(){
+    if (!await flushAnnotations()) return false;
+    selectImageDiv.hidden = true;
+    recommendationsPanel.hidden = true;
+    clearCanvas();
+    curField = null;
+    return true;
+}
+
+async function goTo(newPlace, newType){
+    if (!await closeFieldPanel()) return;
+
+    place = newPlace;
+    type = newType;
+    markActiveTabs();
+    history.pushState({ place, type }, "", `report_writing.html?id=${bookingId}&place=${place}&type=${type}`);
+    loadInspectionFieldDefinitions();
+}
+
+markActiveTabs();
+// So the first entry in the history stack carries a place/type too, rather than null state.
+history.replaceState({ place, type }, "");
+
 buttons.forEach(button => { //place buttons
-    if (button.getAttribute("data-target") === place) button.classList.add("active");
-    button.addEventListener("click", () => {
-        const newPlace = button.getAttribute("data-target");
-
-        buttons.forEach(b => b.classList.remove("active"));
-        button.classList.add("active");
-
-        place = newPlace;
-        history.pushState(null, "", `report_writing.html?id=${bookingId}&place=${place}&type=${type}`);
-        
-        loadInspectionFieldDefinitions();
-    });
+    button.addEventListener("click", () => goTo(button.getAttribute("data-target"), type));
 });
 
 lowerButtons.forEach(button => { //type buttons
-    if (button.getAttribute("data-target") === type) button.classList.add("active");
-    button.addEventListener("click", () => {
-        const newType = button.getAttribute("data-target");
+    button.addEventListener("click", () => goTo(place, button.getAttribute("data-target")));
+});
 
-        lowerButtons.forEach(b => b.classList.remove("active"));
-        button.classList.add("active");
+window.addEventListener("popstate", async () => {
+    const url = new URLSearchParams(window.location.search);
+    place = url.get("place") ?? place;
+    type = url.get("type") ?? type;
 
-        type = newType;
-        history.pushState(null, "", `report_writing.html?id=${bookingId}&place=${place}&type=${type}`);
-
-        loadInspectionFieldDefinitions();
-    });
+    await closeFieldPanel();
+    markActiveTabs();
+    loadInspectionFieldDefinitions();
 });
 
 saveNoteButton.addEventListener("click", (e) => saveFunction(e, noteTextArea));

@@ -1,3 +1,4 @@
+import { notify } from "../ui/dialog.js";
 const definitionTypes = ["direction", "floorLevel", "room", "task", "time", "cost", "implication"];
 let sectionValues; /* = {Structure
     type : list({id, value})
@@ -228,7 +229,7 @@ function submitRecommendations(fieldId, saveAsDefault = false) {
     })
     .catch(error => {
         console.error(error);
-        alert(`Could not save recommendations: ${error.message}`);
+        notify(`Could not save recommendations: ${error.message}`, { error: true });
     });
 }
 

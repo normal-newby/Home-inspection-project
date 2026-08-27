@@ -765,7 +765,19 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
         return created.length > 0 || updated.length > 0;
     }
 
-    async function saveAnnotations(){
+    // One user action can reach two teardown paths at once — clicking a place tab is also a
+    // click outside the panel — and two saves running together would post the same
+    // annotation twice. Callers share whichever save is already in flight.
+    let saveInFlight = null;
+
+    function saveAnnotations(){
+        if (!saveInFlight){
+            saveInFlight = sendAnnotations().finally(() => { saveInFlight = null; });
+        }
+        return saveInFlight;
+    }
+
+    async function sendAnnotations(){
         // New annotations are created; ones edited since the last save are updated in place.
         const { created, updated } = unsavedAnnotations();
 

@@ -1,3 +1,4 @@
+import { confirmDialog } from "../ui/dialog.js";
 const BASE = "http://localhost:8080/api/google/calendar";
 
 const dot = document.getElementById("calendarDot");
@@ -94,7 +95,11 @@ connectBtn.addEventListener("click", () => {
 });
 
 disconnectBtn.addEventListener("click", async () => {
-    if (!confirm("Disconnect Google Calendar? New bookings will stop being added to it.")) return;
+    const confirmed = await confirmDialog(
+        "New bookings will stop being added to it. Events already there stay put.",
+        { title: "Disconnect Google Calendar?", confirmLabel: "Disconnect", danger: true }
+    );
+    if (!confirmed) return;
     showError(null);
     try {
         const res = await fetch(`${BASE}/disconnect`, { method: "POST" });

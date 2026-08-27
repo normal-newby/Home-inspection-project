@@ -1,3 +1,4 @@
+import { confirmDialog, notify } from "../ui/dialog.js";
 const URI = "http://localhost:8080/api/company-assets";
 
 const assetKeySelect = document.getElementById("assetKey");
@@ -50,7 +51,7 @@ async function uploadAsset() {
     const file = assetFileInput.files[0];
 
     if (!key || !file) {
-        alert("Please select a key and a file to upload.");
+        notify("Pick an asset key and a file before uploading.", { error: true });
         return;
     }
 
@@ -70,12 +71,16 @@ async function uploadAsset() {
         await fetchAssets();
     } catch (error) {
         console.error('Error uploading asset:', error);
-        alert("Failed to upload asset. Please try again.");
+        notify("Could not upload that asset. Please try again.", { error: true });
     }
 }
 
-function deleteAsset(key) {
-    if (!confirm("Are you sure you want to delete this asset?")) return;
+async function deleteAsset(key) {
+    const confirmed = await confirmDialog(
+        "This image will be removed from every report that uses it.",
+        { title: "Delete this asset?", confirmLabel: "Delete asset", danger: true }
+    );
+    if (!confirmed) return;
 
     fetch(`${URI}/${key}`, {
         method: 'DELETE'

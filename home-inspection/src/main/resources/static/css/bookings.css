@@ -123,8 +123,8 @@
 }
 
 .booking-filter.active {
-    background: var(--ink);
-    border-color: var(--ink);
+    background: var(--accent);
+    border-color: var(--accent);
     color: var(--card);
 }
 

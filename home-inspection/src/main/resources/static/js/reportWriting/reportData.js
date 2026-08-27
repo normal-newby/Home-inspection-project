@@ -1,4 +1,5 @@
 import { saveForm, loadForm } from "../formFactory.js";
+import { notify } from "../ui/dialog.js";
 import { bookingId } from "./getReport.js";
 
 const URI = `http://localhost:8080/api/reports/${bookingId}`;
@@ -27,7 +28,7 @@ async function generateSummary() {
         document.getElementById("summary").value = data.summary ?? "";
     } catch (err) {
         console.error("Error generating summary:", err);
-        alert("Could not generate summary: " + err.message);
+        notify("Could not generate summary: " + err.message, { error: true });
     } finally {
         generateSummaryBtn.disabled = false;
         generateSummaryBtn.textContent = label;
