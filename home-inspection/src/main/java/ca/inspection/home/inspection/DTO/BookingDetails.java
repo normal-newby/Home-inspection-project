@@ -1,5 +1,6 @@
 package ca.inspection.home.inspection.DTO;
 
+import ca.inspection.home.inspection.entity.BookingStatus;
 import ca.inspection.home.inspection.entity.Invoice;
 
 import java.util.List;
@@ -22,6 +23,7 @@ public interface BookingDetails {
     Integer getYear();
     String getStartTime();
     Integer getDurationMinutes();
+    BookingStatus getStatus();
     String getReferredBy();
     String getBookedBy();
     Boolean getPaidInFull();

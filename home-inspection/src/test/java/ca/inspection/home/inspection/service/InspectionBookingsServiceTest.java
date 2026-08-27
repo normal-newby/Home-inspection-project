@@ -2,6 +2,7 @@ package ca.inspection.home.inspection.service;
 
 import ca.inspection.home.inspection.DTO.BookingDetails;
 import ca.inspection.home.inspection.DTO.InvoiceAmount;
+import ca.inspection.home.inspection.entity.BookingStatus;
 import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectionReport;
 import ca.inspection.home.inspection.entity.InspectorProfile;
@@ -17,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -433,5 +436,145 @@ public class InspectionBookingsServiceTest {
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         verify(inspectionBookingsRepository, never()).delete(any());
+    }
+
+    // BOOKING ORDER — what is coming up, then what already happened, then undated
+
+    /** Minimal stand-in for the projection: only the fields the ordering looks at. */
+    private BookingDetails booking(String name, String month, Integer day, Integer year) {
+        BookingDetails details = mock(BookingDetails.class);
+        lenient().when(details.getClientLastName()).thenReturn(name);
+        lenient().when(details.getMonth()).thenReturn(month);
+        lenient().when(details.getDay()).thenReturn(day);
+        lenient().when(details.getYear()).thenReturn(year);
+        return details;
+    }
+
+    private List<String> orderOf(LocalDate today, BookingDetails... bookings) {
+        List<BookingDetails> list = new ArrayList<>(List.of(bookings));
+        list.sort(InspectionBookingsService.byInspectionDate(today));
+        return list.stream().map(BookingDetails::getClientLastName).toList();
+    }
+
+    @Test
+    void order_upcomingBookingsComeFirstAndSoonestLeads() {
+        LocalDate today = LocalDate.of(2026, 6, 1);
+
+        List<String> order = orderOf(today,
+                booking("later", "August", 20, 2026),
+                booking("soonest", "June", 3, 2026),
+                booking("middle", "July", 10, 2026));
+
+        assertThat(order).containsExactly("soonest", "middle", "later");
+    }
+
+    @Test
+    void order_pastBookingsFollowUpcomingWithTheMostRecentFirst() {
+        LocalDate today = LocalDate.of(2026, 6, 1);
+
+        List<String> order = orderOf(today,
+                booking("longAgo", "January", 5, 2026),
+                booking("upcoming", "June", 10, 2026),
+                booking("recentPast", "May", 28, 2026));
+
+        assertThat(order).containsExactly("upcoming", "recentPast", "longAgo");
+    }
+
+    @Test
+    void order_bookingsWithNoDateSitAtTheBottom() {
+        LocalDate today = LocalDate.of(2026, 6, 1);
+
+        List<String> order = orderOf(today,
+                booking("undated", null, null, null),
+                booking("past", "March", 2, 2026),
+                booking("upcoming", "June", 30, 2026));
+
+        assertThat(order).containsExactly("upcoming", "past", "undated");
+    }
+
+    @Test
+    void order_todaysInspectionCountsAsUpcoming() {
+        LocalDate today = LocalDate.of(2026, 6, 1);
+
+        List<String> order = orderOf(today,
+                booking("yesterday", "May", 31, 2026),
+                booking("today", "June", 1, 2026));
+
+        assertThat(order).containsExactly("today", "yesterday");
+    }
+
+    @Test
+    void order_unparseableDateIsTreatedAsUndatedRatherThanFailing() {
+        LocalDate today = LocalDate.of(2026, 6, 1);
+
+        List<String> order = orderOf(today,
+                booking("nonsense", "Smarch", 40, 2026),
+                booking("real", "June", 5, 2026));
+
+        assertThat(order).containsExactly("real", "nonsense");
+    }
+
+    // BOOKING STATUS
+
+    @Test
+    void updateStatus_validStatus_savesIt() {
+        UUID id = UUID.randomUUID();
+        InspectionBookings booking = new InspectionBookings();
+        booking.setId(id);
+
+        when(inspectionBookingsRepository.findById(id)).thenReturn(Optional.of(booking));
+
+        ResponseEntity<?> result = inspectionBookingsService.updateStatus(id, "IN_PROGRESS");
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(booking.getStatus()).isEqualTo(BookingStatus.IN_PROGRESS);
+        verify(inspectionBookingsRepository).save(booking);
+    }
+
+    @Test
+    void updateStatus_unknownStatus_returnsBadRequestWithoutTouchingTheRow() {
+        ResponseEntity<?> result = inspectionBookingsService.updateStatus(UUID.randomUUID(), "ON_FIRE");
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        verify(inspectionBookingsRepository, never()).save(any());
+    }
+
+    @Test
+    void updateStatus_bookingNotFound_returnsBadRequest() {
+        UUID id = UUID.randomUUID();
+        when(inspectionBookingsRepository.findById(id)).thenReturn(Optional.empty());
+
+        ResponseEntity<?> result = inspectionBookingsService.updateStatus(id, "COMPLETED");
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        verify(inspectionBookingsRepository, never()).save(any());
+    }
+
+    @Test
+    void status_rowsPredatingTheColumn_readBackAsScheduled() {
+        InspectionBookings booking = new InspectionBookings();
+        booking.setStatus(null);
+
+        assertThat(booking.getStatus()).isEqualTo(BookingStatus.SCHEDULED);
+    }
+
+    @Test
+    void updateBooking_formSave_keepsTheStatusSetFromTheCard() {
+        // The booking form has no status control, so its payload arrives with status unset.
+        UUID id = UUID.randomUUID();
+
+        InspectionBookings existing = new InspectionBookings();
+        existing.setId(id);
+        existing.setStatus(BookingStatus.COMPLETED);
+
+        InspectionBookings incoming = new InspectionBookings();
+        incoming.setClientFirstName("Jane");
+
+        when(inspectionBookingsRepository.findById(id)).thenReturn(Optional.of(existing));
+
+        ResponseEntity<?> result = inspectionBookingsService.updateBooking(id, incoming);
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(incoming.getStatus()).isEqualTo(BookingStatus.COMPLETED);
     }
 }

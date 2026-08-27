@@ -37,6 +37,11 @@ public class InspectionBookingsController {
         return inspectionBookingsService.updateBooking(id, bookings);
     }
 
+    @PutMapping("/bookings/{id}/status")
+    public ResponseEntity<?> updateBookingStatus(@PathVariable UUID id, @RequestBody String status){
+        return inspectionBookingsService.updateStatus(id, status);
+    }
+
     @DeleteMapping("/bookings/{id}")
     public ResponseEntity<?> deleteBooking(@PathVariable UUID id){
         return inspectionBookingsService.deleteBooking(id);

@@ -2,6 +2,7 @@ package ca.inspection.home.inspection.service;
 
 import ca.inspection.home.inspection.DTO.BookingDetails;
 import ca.inspection.home.inspection.DTO.InvoiceAmount;
+import ca.inspection.home.inspection.entity.BookingStatus;
 import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectionReport;
 import ca.inspection.home.inspection.entity.InspectorProfile;
@@ -15,7 +16,12 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.format.TextStyle;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 @Service
@@ -69,8 +75,76 @@ public class InspectionBookingsService {
         }
     }
 
+    // Sorting
     public List<BookingDetails> findAll(){
-        return inspectionBookingsRepository.findBookingDetailsByOrderByCreatedAtDesc();
+        LocalDate today = LocalDate.now();
+        return inspectionBookingsRepository.findBookingDetailsByOrderByCreatedAtDesc().stream()
+                .sorted(byInspectionDate(today))
+                .toList();
+    }
+
+    static Comparator<BookingDetails> byInspectionDate(LocalDate today){
+        return Comparator
+                // 0 = upcoming, 1 = past, 2 = no date set
+                .comparingInt((BookingDetails booking) -> {
+                    LocalDate date = inspectionDate(booking);
+                    if (date == null) return 2;
+                    return date.isBefore(today) ? 1 : 0;
+                })
+                .thenComparing(booking -> {
+                    LocalDate date = inspectionDate(booking);
+                    if (date == null) return LocalDate.MAX;
+                    // Past bookings count backwards, so the most recent one leads that group.
+                    return date.isBefore(today) ? LocalDate.MAX.minusDays(date.toEpochDay()) : date;
+                })
+                .thenComparing(booking -> booking.getClientLastName() == null ? "" : booking.getClientLastName());
+    }
+
+    static LocalDate inspectionDate(BookingDetails booking){
+        String rawMonth = booking.getMonth();
+        Integer day = booking.getDay();
+        Integer year = booking.getYear();
+        if (rawMonth == null || rawMonth.isBlank() || day == null || year == null) return null;
+
+        try {
+            return LocalDate.of(year, parseMonth(rawMonth), day);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    private static Month parseMonth(String raw){
+        String value = raw.trim();
+        if (value.chars().allMatch(Character::isDigit)) return Month.of(Integer.parseInt(value));
+
+        for (Month candidate : Month.values()){
+            if (candidate.getDisplayName(TextStyle.FULL, Locale.CANADA).equalsIgnoreCase(value)
+                    || candidate.getDisplayName(TextStyle.SHORT, Locale.CANADA).equalsIgnoreCase(value)){
+                return candidate;
+            }
+        }
+        throw new IllegalArgumentException("\"" + raw + "\" is not a valid month.");
+    }
+
+    public ResponseEntity<?> updateStatus(UUID id, String status){
+        BookingStatus parsed;
+        try {
+            parsed = BookingStatus.parse(status);
+        } catch (IllegalArgumentException e){
+            log.warn("Rejected booking status {} for {}: {}", status, id, e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+
+        try {
+            InspectionBookings booking = inspectionBookingsRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Booking not found: " + id));
+            booking.setStatus(parsed);
+            inspectionBookingsRepository.save(booking);
+            return ResponseEntity.ok().build();
+        } catch (Exception e){
+            log.error("Failed to set status on booking {}", id, e);
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     public InspectionBookings findById(UUID id){
@@ -102,6 +176,8 @@ public class InspectionBookingsService {
                 if (booking.getGoogleEventId() == null){
                     booking.setGoogleEventId(existing.getGoogleEventId());
                 }
+                // The form has no status control, so its save would otherwise reset it.
+                booking.setStatus(existing.getStatus());
             });
             if (booking.getInvoices() != null){
                 booking.getInvoices().forEach(invoice -> invoice.setBookings(booking));

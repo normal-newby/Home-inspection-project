@@ -52,6 +52,16 @@ public class InspectionBookings {
     // How long the inspection is expected to run, in minutes.
     private Integer durationMinutes;
 
+    // Where this booking is in the inspector's workflow
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private BookingStatus status = BookingStatus.SCHEDULED;
+
+    // Defaults to scheduled
+    public BookingStatus getStatus() {
+        return BookingStatus.orDefault(status);
+    }
+
     // Metadata
     private String referredBy;
     private String bookedBy;

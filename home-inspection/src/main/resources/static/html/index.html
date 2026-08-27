@@ -6,6 +6,7 @@
     <title>My Web Page</title>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/bookings.css">
+    <link rel="stylesheet" href="../css/dialog.css">
 </head>
 <body>
     <div class="navbar">
@@ -21,8 +22,16 @@
             <h1>Bookings</h1>
             <p>Bookings information</p>
         </div>
+        <div class="booking-filters" role="group" aria-label="Filter bookings by status">
+            <button type="button" class="booking-filter active" data-status="ALL">All <span class="booking-filter-count">0</span></button>
+            <button type="button" class="booking-filter" data-status="SCHEDULED">Scheduled <span class="booking-filter-count">0</span></button>
+            <button type="button" class="booking-filter" data-status="IN_PROGRESS">In Progress <span class="booking-filter-count">0</span></button>
+            <button type="button" class="booking-filter" data-status="COMPLETED">Completed <span class="booking-filter-count">0</span></button>
+        </div>
+
         <div class = "bookings-container"></div>
+        <p class="bookings-empty" hidden>No bookings with this status.</p>
     </div>
-    <script src="../js/index/getBookings.js"></script>
+    <script type="module" src="../js/index/getBookings.js"></script>
 </body>
 </html>
