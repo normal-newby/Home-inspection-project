@@ -20,8 +20,13 @@ const HANDLE_GRAB_RADIUS = 7;
 const MIN_SHAPE_SIZE = 6;
 const SELECTION_COLOR = "#2c6ca3";
 
-// Remembered across image switches, so a chosen size sticks for the session.
+// Text sits on top of a photo, where white reads far better than the red shapes use.
+const DEFAULT_SHAPE_COLOUR = "#ff0000";
+const DEFAULT_TEXT_COLOUR = "#ffffff";
+
+// Remembered across image switches, so a chosen size or colour sticks for the session.
 const rememberedSizes = { shape: DEFAULT_SHAPE_SIZE, text: DEFAULT_TEXT_SIZE };
+const rememberedColours = { shape: DEFAULT_SHAPE_COLOUR, text: DEFAULT_TEXT_COLOUR };
 
 function sizeBucket(tool){
     return tool === "text" ? "text" : "shape";
@@ -115,12 +120,17 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
         strokeSizeValue.textContent = value;
     }
 
-    setStrokeSize(rememberedSizes[sizeBucket(sharedState.currentTool)]);
+    function applyToolDefaults(tool){
+        setStrokeSize(rememberedSizes[sizeBucket(tool)]);
+        colourPicker.value = rememberedColours[sizeBucket(tool)];
+    }
+
+    applyToolDefaults(sharedState.currentTool);
 
     // loadFields calls this whenever the active tool or mode changes.
     sharedState.onToolChange = () => {
         if (!sharedState.editMode) clearSelection();
-        if (sharedState.currentTool) setStrokeSize(rememberedSizes[sizeBucket(sharedState.currentTool)]);
+        if (sharedState.currentTool) applyToolDefaults(sharedState.currentTool);
         updateEditHint();
     };
 
@@ -138,6 +148,8 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
     });
 
     colourPicker.addEventListener("input", () => {
+        if (sharedState.currentTool) rememberedColours[sizeBucket(sharedState.currentTool)] = colourPicker.value;
+
         if (selected){
             selected.color = colourPicker.value;
             markEdited(selected);
