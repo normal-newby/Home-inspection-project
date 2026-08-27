@@ -281,8 +281,9 @@ public class InspectionFieldService {
             InspectionImage image = inspectionImagesRepository.findById(imageId)
                     .orElseThrow(() -> new RuntimeException("InspectionImage not found"));
             annotation.setInspectionImage(image);
-            imageAnnotationRepository.save(annotation);
-            return ResponseEntity.ok().build();
+            ImageAnnotation saved = imageAnnotationRepository.save(annotation);
+            // The editor needs the generated id back, so saving again edits instead of duplicating.
+            return ResponseEntity.ok(saved);
         } catch (Exception e){
             log.error("Failed to add annotation to image {}", imageId, e);
             return ResponseEntity.badRequest().build();
@@ -291,6 +292,32 @@ public class InspectionFieldService {
 
     public List<ImageAnnotation> getAnnotations(UUID imageId){
         return imageAnnotationRepository.findByInspectionImageId(imageId);
+    }
+
+    // The editor sends the whole annotation back, so the server-owned fields are kept from the stored row.
+    public ResponseEntity<?> updateAnnotation(UUID annotationId, ImageAnnotation updated){
+        try {
+            ImageAnnotation annotation = imageAnnotationRepository.findById(annotationId)
+                    .orElseThrow(() -> new RuntimeException("Annotation not found"));
+
+            if (updated.getType() != null) annotation.setType(updated.getType());
+            annotation.setX(updated.getX());
+            annotation.setY(updated.getY());
+            annotation.setWidth(updated.getWidth());
+            annotation.setHeight(updated.getHeight());
+            annotation.setContent(updated.getContent());
+            annotation.setColor(updated.getColor());
+            annotation.setStrokeWidth(updated.getStrokeWidth());
+            annotation.setFixedLength(updated.getFixedLength());
+            annotation.setImageDisplayWidth(updated.getImageDisplayWidth());
+            annotation.setImageDisplayHeight(updated.getImageDisplayHeight());
+
+            imageAnnotationRepository.save(annotation);
+            return ResponseEntity.ok().build();
+        } catch (Exception e){
+            log.error("Failed to update annotation {}", annotationId, e);
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     public ResponseEntity<?> deleteAnnotation(UUID annotationId){

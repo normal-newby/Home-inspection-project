@@ -107,13 +107,14 @@
                         <button id="add-text">Add Text</button>
 
                         <!-- Commands -->
+                        <button id="edit-mode">Edit Mode</button>
                         <button id="delete-mode">Delete Mode</button>
                         <button id="save-annotations">Save</button>
 
                         <!-- Other -->
                         <input type="color" id="color-picker" value="#ff0000">
-                        <label for="stroke-size" class="stroke-label">Size: <span id="stroke-size-value">1</span></label>
-                        <input type="range" id="stroke-size" min="1" max="10" value="1">
+                        <label for="stroke-size" class="stroke-label">Size: <span id="stroke-size-value">3</span></label>
+                        <input type="range" id="stroke-size" min="1" max="10" value="3">
 
                         <!-- Arrows only: snap the direction to 45° steps -->
                         <span class="clip-angle-field">
@@ -127,6 +128,7 @@
                             <label for="fix-arrow-length" class="stroke-label">Fix length</label>
                         </span>
 
+                        <span id="edit-hint" hidden></span>
                         <span id="success-message"></span>
                     </div>
                 </div>

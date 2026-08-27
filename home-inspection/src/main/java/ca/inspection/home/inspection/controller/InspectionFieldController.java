@@ -94,6 +94,11 @@ public class InspectionFieldController {
         return inspectionFieldService.getAnnotations(imageId);
     }
 
+    @PutMapping("/annotations/{annotationId}")
+    public ResponseEntity<?> updateAnnotation(@PathVariable UUID annotationId, @RequestBody ImageAnnotation annotation){
+        return inspectionFieldService.updateAnnotation(annotationId, annotation);
+    }
+
     @DeleteMapping("/annotations/{annotationId}")
     public ResponseEntity<?> deleteAnnotation(@PathVariable UUID annotationId){
         return inspectionFieldService.deleteAnnotation(annotationId);

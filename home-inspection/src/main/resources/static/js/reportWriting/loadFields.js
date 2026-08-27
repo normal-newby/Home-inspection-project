@@ -325,7 +325,7 @@ async function addExistingImages(bookingId, selectImageDiv, fieldId, images){
 }
 
 
-const sharedState = { currentTool: null, deleteMode: false }; // Shared state for annotation tools
+const sharedState = { currentTool: null, deleteMode: false, editMode: false, onToolChange: null }; // Shared state for annotation tools
 
 const toolsDiv = existingImageDiv.querySelector(".annotation-tools");
 
@@ -335,6 +335,7 @@ const ellipseTool = toolsDiv.querySelector("#ellipse-tool");
 const arrowTool = toolsDiv.querySelector("#arrow-tool");
 const textTool = toolsDiv.querySelector("#add-text");
 const deleteModeButton = toolsDiv.querySelector("#delete-mode");
+const editModeButton = toolsDiv.querySelector("#edit-mode");
 
 function removeActiveStates(except) {
     toolsDiv.querySelectorAll("button").forEach(
@@ -344,17 +345,37 @@ function removeActiveStates(except) {
     );
 }
 
+function resetModeButtons(){
+    sharedState.deleteMode = false;
+    sharedState.editMode = false;
+    deleteModeButton.textContent = "Delete Mode";
+    editModeButton.textContent = "Edit Mode";
+}
+
 function handleClick(button, tool) {
     const canvas = existingImageDiv.querySelector("canvas");
     removeActiveStates(button);
-    if (tool === "delete") {
-        sharedState.deleteMode = !sharedState.deleteMode;
+
+    if (tool === "delete" || tool === "edit") {
+        const turningOn = tool === "delete" ? !sharedState.deleteMode : !sharedState.editMode;
+        resetModeButtons();
         sharedState.currentTool = null;
-        canvas.style.cursor = sharedState.deleteMode ? "pointer" : "default";
-        deleteModeButton.textContent = sharedState.deleteMode ? "Exit Delete Mode" : "Delete Mode";
-        deleteModeButton.classList.toggle("active", sharedState.deleteMode);
+
+        if (tool === "delete") {
+            sharedState.deleteMode = turningOn;
+            deleteModeButton.textContent = turningOn ? "Exit Delete Mode" : "Delete Mode";
+            canvas.style.cursor = turningOn ? "pointer" : "default";
+        } else {
+            sharedState.editMode = turningOn;
+            editModeButton.textContent = turningOn ? "Exit Edit Mode" : "Edit Mode";
+            canvas.style.cursor = "default";
+        }
+
+        button.classList.toggle("active", turningOn);
+        sharedState.onToolChange?.();
         return;
     }
+
     if (button.classList.contains("active")) {
         sharedState.currentTool = null;
         button.classList.remove("active");
@@ -364,8 +385,8 @@ function handleClick(button, tool) {
         button.classList.add("active");
         canvas.style.cursor = "crosshair";
     }
-    sharedState.deleteMode = false;
-    deleteModeButton.textContent = "Delete Mode";
+    resetModeButtons();
+    sharedState.onToolChange?.();
 }
 
 rectTool.addEventListener("click", () => handleClick(rectTool, "rectangle"));
@@ -374,6 +395,7 @@ ellipseTool.addEventListener("click", () => handleClick(ellipseTool, "ellipse"))
 arrowTool.addEventListener("click", () => handleClick(arrowTool, "arrow"));
 textTool.addEventListener("click", () => handleClick(textTool, "text"));
 deleteModeButton.addEventListener("click", () => handleClick(deleteModeButton, "delete"));
+editModeButton.addEventListener("click", () => handleClick(editModeButton, "edit"));
 
 function clearCanvas(){
     existingImageText.innerHTML = "";
@@ -410,7 +432,7 @@ function showExistingImage(images, fieldId){
         thumb.addEventListener("click", () => {
             // Reset states
             sharedState.currentTool = null;
-            sharedState.deleteMode = false;
+            resetModeButtons();
             removeActiveStates(null);
 
             // Deselect all

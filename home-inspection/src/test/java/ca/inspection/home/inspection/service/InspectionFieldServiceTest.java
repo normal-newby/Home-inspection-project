@@ -607,11 +607,14 @@ public class InspectionFieldServiceTest {
         ImageAnnotation annotation = new ImageAnnotation();
 
         when(inspectionImagesRepository.findById(imageId)).thenReturn(Optional.of(image));
+        when(imageAnnotationRepository.save(annotation)).thenReturn(annotation);
 
         ResponseEntity<?> result = inspectionFieldService.addAnnotation(imageId, annotation);
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(annotation.getInspectionImage()).isEqualTo(image);
+        // The editor needs the saved row back to pick up the generated id.
+        assertThat(result.getBody()).isSameAs(annotation);
         verify(imageAnnotationRepository).save(annotation);
     }
 
@@ -658,6 +661,90 @@ public class InspectionFieldServiceTest {
         List<ImageAnnotation> result = inspectionFieldService.getAnnotations(imageId);
 
         assertThat(result).isEmpty();
+    }
+
+    // Update Annotation
+
+    @Test
+    void updateAnnotation_hasAnnotation_appliesEditableFields(){
+        UUID annotationId = UUID.randomUUID();
+        InspectionImage image = new InspectionImage();
+        image.setId(UUID.randomUUID());
+
+        ImageAnnotation stored = new ImageAnnotation();
+        stored.setId(annotationId);
+        stored.setInspectionImage(image);
+        stored.setType("rectangle");
+        stored.setX(10.0);
+        stored.setY(20.0);
+        stored.setWidth(30.0);
+        stored.setHeight(40.0);
+        stored.setColor("#ff0000");
+        stored.setStrokeWidth("1");
+
+        ImageAnnotation updated = new ImageAnnotation();
+        updated.setType("rectangle");
+        updated.setX(55.0);
+        updated.setY(65.0);
+        updated.setWidth(120.0);
+        updated.setHeight(90.0);
+        updated.setColor("#00ff00");
+        updated.setStrokeWidth("3");
+        updated.setImageDisplayWidth(800.0);
+        updated.setImageDisplayHeight(600.0);
+
+        when(imageAnnotationRepository.findById(annotationId)).thenReturn(Optional.of(stored));
+
+        ResponseEntity<?> result = inspectionFieldService.updateAnnotation(annotationId, updated);
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(stored.getX()).isEqualTo(55.0);
+        assertThat(stored.getY()).isEqualTo(65.0);
+        assertThat(stored.getWidth()).isEqualTo(120.0);
+        assertThat(stored.getHeight()).isEqualTo(90.0);
+        assertThat(stored.getColor()).isEqualTo("#00ff00");
+        assertThat(stored.getStrokeWidth()).isEqualTo("3");
+        assertThat(stored.getImageDisplayWidth()).isEqualTo(800.0);
+        assertThat(stored.getImageDisplayHeight()).isEqualTo(600.0);
+        verify(imageAnnotationRepository).save(stored);
+    }
+
+    @Test
+    void updateAnnotation_bodyMissingServerOwnedFields_keepsThem(){
+        UUID annotationId = UUID.randomUUID();
+        InspectionImage image = new InspectionImage();
+        image.setId(UUID.randomUUID());
+
+        ImageAnnotation stored = new ImageAnnotation();
+        stored.setId(annotationId);
+        stored.setInspectionImage(image);
+        stored.setType("arrow");
+
+        // The editor posts the annotation without its id or owning image.
+        ImageAnnotation updated = new ImageAnnotation();
+        updated.setX(5.0);
+        updated.setY(5.0);
+
+        when(imageAnnotationRepository.findById(annotationId)).thenReturn(Optional.of(stored));
+
+        ResponseEntity<?> result = inspectionFieldService.updateAnnotation(annotationId, updated);
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(stored.getId()).isEqualTo(annotationId);
+        assertThat(stored.getInspectionImage()).isEqualTo(image);
+        assertThat(stored.getType()).isEqualTo("arrow");
+    }
+
+    @Test
+    void updateAnnotation_noAnnotation_returnsBadRequest(){
+        UUID annotationId = UUID.randomUUID();
+
+        when(imageAnnotationRepository.findById(annotationId)).thenReturn(Optional.empty());
+
+        ResponseEntity<?> result = inspectionFieldService.updateAnnotation(annotationId, new ImageAnnotation());
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        verify(imageAnnotationRepository, never()).save(any(ImageAnnotation.class));
     }
 
     // Delete Annotations
