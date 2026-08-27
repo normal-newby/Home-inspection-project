@@ -9,21 +9,25 @@ const progressPercentage = document.querySelector(".upload-progress-percentage")
 const progressLabel = progressBox?.querySelector(".upload-progress-label");
 const defaultProgressLabelHTML = progressLabel?.innerHTML;
 
-function saveImage(image) {
+async function saveImage(image) {
     const formData = new FormData();
     formData.append("file", image);
 
-    return fetch(`http://localhost:8080/api/images/${bookingId}/upload`, {
-        method: "POST",
-        body: formData
-    })
-    .then(response => {
+    try {
+        const response = await fetch(`http://localhost:8080/api/images/${bookingId}/upload`, {
+            method: "POST",
+            body: formData
+        });
+        if (!response.ok) {
+            console.error(`Upload failed for ${image.name}: HTTP ${response.status}`);
+            return false;
+        }
         invalidateImageCache();
-        console.log(response);
-    })
-    .catch(error => {
-        console.log(error);
-    });
+        return true;
+    } catch (error) {
+        console.error(`Upload failed for ${image.name}:`, error);
+        return false;
+    }
 }
 
 function setProgress(hide, percent, labelText) {
@@ -42,6 +46,17 @@ function resetProgress() {
     if (progressLabel && defaultProgressLabelHTML != null) {
         progressLabel.innerHTML = defaultProgressLabelHTML;
     }
+    progressBox?.classList.remove("upload-failed");
+}
+
+function showUploadFailure(failed, total) {
+    if (!progressBox) return;
+    progressBox.hidden = false;
+    progressBox.classList.add("upload-failed");
+    if (progressLabel) {
+        progressLabel.textContent =
+            `${failed} of ${total} ${total === 1 ? "image" : "images"} failed to upload — nothing was saved for those. Press Save Images to retry.`;
+    }
 }
 
 const UPLOAD_CONCURRENCY = 4;
@@ -59,6 +74,7 @@ saveImagesButton.addEventListener("click", async (e) => {
 
     const total = files.length;
     let done = 0;
+    let failed = 0;
     setProgress(false, 0, "Uploading...");
 
     // Parallel uploading
@@ -67,14 +83,20 @@ saveImagesButton.addEventListener("click", async (e) => {
         while (true) {
             const i = next++;
             if (i >= total) return;
-            await saveImage(files[i]);
+            if (!await saveImage(files[i])) failed++;
             done++;
             setProgress(false, Math.round((done / total) * 100), "Uploading...");
         }
     }
     await Promise.all(Array.from({length: Math.min(UPLOAD_CONCURRENCY, total)}, worker));
 
-    initialize();
+    await initialize();
+
+    if (failed > 0) {
+        showUploadFailure(failed, total);
+    } else {
+        input.value = "";
+    }
 });
 
 // Metadata cache: bookingId -> image list (fetched from /api/images/{bookingId})

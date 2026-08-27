@@ -25,7 +25,10 @@ public class InspectionImagesController {
                              @RequestParam("file") MultipartFile file
     ) throws IOException {
         try {
-            inspectionImagesService.saveImages(file, id);
+            InspectionImage saved = inspectionImagesService.saveImages(file, id);
+            if (saved == null) {
+                return ResponseEntity.status(500).body("Upload failed");
+            }
             return ResponseEntity.ok("Saved");
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error: " + e.getMessage());
