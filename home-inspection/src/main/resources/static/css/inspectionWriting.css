@@ -143,6 +143,23 @@
     white-space: nowrap;
 }
 
+/* A failed upload keeps the bar on screen and states what did not save. */
+.upload-progress.upload-failed {
+    border-color: #c0392b;
+    background: #fdf0ee;
+}
+
+.upload-progress.upload-failed .upload-progress-bar-track {
+    display: none;
+}
+
+.upload-progress.upload-failed .upload-progress-label {
+    color: #c0392b;
+    white-space: normal;
+    text-transform: none;
+    letter-spacing: 0.02em;
+}
+
 .btn {
 	padding: 0.55rem 1.2rem;
 	font-family: 'DM Sans', sans-serif;

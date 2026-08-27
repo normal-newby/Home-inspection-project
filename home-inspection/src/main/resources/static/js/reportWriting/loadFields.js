@@ -198,14 +198,32 @@ function createExistingField(parent, field, definition){ // Creates buttons for 
     button.textContent = fieldLabel(field);
     button.dataset.id = field.id;
 
-    button.addEventListener("contextmenu", (e) => { // Right click to delete
+    button.addEventListener("contextmenu", async (e) => { // Right click to delete
         e.preventDefault();
-        deleteInspectionField(button.dataset.id);
-        loadInspectionFieldDefinitions();
+
+        // Deleting was unconfirmed and a right-click is easy to land by accident.
+        if (!confirm(`Delete "${fieldLabel(field)}" from this report?
+
+Any images on it go back to the unused pool.`)) return;
+
+        if (!await deleteInspectionField(button.dataset.id)){
+            alert("Could not delete that item.");
+            return;
+        }
+
+        if (curField === button.dataset.id){
+            selectImageDiv.hidden = true;
+            clearCanvas();
+            curField = null;
+        }
+
+        await loadInspectionFieldDefinitions();
     });
 
-    button.addEventListener("dblclick", (e) => { // Double click to change image
+    button.addEventListener("dblclick", async (e) => { // Double click to change image
         e.preventDefault();
+        if (!await flushAnnotations()) return;
+
         button.classList.add("current-button");
 
         curField = button.dataset.id;
@@ -397,6 +415,11 @@ textTool.addEventListener("click", () => handleClick(textTool, "text"));
 deleteModeButton.addEventListener("click", () => handleClick(deleteModeButton, "delete"));
 editModeButton.addEventListener("click", () => handleClick(editModeButton, "edit"));
 
+async function flushAnnotations(){
+    if (!sharedState.flushAnnotations) return true;
+    return await sharedState.flushAnnotations();
+}
+
 function clearCanvas(){
     existingImageText.innerHTML = "";
     existingImageImage.src = "";
@@ -429,7 +452,9 @@ function showExistingImage(images, fieldId){
         const thumb = document.createElement("img");
         thumb.src = `http://localhost:8080/api/images/file/${image.id}`;
         thumb.className = "gallery-thumb";
-        thumb.addEventListener("click", () => {
+        thumb.addEventListener("click", async () => {
+            if (!await flushAnnotations()) return; // keep the current image open with its work intact
+
             // Reset states
             sharedState.currentTool = null;
             resetModeButtons();
@@ -452,9 +477,10 @@ function showExistingImage(images, fieldId){
             };
         });
 
-        thumb.addEventListener("contextmenu", (e) => {
+        thumb.addEventListener("contextmenu", async (e) => {
             e.preventDefault();
             if (confirm("Are you sure you want to remove this image from the field?")) {
+                if (!await flushAnnotations()) return;
                 deleteImageFromField(thumb, image.id, fieldId);
             }
         });
@@ -487,13 +513,18 @@ function saveNewInspectionField(value, fieldDefinitionId){
     .catch(error => console.error("Error saving inspection field:", error));
 }
 
-function deleteInspectionField(id){
-    fetch(`http://localhost:8080/api/fields/${id}`,
-        { method : "DELETE" }
-    )
-    // Deleting a field hands its images back to the pool, so the tally moves.
-    .then(() => refreshImageCounts())
-    .catch(error => console.log(error));
+async function deleteInspectionField(id){
+    try {
+        const response = await fetch(`http://localhost:8080/api/fields/${id}`, { method: "DELETE" });
+        if (!response.ok) return false;
+
+        // Deleting a field hands its images back to the pool, so the tally moves.
+        await refreshImageCounts();
+        return true;
+    } catch (error){
+        console.error("Error deleting inspection field:", error);
+        return false;
+    }
 }
 
 function selectImageFunction(bookingId, selectImageDiv, imageId, fieldId, images){
@@ -501,6 +532,7 @@ function selectImageFunction(bookingId, selectImageDiv, imageId, fieldId, images
         { method: "PUT" }
     )
     .then(async () => {
+        if (!await flushAnnotations()) return;
         images.push({ id: imageId });
         // Drops the freshly used image out of the "not yet used" gallery and the tally.
         await refreshImageCounts();
@@ -601,15 +633,22 @@ recommendationsButton.addEventListener("click", () => {
 includeInSummaryBox.addEventListener("click", () => updateInSummary());
 
 
-document.addEventListener("click", (e) => {
+document.addEventListener("click", async (e) => {
     const clickedInsideSelect = selectImageDiv.contains(e.target);
     const clickedInsideRecommendations = recommendationsPanel.contains(e.target) || recommendationsButton.contains(e.target);
 
     if (!clickedInsideSelect && !clickedInsideRecommendations) {
+        if (selectImageDiv.hidden === false && !await flushAnnotations()) return; // stay open, work kept
+
         document.querySelectorAll(".value-button").forEach(btn => btn.classList.remove("current-button"));
         selectImageDiv.hidden = true;
         recommendationsPanel.hidden = true;
     }
+});
+
+// A reload or a click on another page cannot be intercepted and saved, so warn instead.
+window.addEventListener("beforeunload", (e) => {
+    if (sharedState.hasUnsavedAnnotations?.()) e.preventDefault();
 });
 
 loadInspectionFieldDefinitions();

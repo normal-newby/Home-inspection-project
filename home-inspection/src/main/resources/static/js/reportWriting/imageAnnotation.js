@@ -752,24 +752,35 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
         return ann;
     }
 
-    saveButton.addEventListener("click", async () => {
-        // New annotations are created; ones edited since the last save are updated in place.
-        const newAnnotations = annotations.filter(ann => !ann.id);
-        const editedAnnotations = [...edited].filter(ann => annotations.includes(ann));
+    // Drawn but never sent, plus saved ones changed since the last send.
+    function unsavedAnnotations(){
+        return {
+            created: annotations.filter(ann => !ann.id),
+            updated: [...edited].filter(ann => annotations.includes(ann))
+        };
+    }
 
-        if (newAnnotations.length === 0 && editedAnnotations.length === 0){
-            successMessage.textContent = "Nothing to save.";
-            return;
+    function hasUnsavedWork(){
+        const { created, updated } = unsavedAnnotations();
+        return created.length > 0 || updated.length > 0;
+    }
+
+    async function saveAnnotations(){
+        // New annotations are created; ones edited since the last save are updated in place.
+        const { created, updated } = unsavedAnnotations();
+
+        if (created.length === 0 && updated.length === 0){
+            return true;
         }
 
-        [...newAnnotations, ...editedAnnotations].forEach(ann => {
+        [...created, ...updated].forEach(ann => {
             ann.imageDisplayWidth = canvas.width;
             ann.imageDisplayHeight = canvas.height;
         });
 
         try {
             await Promise.all([
-                ...newAnnotations.map(async ann => {
+                ...created.map(async ann => {
                     const response = await fetch(`http://localhost:8080/api/fields/images/${imageId}/annotations`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -781,7 +792,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
                     const saved = await response.json().catch(() => null);
                     if (saved?.id) ann.id = saved.id;
                 }),
-                ...editedAnnotations.map(async ann => {
+                ...updated.map(async ann => {
                     const response = await fetch(`http://localhost:8080/api/fields/annotations/${ann.id}`, {
                         method: "PUT",
                         headers: { "Content-Type": "application/json" },
@@ -792,11 +803,33 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
             ]);
 
             edited.clear();
-            successMessage.textContent = "Saved successfully!";
+            return true;
         } catch (error) {
             console.error("Error saving annotations:", error);
-            successMessage.textContent = "Could not save annotations.";
+            return false;
         }
+    }
+
+    saveButton.addEventListener("click", async () => {
+        if (!hasUnsavedWork()){
+            successMessage.textContent = "Nothing to save.";
+            return;
+        }
+        successMessage.textContent = await saveAnnotations()
+            ? "Saved successfully!"
+            : "Could not save annotations.";
     });
+
+    sharedState.hasUnsavedAnnotations = () => canvas.isConnected && hasUnsavedWork();
+
+    sharedState.flushAnnotations = async () => {
+        if (!canvas.isConnected || !hasUnsavedWork()) return true;
+
+        const saved = await saveAnnotations();
+        successMessage.textContent = saved
+            ? "Annotations saved."
+            : "Could not save annotations — they are still on the image.";
+        return saved;
+    };
 
 }
