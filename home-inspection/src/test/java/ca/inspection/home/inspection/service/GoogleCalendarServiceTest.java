@@ -2,7 +2,6 @@ package ca.inspection.home.inspection.service;
 
 import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectorProfile;
-import ca.inspection.home.inspection.repository.InspectorProfileRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -14,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 public class GoogleCalendarServiceTest {
 
     @Mock
-    private InspectorProfileRepository inspectorProfileRepository;
+    private GoogleService googleService;
 
     @Mock
     private InspectorProfileService inspectorProfileService;
@@ -55,7 +55,7 @@ public class GoogleCalendarServiceTest {
         return (Map<String, Object>) event.get(key);
     }
 
-    // EVENT CONTENT
+    // EVENT CONTENT (pure logic — no Google calls involved)
 
     @Test
     void buildEvent_noStartTime_isAnAllDayEventEndingTheNextDay() {
@@ -64,7 +64,6 @@ public class GoogleCalendarServiceTest {
                 googleCalendarService.buildEvent(booking, BookingSchedule.of(booking));
 
         assertThat(nested(event, "start")).containsEntry("date", "2026-03-12");
-        // Google reads the all-day end date as exclusive, so a one day event ends on the 13th.
         assertThat(nested(event, "end")).containsEntry("date", "2026-03-13");
         assertThat(nested(event, "start")).doesNotContainKey("dateTime");
     }
@@ -122,7 +121,6 @@ public class GoogleCalendarServiceTest {
         assertThat(description).contains("Client: Ada Lovelace");
         assertThat(description).contains("Phone: 416-555-0100");
         assertThat(description).contains("Booked by: Client");
-        // "None" is the dropdown's placeholder, not information.
         assertThat(description).doesNotContain("Referred by");
     }
 
@@ -131,48 +129,47 @@ public class GoogleCalendarServiceTest {
     @Test
     void syncBooking_notConnected_doesNothing() {
         when(inspectorProfileService.getProfile()).thenReturn(new InspectorProfile());
+        when(googleService.isConnected()).thenReturn(false);
         InspectionBookings booking = sampleBooking();
 
         assertThat(googleCalendarService.syncBooking(booking)).isNull();
-        verifyNoInteractions(inspectorProfileRepository);
+        verifyNoInteractions(googleService.getClass() == null ? null : googleService); // see note below
     }
 
     @Test
     void syncBooking_connectedButSwitchedOff_doesNothing() {
         InspectorProfile profile = new InspectorProfile();
-        profile.setGoogleRefreshToken("refresh-token");
         profile.setGoogleCalendarEnabled(false);
         when(inspectorProfileService.getProfile()).thenReturn(profile);
+        when(googleService.isConnected()).thenReturn(true);
 
         InspectionBookings booking = sampleBooking();
         booking.setGoogleEventId("existing-event");
 
         // The existing event is left alone rather than deleted; syncing is just paused.
         assertThat(googleCalendarService.syncBooking(booking)).isEqualTo("existing-event");
-        verifyNoInteractions(inspectorProfileRepository);
+        verifyNoInteractions(googleService);
     }
 
     @Test
     void deleteEvent_bookingHasNoEvent_doesNotCallGoogle() {
-        InspectorProfile profile = new InspectorProfile();
-        profile.setGoogleRefreshToken("refresh-token");
-        when(inspectorProfileService.getProfile()).thenReturn(profile);
+        when(googleService.isConnected()).thenReturn(true);
 
         // No googleEventId: nothing to delete, so no request and no exception.
         googleCalendarService.deleteEvent(sampleBooking());
+
+        verifyNoInteractions(googleService);
     }
 
     @Test
-    void isConfigured_withoutCredentials_isFalse() {
-        assertThat(googleCalendarService.isConfigured()).isFalse();
-    }
+    void deleteEvent_notConnected_doesNotCallGoogle() {
+        InspectionBookings booking = sampleBooking();
+        booking.setGoogleEventId("existing-event");
+        when(googleService.isConnected()).thenReturn(false);
 
-    @Test
-    void isConfigured_withCredentials_isTrue() {
-        ReflectionTestUtils.setField(googleCalendarService, "clientId", "client-id");
-        ReflectionTestUtils.setField(googleCalendarService, "clientSecret", "client-secret");
+        googleCalendarService.deleteEvent(booking);
 
-        assertThat(googleCalendarService.isConfigured()).isTrue();
+        verifyNoInteractions(googleService);
     }
 
     // STATUS
@@ -180,42 +177,16 @@ public class GoogleCalendarServiceTest {
     @Test
     void status_notConnected_reportsEmptyStateWithoutCallingGoogle() {
         when(inspectorProfileService.getProfile()).thenReturn(new InspectorProfile());
+        when(googleService.isConfigured()).thenReturn(false);
+        when(googleService.isConnected()).thenReturn(false);
 
         Map<String, Object> status = googleCalendarService.status();
 
         assertThat(status).containsEntry("configured", false);
         assertThat(status).containsEntry("connected", false);
-        // Default target until the inspector picks something else.
         assertThat(status).containsEntry("calendarId", "primary");
         assertThat(status.get("calendars")).asInstanceOf(
                 org.assertj.core.api.InstanceOfAssertFactories.LIST).isEmpty();
-    }
-
-    @Test
-    void disconnect_clearsTheStoredGrant() {
-        InspectorProfile profile = new InspectorProfile();
-        profile.setGoogleRefreshToken(null);
-        profile.setGoogleAccountEmail("inspector@example.com");
-        profile.setGoogleCalendarEnabled(true);
-        when(inspectorProfileService.getProfile()).thenReturn(profile);
-
-        googleCalendarService.disconnect();
-
-        assertThat(profile.getGoogleAccountEmail()).isNull();
-        assertThat(profile.getGoogleCalendarEnabled()).isFalse();
-        verify(inspectorProfileRepository).save(profile);
-    }
-
-    @Test
-    void disconnect_forgetsTheChosenCalendar() {
-        InspectorProfile profile = new InspectorProfile();
-        profile.setGoogleAccountEmail("inspector@example.com");
-        profile.setGoogleCalendarId("someone.else@gmail.com");
-        when(inspectorProfileService.getProfile()).thenReturn(profile);
-
-        googleCalendarService.disconnect();
-
-        assertThat(profile.getGoogleCalendarId()).isNull();
     }
 
     // STATUS: a calendar the account cannot write to
@@ -223,14 +194,14 @@ public class GoogleCalendarServiceTest {
     @Test
     void status_calendarMissingFromTheAccount_isCalledOut() {
         InspectorProfile profile = new InspectorProfile();
-        profile.setGoogleRefreshToken("refresh-token");
         profile.setGoogleCalendarId("someone.else@gmail.com");
         when(inspectorProfileService.getProfile()).thenReturn(profile);
+        when(googleService.isConnected()).thenReturn(true);
+        when(googleService.get(anyString())).thenReturn(Map.of(
+                "items", List.of(Map.of("id", "inspector@example.com", "summary", "Work"))
+        ));
 
-        GoogleCalendarService service = serviceListing(
-                List.of(Map.of("id", "inspector@example.com", "name", "Work")));
-
-        Map<String, Object> status = service.status();
+        Map<String, Object> status = googleCalendarService.status();
 
         assertThat(status).containsEntry("calendarId", "someone.else@gmail.com");
         assertThat((String) status.get("warning")).contains("someone.else@gmail.com");
@@ -239,36 +210,105 @@ public class GoogleCalendarServiceTest {
     @Test
     void status_chosenCalendarIsWritable_hasNoWarning() {
         InspectorProfile profile = new InspectorProfile();
-        profile.setGoogleRefreshToken("refresh-token");
         profile.setGoogleCalendarId("inspector@example.com");
         when(inspectorProfileService.getProfile()).thenReturn(profile);
+        when(googleService.isConnected()).thenReturn(true);
+        when(googleService.get(anyString())).thenReturn(Map.of(
+                "items", List.of(Map.of("id", "inspector@example.com", "summary", "Work"))
+        ));
 
-        GoogleCalendarService service = serviceListing(
-                List.of(Map.of("id", "inspector@example.com", "name", "Work")));
-
-        assertThat(service.status()).doesNotContainKey("warning");
+        assertThat(googleCalendarService.status()).doesNotContainKey("warning");
     }
 
     @Test
     void status_primaryNeedsNoListing() {
         InspectorProfile profile = new InspectorProfile();
-        profile.setGoogleRefreshToken("refresh-token");
         when(inspectorProfileService.getProfile()).thenReturn(profile);
+        when(googleService.isConnected()).thenReturn(true);
+        when(googleService.get(anyString())).thenReturn(Map.of());
 
-        GoogleCalendarService service = serviceListing(List.of());
-
-        assertThat(service.status()).doesNotContainKey("warning");
+        assertThat(googleCalendarService.status()).doesNotContainKey("warning");
     }
 
-    private GoogleCalendarService serviceListing(List<Map<String, String>> calendars) {
-        GoogleCalendarService service = new GoogleCalendarService() {
-            @Override
-            public List<Map<String, String>> listCalendars() {
-                return calendars;
-            }
-        };
-        ReflectionTestUtils.setField(service, "inspectorProfileService", inspectorProfileService);
-        ReflectionTestUtils.setField(service, "inspectorProfileRepository", inspectorProfileRepository);
-        return service;
+    @Test
+    void status_listCalendarsThrows_showsReconnectWarning() {
+        InspectorProfile profile = new InspectorProfile();
+        when(inspectorProfileService.getProfile()).thenReturn(profile);
+        when(googleService.isConnected()).thenReturn(true);
+        when(googleService.get(anyString())).thenThrow(new RuntimeException("network error"));
+
+        Map<String, Object> status = googleCalendarService.status();
+
+        assertThat((String) status.get("warning")).contains("reconnecting");
+    }
+
+    // SYNC BOOKING: creating and updating events
+
+    @Test
+    void syncBooking_noExistingEvent_createsNewEvent() {
+        InspectorProfile profile = new InspectorProfile();
+        profile.setGoogleCalendarEnabled(true);
+        when(inspectorProfileService.getProfile()).thenReturn(profile);
+        when(googleService.isConnected()).thenReturn(true);
+        when(googleService.send(eq("POST"), anyString(), any()))
+                .thenReturn(Map.of("id", "new-event-id"));
+
+        InspectionBookings booking = sampleBooking();
+
+        String result = googleCalendarService.syncBooking(booking);
+
+        assertThat(result).isEqualTo("new-event-id");
+    }
+
+    @Test
+    void syncBooking_existingEvent_updatesInPlace() {
+        InspectorProfile profile = new InspectorProfile();
+        profile.setGoogleCalendarEnabled(true);
+        when(inspectorProfileService.getProfile()).thenReturn(profile);
+        when(googleService.isConnected()).thenReturn(true);
+        when(googleService.send(eq("PUT"), anyString(), any()))
+                .thenReturn(Map.of("id", "existing-event-id"));
+
+        InspectionBookings booking = sampleBooking();
+        booking.setGoogleEventId("existing-event-id");
+
+        String result = googleCalendarService.syncBooking(booking);
+
+        assertThat(result).isEqualTo("existing-event-id");
+    }
+
+    @Test
+    void syncBooking_existingEventGone_createsReplacementEvent() {
+        InspectorProfile profile = new InspectorProfile();
+        profile.setGoogleCalendarEnabled(true);
+        when(inspectorProfileService.getProfile()).thenReturn(profile);
+        when(googleService.isConnected()).thenReturn(true);
+        when(googleService.send(eq("PUT"), anyString(), any()))
+                .thenThrow(new GoogleService.ResourceGoneException("gone"));
+        when(googleService.send(eq("POST"), anyString(), any()))
+                .thenReturn(Map.of("id", "replacement-event-id"));
+
+        InspectionBookings booking = sampleBooking();
+        booking.setGoogleEventId("stale-event-id");
+
+        String result = googleCalendarService.syncBooking(booking);
+
+        assertThat(result).isEqualTo("replacement-event-id");
+    }
+
+    @Test
+    void syncBooking_noScheduleSet_deletesExistingEventAndReturnsNull() {
+        InspectorProfile profile = new InspectorProfile();
+        profile.setGoogleCalendarEnabled(true);
+        when(inspectorProfileService.getProfile()).thenReturn(profile);
+        when(googleService.isConnected()).thenReturn(true);
+
+        InspectionBookings booking = new InspectionBookings(); // no month/day/year
+        booking.setGoogleEventId("existing-event-id");
+
+        String result = googleCalendarService.syncBooking(booking);
+
+        assertThat(result).isNull();
+        verify(googleService).send(eq("DELETE"), anyString(), eq(null));
     }
 }
