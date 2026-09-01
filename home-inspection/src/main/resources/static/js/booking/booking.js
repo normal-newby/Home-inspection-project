@@ -1,5 +1,6 @@
 import { collectForm, saveForm, loadForm } from "../formFactory.js";
 import { assertValidDate, syncPickerFromForm, showDateError } from "./bookingDate.js";
+import { notify, confirmDialog } from "../ui/dialog.js";
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
@@ -156,6 +157,7 @@ const templateFields = ["type", "fee"];
 const createTemplateBtn = document.getElementById("add-template-btn");
 const saveTemplateBtn = document.getElementById("save-template-btn");
 const templateForm = document.getElementById("template-form");
+const templateManageList = document.getElementById("template-manage-list");
 
 createTemplateBtn.addEventListener("click", () => {
     templateForm.classList.toggle("open");
@@ -179,6 +181,92 @@ async function loadTemplates() {
         option.textContent = `${template.type} - $${template.fee}`;
         templateSelector.appendChild(option);
     });
+
+    renderTemplateManageList(templates);
+}
+
+function renderTemplateManageList(templates){
+    templateManageList.innerHTML = "";
+    templates.forEach(template => createTemplateManageRow(template));
+}
+
+function createTemplateManageRow(template){
+    const row = document.createElement("div");
+    row.className = "asset-item";
+    row.dataset.id = template.id;
+
+    const typeInput = document.createElement("input");
+    typeInput.type = "text";
+    typeInput.value = template.type;
+    typeInput.className = "template-edit-type";
+    typeInput.style.flex = "1";
+
+    const feeInput = document.createElement("input");
+    feeInput.type = "number";
+    feeInput.min = "0";
+    feeInput.step = "0.01";
+    feeInput.value = template.fee;
+    feeInput.className = "template-edit-fee";
+    feeInput.style.width = "6rem";
+
+    const saveBtn = document.createElement("button");
+    saveBtn.type = "button";
+    saveBtn.textContent = "Save";
+    saveBtn.className = "btn btn-secondary";
+    saveBtn.addEventListener("click", () => saveTemplateEdit(template.id, typeInput, feeInput, saveBtn));
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.textContent = "✕";
+    removeBtn.className = "remove-btn";
+    removeBtn.addEventListener("click", () => deleteTemplate(template.id, row));
+
+    row.append(typeInput, feeInput, saveBtn, removeBtn);
+    templateManageList.appendChild(row);
+}
+
+async function saveTemplateEdit(id, typeInput, feeInput, saveBtn){
+    const type = typeInput.value.trim();
+    const fee = parseFloat(feeInput.value);
+
+    if (!type || Number.isNaN(fee)){
+        notify("Enter a type and falid fee before saving", {error : true});
+        return;
+    }
+
+    saveBtn.disabled = true;
+    try {
+        const res = await fetch(`${templateURI}/{${id}`, {
+            method: "PUT",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({type, fee})
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await loadTemplates();
+        notify("Template updated");
+    } catch (error){
+        notify("Could not update template", { error: true});
+    } finally {
+        saveBtn.disabled = false;
+    }
+}
+
+async function deleteTemplate(id, row){
+    const confirmed = await confirmDialog(
+        "This won't affect invoices already added to bookings. Only the future use of this invoice will no longer be available.",
+        { title: "Delete this template?", confirmLabel: "Delete template", danger: true }
+    );
+    if (!confirmed) return;
+
+    try {
+        const res = await fetch(`${templateURI}/${id}`, { method: "DELETE" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        row.remove();
+        await loadTemplates();
+    } catch (error) {
+        console.error("Error deleting template:", error);
+        notify("Could not delete that template.", { error: true });
+    }
 }
 
 if (id) loadWithInvoices();

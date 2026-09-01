@@ -1,5 +1,5 @@
 import { bookingId } from "./getReport.js";
-import { notify } from "../ui/dialog.js";
+import { notify, confirmDialog } from "../ui/dialog.js";
 
 const viewReportButton = document.getElementById("view-report-button");
 
@@ -16,6 +16,12 @@ editReportDataButton.addEventListener("click", () => {
 const emailReportButton = document.getElementById("email-report-button");
 
 emailReportButton.addEventListener("click", async () => {
+    confirm = await confirmDialog("This will send the email with the pdf attatched",
+        {title : "Send email", confirmLabel : "Send", danger: true }
+    );
+
+    if (!confirm) return;
+
     emailReportButton.disabled = true;
     const originalButtonText = emailReportButton.textContent;
     emailReportButton.textContent = "Sending...";
