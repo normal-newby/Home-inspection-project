@@ -11,8 +11,8 @@ echo Waiting for app to start...
 set attempts=0
 :appwait
 set /a attempts+=1
-if %attempts% gtr 30 (
-    echo ERROR: App did not start after 60 seconds.
+if %attempts% gtr 60 (
+    echo ERROR: App did not start after 120 seconds.
     pause
     exit /b 1
 )

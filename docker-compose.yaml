@@ -3,6 +3,8 @@ services:
     build: ./home-inspection
     ports:
       - "8080:8080"
+    env_file:
+      - ./home-inspection/.env
     environment:
       - PDF_SERVICE_URL=http://pdf-service:3001
       - DATASOURCE_URL=jdbc:sqlite:/app/data/database.db
