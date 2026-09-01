@@ -13,12 +13,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-/**
- * Catches uncaught exceptions from any @RestController and turns them into
- * consistent JSON error bodies with the right HTTP status. Without this the
- * default is a 500 with either a whitelabel HTML page or a bare stack trace —
- * neither of which the frontend can act on.
- */
 @RestControllerAdvice(basePackages = "ca.inspection.home.inspection.controller")
 @Slf4j
 public class GlobalExceptionHandler {

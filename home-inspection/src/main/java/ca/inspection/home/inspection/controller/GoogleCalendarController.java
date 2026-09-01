@@ -1,6 +1,7 @@
 package ca.inspection.home.inspection.controller;
 
 import ca.inspection.home.inspection.service.GoogleCalendarService;
+import ca.inspection.home.inspection.service.GoogleService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,9 @@ public class GoogleCalendarController {
     private static final String PROFILE_PAGE = "/html/profile.html";
 
     @Autowired
+    private GoogleService googleService;
+
+    @Autowired
     private GoogleCalendarService googleCalendarService;
 
     @GetMapping("/status")
@@ -30,13 +34,13 @@ public class GoogleCalendarController {
 
     @GetMapping("/connect")
     public ResponseEntity<Void> connect() {
-        if (!googleCalendarService.isConfigured()) {
+        if (!googleService.isConfigured()) {
             // Reached by typing the URL, or by a stale page
             return redirectToProfile("error",
                     "Google Calendar is not set up yet. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to .env.");
         }
         return ResponseEntity.status(HttpStatus.FOUND)
-                .location(URI.create(googleCalendarService.buildAuthUrl()))
+                .location(URI.create(googleService.buildAuthUrl()))
                 .build();
     }
 
@@ -53,7 +57,7 @@ public class GoogleCalendarController {
             return redirectToProfile("error", "Google did not return an authorization code.");
         }
         try {
-            googleCalendarService.completeConnection(code, state);
+            googleService.completeConnection(code, state);
             return redirectToProfile("connected", null);
         } catch (RuntimeException e) {
             log.error("Google Calendar connection failed", e);
@@ -63,7 +67,7 @@ public class GoogleCalendarController {
 
     @PostMapping("/disconnect")
     public ResponseEntity<?> disconnect() {
-        googleCalendarService.disconnect();
+        googleService.disconnect();
         return ResponseEntity.ok(Map.of("connected", false));
     }
 

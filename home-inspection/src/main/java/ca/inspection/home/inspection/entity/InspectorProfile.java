@@ -48,6 +48,9 @@ public class InspectorProfile {
 
     private String appendixPdf;
 
+    @Column(columnDefinition = "TEXT")
+    private String emailTemplate;
+
     // --- Google Calendar link ---
     // Long lived grant from the OAuth consent flow.
     @JsonIgnore
@@ -58,16 +61,10 @@ public class InspectorProfile {
     @Column(columnDefinition = "TEXT")
     private String googleAccessToken;
 
-    // Epoch seconds at which googleAccessToken stops working.
     @JsonIgnore
     private Long googleTokenExpiry;
 
-    // Which Google account is linked, shown on the profile page.
     private String googleAccountEmail;
-
-    // Target calendar; "primary" unless the inspector picks another one.
     private String googleCalendarId;
-
-    // Master switch: bookings only reach Google while this is true.
     private Boolean googleCalendarEnabled;
 }

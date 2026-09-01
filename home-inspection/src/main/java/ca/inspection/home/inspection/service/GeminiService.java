@@ -21,6 +21,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static ca.inspection.home.inspection.service.HelperFunctions.notBlank;
+
 /**
  * Sends the flagged summary items of an inspection report to Google Gemini and
  * returns a short, human readable summary of the home for the report.
@@ -92,6 +94,7 @@ public class GeminiService {
 
     @SuppressWarnings("unchecked")
     private String extractText(Map<String, Object> body) {
+        System.out.println(body);
         if (body == null) {
             throw new RuntimeException("Empty response from Gemini");
         }
@@ -199,7 +202,7 @@ public class GeminiService {
 
                 Then write one short sentence describing the overall condition of the house.
 
-                Then produce a numbered list, one item per component listed below, in the same order.
+                Then produce a numbered list, one item per component listed below, in the same order. There should be a blank line between each list item
                 For each component:
                   - Write the component name in UPPERCASE (e.g. "The STRUCTURE condition is good.").
                   - If issues are listed for that component, describe each of them in plain, professional sentences.
@@ -240,9 +243,5 @@ public class GeminiService {
             return "up to $" + r.getUpper_cost().trim();
         }
         return null;
-    }
-
-    private boolean notBlank(String s) {
-        return s != null && !s.isBlank();
     }
 }

@@ -1,10 +1,13 @@
 package ca.inspection.home.inspection.service;
 
+import ca.inspection.home.inspection.entity.InspectionBookings;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class HelperFunctions {
@@ -30,5 +33,39 @@ public class HelperFunctions {
     public static String capitalizeFirstLetter(String s){
         if (s == null || s.isEmpty()) return s;
         return Character.toUpperCase(s.charAt(0)) + s.substring(1);
+    }
+
+    public static boolean notBlank(String s){
+        return s != null && !s.isBlank();
+    }
+
+    public static String fullName(InspectionBookings booking){
+        String first = booking.getClientFirstName() == null ? "" : booking.getClientFirstName();
+        String last = booking.getClientLastName() == null ? "" : booking.getClientLastName();
+        String name = (first + " " + last).trim();
+        return name.isEmpty() ? null : name;
+    }
+
+    public static String formatAddress(InspectionBookings booking){
+        List<String> parts = new ArrayList<>();
+        String street = booking.getInspectionAddress();
+        if (notBlank(street)) {
+            parts.add(notBlank(booking.getSuite())
+                    ? street.trim() + " Unit " + booking.getSuite().trim()
+                    : street.trim());
+        }
+        if (notBlank(booking.getCity())) {
+            parts.add(booking.getCity().trim());
+        }
+        String region = booking.getProvince();
+        String postal = booking.getPostalCode();
+        if (notBlank(region) && notBlank(postal)) {
+            parts.add(region.trim() + " " + postal.trim());
+        } else if (notBlank(region)) {
+            parts.add(region.trim());
+        } else if (notBlank(postal)) {
+            parts.add(postal.trim());
+        }
+        return String.join(", ", parts);
     }
 }
