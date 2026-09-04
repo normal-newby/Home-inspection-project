@@ -21,26 +21,29 @@ export function collectForm(fields) {
  
 // Save profile
 export async function saveForm(URI, fields, method = "POST") {
+    const resultBanner = document.querySelector(".resultBanner");
+
     try {
         const res = await fetch(URI, {
             method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(collectForm(fields))
         });
-        console.log(res);
 
-        const resultBanner = document.querySelector(".resultBanner");
+        if (!res.ok) throw new Error('Failed to save form');
+
         if (resultBanner) {
-            resultBanner.textContent = "Profile saved successfully!";
+            resultBanner.textContent = "Saved successfully!";
             setTimeout(() => {
                 resultBanner.textContent = "";
             }, 3000); // Clear the message after 3 seconds
         }
 
-        if (!res.ok) throw new Error('Failed to save form');        
-        return await res.json();
+        const body = await res.text();
+        return body ? JSON.parse(body) : null;
     } catch (err) {
         console.error('Error saving form:', err);
+        if (resultBanner) resultBanner.textContent = "Could not save. Please try again.";
     }
 }
 

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Layout</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/fieldEntry.css">
+    <link rel="stylesheet" href="../css/reportLayout.css">
+    <link rel="stylesheet" href="../css/dialog.css">
+</head>
+<body>
+
+<div class="navbar">
+    <div class="container">
+        <div class="navbarBox"><a href="index.html">Home</a></div>
+        <div class="navbarBox"><a href="booking.html">Book Inspection</a></div>
+        <div class="navbarBox"><a href="profile.html">Profile</a></div>
+        <div class="navbarBox"><a href="report_layout.html" class="active">Report Layout</a></div>
+    </div>
+</div>
+
+<div class="page">
+
+    <div class="page-header">
+        <h1>Report Layout</h1>
+        <p>The parts of the report that stay the same from one inspection to the next.</p>
+    </div>
+
+    <form id="reportLayoutForm">
+
+        <!-- Every card is closed until its title is clicked, so the page opens as a short list of sections. -->
+
+        <div class="card collapsible" data-card="cover-letter">
+            <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-cover-letter">
+                <span class="card-title">Cover Letter Body</span>
+                <span class="card-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="card-body" id="card-cover-letter" hidden>
+                <div class="form-grid full">
+                    <div class="field">
+                        <label for="coverLetterBody">Body Paragraphs</label>
+                        <textarea id="coverLetterBody" rows="20" placeholder="Thank you for choosing our inspection services..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card collapsible" data-card="summary-letter">
+            <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-summary-letter">
+                <span class="card-title">Summary Letter Body</span>
+                <span class="card-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="card-body" id="card-summary-letter" hidden>
+                <div class="form-grid full">
+                    <div class="field">
+                        <label for="summaryLetterBody">Body Paragraphs</label>
+                        <textarea id="summaryLetterBody" rows="20" placeholder="The following is a summary of findings..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card collapsible" data-card="agreement">
+            <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-agreement">
+                <span class="card-title">Agreement</span>
+                <span class="card-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="card-body" id="card-agreement" hidden>
+                <div class="form-grid full">
+                    <div class="field">
+                        <label for="agreementBody">Agreement Text</label>
+                        <textarea id="agreementBody" rows="20" placeholder="This inspection agreement is entered into..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card collapsible" data-card="appendix">
+            <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-appendix">
+                <span class="card-title">Default Appendix PDF</span>
+                <span class="card-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="card-body" id="card-appendix" hidden>
+                <div class="form-grid full">
+                    <div class="field">
+                        <span class="appendixPdfLabel">Current: none</span>
+                        <input type="file" id="appendixPdf" name="appendixPdf" accept=".pdf" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card collapsible" data-card="cover-images">
+            <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-cover-images">
+                <span class="card-title">Cover Page Images</span>
+                <span class="card-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="card-body" id="card-cover-images" hidden>
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="assetKey">Asset Key</label>
+                        <input id="assetKey" placeholder="Enter asset key for cover page image..."/>
+                    </div>
+                    <div class="field">
+                        <span class="assetFile">Upload File</span>
+                        <input type="file" id="assetFile" name="assetFile" accept="image/*" />
+                    </div>
+                </div>
+
+                <div class="actions" style="margin-top: 1rem;">
+                    <button type="button" id="uploadAssetBtn" class="btn btn-primary">Upload Asset</button>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="field">
+                    <label>Current Images</label>
+                    <div class="asset-list" id="asset-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ordering lives on its own page: it is a list of every definition, not a form field. -->
+        <a class="card card-link" href="field_order.html">
+            <span class="card-link-text">
+                <span class="card-title">Field Order</span>
+                <span class="card-link-hint">Choose the order inspection fields appear in on the report.</span>
+            </span>
+            <span class="card-link-arrow" aria-hidden="true">→</span>
+        </a>
+
+        <div class="actions">
+            <button type="button" id="resetBtn" class="btn btn-secondary">Reset</button>
+            <button type="button" id="saveBtn" class="btn btn-primary">Save Layout</button>
+        </div>
+
+        <div class="resultBanner"></div>
+
+    </form>
+</div>
+
+<script type="module" src="../js/ui/cards.js"></script>
+<script type="module" src="../js/reportLayout/reportLayout.js"></script>
+<script type="module" src="../js/reportLayout/companyAssets.js"></script>
+
+</body>
+</html>

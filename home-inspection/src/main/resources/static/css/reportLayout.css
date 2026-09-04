@@ -1,0 +1,202 @@
+/* Sits among the collapsible cards, so it matches a closed one rather than an open one. */
+.card-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 2.5rem;
+    margin-bottom: 0.75rem;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.2s;
+}
+
+.card-link:hover { border-color: var(--accent); }
+
+.card-link-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+/* The shared card title carries a rule underneath it; there is nothing to divide here. */
+.card-link .card-title {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+    transition: color 0.2s;
+}
+
+.card-link:hover .card-title { color: var(--accent); }
+
+.card-link-hint {
+    font-size: 0.85rem;
+    font-weight: 300;
+    color: var(--muted);
+}
+
+.card-link-arrow {
+    color: var(--muted);
+    font-size: 1.1rem;
+}
+
+.card-link:hover .card-link-arrow { color: var(--accent); }
+
+/* ── Field order page ── */
+
+/* Long lists of field names read better with more room than a form needs. */
+.page.page-wide { max-width: 1000px; }
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--muted);
+}
+
+.back-link:hover { color: var(--accent); }
+
+.place-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.place-tab {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.place-tab:hover { border-color: var(--muted); color: var(--ink); }
+
+.place-tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+
+.order-section { margin-bottom: 2.5rem; }
+
+.order-section-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.85rem;
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.3rem;
+    font-weight: 400;
+}
+
+.order-section-count {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.order-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    counter-reset: order-row;
+}
+
+.order-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-size: 0.92rem;
+    cursor: grab;
+    counter-increment: order-row;
+}
+
+.order-row:hover { border-color: var(--muted); }
+
+/* The row keeps its space in the list while it is dragged, so the rows below do not jump. */
+.order-row.dragging {
+    opacity: 0.4;
+    border-style: dashed;
+    border-color: var(--accent);
+    cursor: grabbing;
+}
+
+.order-row::before {
+    content: counter(order-row);
+    min-width: 2ch;
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    color: var(--muted);
+}
+
+.order-handle {
+    color: var(--border);
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.order-row:hover .order-handle { color: var(--muted); }
+
+.order-name { flex: 1; }
+
+.order-controls {
+    display: flex;
+    gap: 0.2rem;
+}
+
+.order-move {
+    width: 1.9rem;
+    height: 1.9rem;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    font-size: 0.9rem;
+    line-height: 1;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.order-move:hover {
+    border-color: var(--border);
+    color: var(--accent);
+}
+
+.order-move:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+.order-empty {
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+@media (max-width: 640px) {
+    .order-section-title { flex-direction: column; gap: 0.2rem; }
+}

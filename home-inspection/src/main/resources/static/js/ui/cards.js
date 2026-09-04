@@ -1,4 +1,4 @@
-const STORAGE_KEY = "profile-open-cards";
+const STORAGE_KEY = `open-cards:${location.pathname.split("/").pop()}`;
 
 function readOpenCards(){
     try {

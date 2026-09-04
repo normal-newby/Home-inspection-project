@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Field Order</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/fieldEntry.css">
+    <link rel="stylesheet" href="../css/reportLayout.css">
+    <link rel="stylesheet" href="../css/dialog.css">
+</head>
+<body>
+
+<div class="navbar">
+    <div class="container">
+        <div class="navbarBox"><a href="index.html">Home</a></div>
+        <div class="navbarBox"><a href="booking.html">Book Inspection</a></div>
+        <div class="navbarBox"><a href="profile.html">Profile</a></div>
+        <div class="navbarBox"><a href="report_layout.html" class="active">Report Layout</a></div>
+    </div>
+</div>
+
+<div class="page page-wide">
+
+    <a class="back-link" href="report_layout.html">← Report Layout</a>
+
+    <div class="page-header">
+        <h1>Field Order</h1>
+        <p>
+            Drag a field to move it, or use the arrows. This sets the order fields appear in on
+            the report only — the screens you write a report on keep sorting themselves.
+        </p>
+    </div>
+
+    <div class="field-error" id="orderError"></div>
+
+    <div class="place-tabs" id="placeTabs" role="tablist" aria-label="Report section"></div>
+
+    <div class="order-sections" id="orderSections"></div>
+
+    <p class="order-empty" id="orderEmpty" hidden>No field definitions have been set up yet.</p>
+
+    <div class="actions">
+        <button type="button" id="resetOrderBtn" class="btn btn-secondary">Reset</button>
+        <button type="button" id="saveOrderBtn" class="btn btn-primary">Save Order</button>
+    </div>
+
+    <div class="resultBanner"></div>
+
+</div>
+
+<script type="module" src="../js/reportLayout/fieldOrder.js"></script>
+
+</body>
+</html>

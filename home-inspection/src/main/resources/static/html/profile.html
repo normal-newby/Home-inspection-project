@@ -12,9 +12,10 @@
 
 <div class="navbar">
     <div class="container">
-        <div class="navbarBox"><p><a href="index.html">Home</a></p></div>
-        <div class="navbarBox"><p><a href="booking.html">Book Inspection</a></p></div>
-        <div class="navbarBox"><p><a href="profile.html" class="active">Profile</a></p></div>
+        <div class="navbarBox"><a href="index.html">Home</a></div>
+        <div class="navbarBox"><a href="booking.html">Book Inspection</a></div>
+        <div class="navbarBox"><a href="profile.html" class="active">Profile</a></div>
+        <div class="navbarBox"><a href="report_layout.html">Report Layout</a></div>
     </div>
 </div>
 
@@ -22,7 +23,7 @@
 
     <div class="page-header">
         <h1>Inspector Profile</h1>
-        <p>This information appears on your cover letters, invoices, and reports.</p>
+        <p>Who you are and how to reach you. It appears on your cover letters, invoices, and reports.</p>
     </div>
 
     <div class="banner" id="successBanner">
@@ -101,97 +102,6 @@
             </div>
         </div>
 
-        <!-- Document Bodies -->
-        <div class="card collapsible" data-card="cover-letter">
-            <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-cover-letter">
-                <span class="card-title">Cover Letter Body</span>
-                <span class="card-chevron" aria-hidden="true"></span>
-            </button>
-            <div class="card-body" id="card-cover-letter" hidden>
-                <div class="form-grid full">
-                    <div class="field">
-                        <label for="coverLetterBody">Body Paragraphs</label>
-                        <textarea id="coverLetterBody" rows="20" placeholder="Thank you for choosing our inspection services..."></textarea>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card collapsible" data-card="summary-letter">
-            <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-summary-letter">
-                <span class="card-title">Summary Letter Body</span>
-                <span class="card-chevron" aria-hidden="true"></span>
-            </button>
-            <div class="card-body" id="card-summary-letter" hidden>
-                <div class="form-grid full">
-                    <div class="field">
-                        <label for="summaryLetterBody">Body Paragraphs</label>
-                        <textarea id="summaryLetterBody" rows="20" placeholder="The following is a summary of findings..."></textarea>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card collapsible" data-card="agreement">
-            <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-agreement">
-                <span class="card-title">Agreement</span>
-                <span class="card-chevron" aria-hidden="true"></span>
-            </button>
-            <div class="card-body" id="card-agreement" hidden>
-                <div class="form-grid full">
-                    <div class="field">
-                        <label for="agreementBody">Agreement Text</label>
-                        <textarea id="agreementBody" rows="20" placeholder="This inspection agreement is entered into..."></textarea>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card collapsible" data-card="appendix">
-            <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-appendix">
-                <span class="card-title">Default Appendix PDF</span>
-                <span class="card-chevron" aria-hidden="true"></span>
-            </button>
-            <div class="card-body" id="card-appendix" hidden>
-                <div class="form-grid full">
-                    <div class="field">
-                        <span class="appendixPdfLabel">Current: none</span>
-                        <input type="file" id="appendixPdf" name="appendixPdf" accept=".pdf" />
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card collapsible" data-card="cover-images">
-            <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-cover-images">
-                <span class="card-title">Cover Page Images</span>
-                <span class="card-chevron" aria-hidden="true"></span>
-            </button>
-            <div class="card-body" id="card-cover-images" hidden>
-                <div class="form-grid">
-                    <div class="field">
-                        <label for="assetKey">Asset Key</label>
-                        <input id="assetKey" rows="1" placeholder="Enter asset key for cover page image..."></input>
-                    </div>
-                    <div class="field">
-                        <span class="assetFile">Upload File</span>
-                        <input type="file" id="assetFile" name="assetFile" accept="image/*" />
-                    </div>
-                </div>
-
-                <div class="actions" style="margin-top: 1rem;">
-                    <button type="button" id="uploadAssetBtn" class="btn btn-primary">Upload Asset</button>
-                </div>
-
-                <div class="divider"></div>
-
-                <div class="field">
-                    <label>Current Images</label>
-                    <div class="asset-list" id="asset-list"></div>
-                </div>
-            </div>
-        </div>
-
         <!-- Google Calendar -->
         <div class="card collapsible" id="googleCalendarCard" data-card="google-calendar">
             <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-google-calendar">
@@ -243,11 +153,9 @@
     </form>
 </div>
 
-<script type = "module" src = "../js/profile/profileCards.js"></script>
-<script type = "module" src = "../js/profile/profile.js"></script>
-<script type = "module" src = "../js/formFactory.js"></script>
-<script type = "module" src = "../js/profile/companyAssets.js"></script>
-<script type = "module" src = "../js/profile/googleCalendar.js"></script>
+<script type="module" src="../js/ui/cards.js"></script>
+<script type="module" src="../js/profile/profile.js"></script>
+<script type="module" src="../js/profile/googleCalendar.js"></script>
 
 </body>
 </html>
