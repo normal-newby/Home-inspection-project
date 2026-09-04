@@ -1,6 +1,8 @@
 package ca.inspection.home.inspection.service;
 
+import ca.inspection.home.inspection.DTO.ImageLocation;
 import ca.inspection.home.inspection.entity.ImageAnnotation;
+import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectionImage;
 import ca.inspection.home.inspection.entity.InspectionReport;
 import ca.inspection.home.inspection.repository.InspectionImagesRepository;
@@ -51,6 +53,29 @@ public class InspectionImagesServiceTest {
 
     @TempDir
     Path tempDir;
+
+    private void stubUploadDir() {
+        lenient().when(helperFunctions.getDirectory()).thenReturn(tempDir);
+        lenient().when(helperFunctions.getDirectory(any())).thenReturn(tempDir);
+        lenient().when(helperFunctions.resolveUpload(any(ImageLocation.class)))
+                .thenAnswer(res -> tempDir.resolve(
+                        res.getArgument(0, ImageLocation.class).getImageUrl()));
+    }
+
+    private void stubLocation(UUID id, String fileName) {
+        when(inspectionImagesRepository.findLocationById(id))
+                .thenReturn(Optional.of(ImageLocation.of(INSPECTION_NUMBER, fileName)));
+    }
+
+    private static final int INSPECTION_NUMBER = 1312;
+
+    private static InspectionReport reportFor(int inspectionNumber) {
+        InspectionBookings booking = new InspectionBookings();
+        booking.setInspectionNumber(inspectionNumber);
+        InspectionReport report = new InspectionReport();
+        report.setInspectionBooking(booking);
+        return report;
+    }
 
     private Path createJpegFile(String fileName, int width, int height) throws IOException {
         BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
@@ -124,8 +149,8 @@ public class InspectionImagesServiceTest {
         String fileName = "photo-" + id + ".jpg";
         createJpegFile(fileName, imageWidth, imageHeight);
 
-        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.of(fileName));
-        when(helperFunctions.getDirectory()).thenReturn(tempDir);
+        stubLocation(id, fileName);
+        stubUploadDir();
 
         return decodeBase64Image(inspectionImagesService.toBase64(id, Set.of(annotation)));
     }
@@ -155,7 +180,7 @@ public class InspectionImagesServiceTest {
         MultipartFile file = mockFileThatWrites("content".getBytes());
 
         when(inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId)).thenReturn(report);
-        when(helperFunctions.getDirectory()).thenReturn(tempDir);
+        stubUploadDir();
         when(inspectionImagesRepository.save(any(InspectionImage.class))).thenAnswer(res -> res.getArgument(0));
 
         InspectionImage result = inspectionImagesService.saveImages(file, bookingId);
@@ -175,12 +200,49 @@ public class InspectionImagesServiceTest {
         doThrow(new IOException("disk full")).when(file).transferTo(any(File.class));
 
         when(inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId)).thenReturn(report);
-        when(helperFunctions.getDirectory()).thenReturn(tempDir);
+        stubUploadDir();
 
         InspectionImage result = inspectionImagesService.saveImages(file, bookingId);
 
         assertThat(result).isNull();
         verifyNoInteractions(inspectionImagesRepository);
+    }
+
+    @Test
+    void saveImages_reportWithInspectionNumber_writesIntoThatInspectionsFolder() throws IOException {
+        UUID bookingId = UUID.randomUUID();
+        InspectionReport report = reportFor(INSPECTION_NUMBER);
+        Path inspectionDir = tempDir.resolve("booking_" + INSPECTION_NUMBER);
+
+        MultipartFile file = mockFileThatWrites("content".getBytes());
+
+        when(inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId)).thenReturn(report);
+        when(helperFunctions.getDirectory(INSPECTION_NUMBER)).thenReturn(inspectionDir);
+        when(inspectionImagesRepository.save(any(InspectionImage.class))).thenAnswer(res -> res.getArgument(0));
+
+        InspectionImage result = inspectionImagesService.saveImages(file, bookingId);
+
+        assertThat(result).isNotNull();
+        // The folder is created on demand, not assumed to exist.
+        assertThat(inspectionDir.resolve(result.getImageUrl())).exists();
+        assertThat(tempDir.resolve(result.getImageUrl())).doesNotExist();
+    }
+
+    @Test
+    void saveImages_reportWithoutABooking_stillSavesInsteadOfThrowing() throws IOException {
+        UUID bookingId = UUID.randomUUID();
+        InspectionReport report = new InspectionReport();
+
+        MultipartFile file = mockFileThatWrites("content".getBytes());
+
+        when(inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId)).thenReturn(report);
+        when(helperFunctions.getDirectory((Integer) null)).thenReturn(tempDir);
+        when(inspectionImagesRepository.save(any(InspectionImage.class))).thenAnswer(res -> res.getArgument(0));
+
+        InspectionImage result = inspectionImagesService.saveImages(file, bookingId);
+
+        assertThat(result).isNotNull();
+        assertThat(tempDir.resolve(result.getImageUrl())).exists();
     }
 
     // GET IMAGES
@@ -212,8 +274,8 @@ public class InspectionImagesServiceTest {
         UUID id = UUID.randomUUID();
         createJpegFile("photo.jpg", 5, 5);
 
-        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.of("photo.jpg"));
-        when(helperFunctions.getDirectory()).thenReturn(tempDir);
+        stubLocation(id, "photo.jpg");
+        stubUploadDir();
 
         ResponseEntity<Resource> result = inspectionImagesService.getImageFile(id);
 
@@ -226,7 +288,7 @@ public class InspectionImagesServiceTest {
     @Test
     void getImageFile_imageNotFound_returnsInternalServerError() {
         UUID id = UUID.randomUUID();
-        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.empty());
+        when(inspectionImagesRepository.findLocationById(id)).thenReturn(Optional.empty());
 
         ResponseEntity<Resource> result = inspectionImagesService.getImageFile(id);
 
@@ -241,8 +303,8 @@ public class InspectionImagesServiceTest {
         // Source image large enough that the thumb will actually scale.
         createJpegFile("photo.jpg", 800, 600);
 
-        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.of("photo.jpg"));
-        when(helperFunctions.getDirectory()).thenReturn(tempDir);
+        stubLocation(id, "photo.jpg");
+        stubUploadDir();
 
         ResponseEntity<Resource> result = inspectionImagesService.getThumbnailFile(id);
 
@@ -265,8 +327,8 @@ public class InspectionImagesServiceTest {
         ImageIO.write(img, "jpg", cachedThumb.toFile());
         long sizeBefore = Files.size(cachedThumb);
 
-        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.of("photo.jpg"));
-        when(helperFunctions.getDirectory()).thenReturn(tempDir);
+        stubLocation(id, "photo.jpg");
+        stubUploadDir();
 
         ResponseEntity<Resource> result = inspectionImagesService.getThumbnailFile(id);
 
@@ -278,7 +340,7 @@ public class InspectionImagesServiceTest {
     @Test
     void getThumbnailFile_imageIdNotFound_returnsInternalServerError() {
         UUID id = UUID.randomUUID();
-        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.empty());
+        when(inspectionImagesRepository.findLocationById(id)).thenReturn(Optional.empty());
 
         ResponseEntity<Resource> result = inspectionImagesService.getThumbnailFile(id);
 
@@ -288,8 +350,8 @@ public class InspectionImagesServiceTest {
     @Test
     void getThumbnailFile_sourceImageMissingOnDisk_returnsInternalServerError() {
         UUID id = UUID.randomUUID();
-        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.of("missing.jpg"));
-        when(helperFunctions.getDirectory()).thenReturn(tempDir);
+        stubLocation(id, "missing.jpg");
+        stubUploadDir();
 
         ResponseEntity<Resource> result = inspectionImagesService.getThumbnailFile(id);
 
@@ -307,7 +369,7 @@ public class InspectionImagesServiceTest {
         MultipartFile file = mockFileThatWrites("content".getBytes());
 
         when(inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId)).thenReturn(report);
-        when(helperFunctions.getDirectory()).thenReturn(tempDir);
+        stubUploadDir();
         when(inspectionImagesRepository.save(any(InspectionImage.class))).thenAnswer(res -> res.getArgument(0));
         when(inspectionReportsRepository.save(any(InspectionReport.class))).thenAnswer(res -> res.getArgument(0));
 
@@ -334,7 +396,7 @@ public class InspectionImagesServiceTest {
         MultipartFile file = mockFileThatWrites("content".getBytes());
 
         when(inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId)).thenReturn(report);
-        when(helperFunctions.getDirectory()).thenReturn(tempDir);
+        stubUploadDir();
         when(inspectionImagesRepository.findById(oldCoverId)).thenReturn(Optional.of(oldCover));
         when(inspectionImagesRepository.save(any(InspectionImage.class))).thenAnswer(res -> res.getArgument(0));
         when(inspectionReportsRepository.save(any(InspectionReport.class))).thenAnswer(res -> res.getArgument(0));
@@ -370,8 +432,8 @@ public class InspectionImagesServiceTest {
         image.setImageUrl("photo.jpg");
         createJpegFile("photo.jpg", 10, 10);
 
-        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.of(image.getImageUrl()));
-        when(helperFunctions.getDirectory()).thenReturn(tempDir);
+        stubLocation(id, image.getImageUrl());
+        stubUploadDir();
 
         String result = inspectionImagesService.toBase64(id, null);
 
@@ -392,8 +454,8 @@ public class InspectionImagesServiceTest {
         ImageAnnotation circle = newAnnotation("circle", "#0000ff", "1.5");
         ImageAnnotation arrow = newAnnotation("arrow", "#ffff00", null);
 
-        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.of(image.getImageUrl()));
-        when(helperFunctions.getDirectory()).thenReturn(tempDir);
+        stubLocation(id, image.getImageUrl());
+        stubUploadDir();
 
         String result = inspectionImagesService.toBase64(id, Set.of(rectangle, ellipse, circle, arrow));
 
@@ -417,8 +479,8 @@ public class InspectionImagesServiceTest {
         annotation.setWidth(20.0);
         annotation.setHeight(20.0);
 
-        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.of(image.getImageUrl()));
-        when(helperFunctions.getDirectory()).thenReturn(tempDir);
+        stubLocation(id, image.getImageUrl());
+        stubUploadDir();
 
         String result = inspectionImagesService.toBase64(id, Set.of(annotation));
         BufferedImage decoded = decodeBase64Image(result);
@@ -445,8 +507,8 @@ public class InspectionImagesServiceTest {
         annotation.setWidth(20.0);
         annotation.setHeight(20.0);
 
-        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.of(image.getImageUrl()));
-        when(helperFunctions.getDirectory()).thenReturn(tempDir);
+        stubLocation(id, image.getImageUrl());
+        stubUploadDir();
 
         String result = inspectionImagesService.toBase64(id, Set.of(annotation));
         BufferedImage decoded = decodeBase64Image(result);
@@ -467,8 +529,8 @@ public class InspectionImagesServiceTest {
         ImageAnnotation text = newAnnotation("text", "#ff0000", "1");
         text.setContent("Hello");
 
-        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.of(image.getImageUrl()));
-        when(helperFunctions.getDirectory()).thenReturn(tempDir);
+        stubLocation(id, image.getImageUrl());
+        stubUploadDir();
 
         String result = inspectionImagesService.toBase64(id, Set.of(text));
 
@@ -478,7 +540,7 @@ public class InspectionImagesServiceTest {
     @Test
     void toBase64_imageNotFound_throwsNoSuchElementException() {
         UUID id = UUID.randomUUID();
-        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.empty());
+        when(inspectionImagesRepository.findLocationById(id)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> inspectionImagesService.toBase64(id, null))
                 .isInstanceOf(NoSuchElementException.class);
@@ -491,8 +553,8 @@ public class InspectionImagesServiceTest {
         image.setId(id);
         image.setImageUrl("missing.jpg");
 
-        when(inspectionImagesRepository.findImageUrlById(id)).thenReturn(Optional.of(image.getImageUrl()));
-        when(helperFunctions.getDirectory()).thenReturn(tempDir);
+        stubLocation(id, image.getImageUrl());
+        stubUploadDir();
 
         assertThatThrownBy(() -> inspectionImagesService.toBase64(id, null))
                 .isInstanceOf(RuntimeException.class)
@@ -510,13 +572,35 @@ public class InspectionImagesServiceTest {
         createJpegFile("photo.jpg", 5, 5);
 
         when(inspectionImagesRepository.findById(id)).thenReturn(Optional.of(image));
-        when(helperFunctions.getDirectory()).thenReturn(tempDir);
+        stubUploadDir();
 
         ResponseEntity<Void> result = inspectionImagesService.deleteImage(id);
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         verify(inspectionImagesRepository).delete(image);
         assertThat(tempDir.resolve("photo.jpg")).doesNotExist();
+    }
+
+    @Test
+    void deleteImage_imageStillInTheFlatRoot_removesItFromThereToo() throws IOException {
+        UUID id = UUID.randomUUID();
+        InspectionImage image = new InspectionImage();
+        image.setId(id);
+        image.setImageUrl("legacy.jpg");
+        // Uploaded before per-inspection folders existed, so it never moved out of the root.
+        createJpegFile("legacy.jpg", 5, 5);
+        Path inspectionDir = tempDir.resolve("booking_" + INSPECTION_NUMBER);
+        Files.createDirectories(inspectionDir);
+
+        when(inspectionImagesRepository.findById(id)).thenReturn(Optional.of(image));
+        stubLocation(id, "legacy.jpg");
+        when(helperFunctions.getDirectory(INSPECTION_NUMBER)).thenReturn(inspectionDir);
+        when(helperFunctions.getDirectory()).thenReturn(tempDir);
+
+        ResponseEntity<Void> result = inspectionImagesService.deleteImage(id);
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(tempDir.resolve("legacy.jpg")).doesNotExist();
     }
 
     @Test

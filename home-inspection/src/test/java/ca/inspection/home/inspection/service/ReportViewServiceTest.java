@@ -1,5 +1,6 @@
 package ca.inspection.home.inspection.service;
 
+import ca.inspection.home.inspection.DTO.ImageLocation;
 import ca.inspection.home.inspection.DTO.NavSection;
 import ca.inspection.home.inspection.entity.*;
 import ca.inspection.home.inspection.repository.ImageAnnotationRepository;
@@ -7,18 +8,16 @@ import ca.inspection.home.inspection.repository.InspectionImagesRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import static org.mockito.Mockito.verify;
 
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ReportViewServiceTest {
@@ -218,6 +217,14 @@ public class ReportViewServiceTest {
         assertThat(result.get("exterior").get("description")).containsExactly(exterior);
     }
 
+    private static InspectionReport reportForInspection(int inspectionNumber){
+        InspectionBookings booking = new InspectionBookings();
+        booking.setInspectionNumber(inspectionNumber);
+        InspectionReport report = new InspectionReport();
+        report.setInspectionBooking(booking);
+        return report;
+    }
+
     // Get Sorted Fields
 
     @Test
@@ -241,16 +248,57 @@ public class ReportViewServiceTest {
         image.setImageUrl("photo.jpg");
         field.setInspectionImages(List.of(image));
 
-        InspectionReport report = new InspectionReport();
+        InspectionReport report = reportForInspection(1001);
         report.setFields(Set.of(field));
 
         // Return mock base 64 when function called
-        when(inspectionImagesService.toBase64(eq(image.getImageUrl()), any()))
+        when(inspectionImagesService.toBase64(any(ImageLocation.class), any()))
                 .thenReturn("data:image/jpeg;base64,FAKE");
 
         reportViewService.getSortedFields(report);
 
         assertThat(image.getBase64()).isEqualTo("data:image/jpeg;base64,FAKE");
+    }
+
+    @Test
+    void getSortedFields_fieldWithImages_locatesImageByTheReportsInspectionNumber(){
+        InspectionField field = fieldWithTypeAndPlace("roofing", "description");
+        InspectionImage image = new InspectionImage();
+        image.setId(UUID.randomUUID());
+        image.setImageUrl("photo.jpg");
+        field.setInspectionImages(List.of(image));
+
+        InspectionReport report = reportForInspection(1001);
+        report.setFields(Set.of(field));
+
+        reportViewService.getSortedFields(report);
+
+        // The booking is already on the report, so no extra lookup per image.
+        verifyNoInteractions(inspectionImagesRepository);
+        ArgumentCaptor<ImageLocation> captor = ArgumentCaptor.forClass(ImageLocation.class);
+        verify(inspectionImagesService).toBase64(captor.capture(), any());
+        assertThat(captor.getValue().getInspectionNumber()).isEqualTo(1001);
+        assertThat(captor.getValue().getImageUrl()).isEqualTo("photo.jpg");
+    }
+
+    @Test
+    void getSortedFields_bookingWithNoInspectionNumber_stillResolvesTheImage(){
+        InspectionField field = fieldWithTypeAndPlace("roofing", "description");
+        InspectionImage image = new InspectionImage();
+        image.setId(UUID.randomUUID());
+        image.setImageUrl("legacy.jpg");
+        field.setInspectionImages(List.of(image));
+
+        // Bookings predating inspection numbers must not blow up the whole render.
+        InspectionReport report = new InspectionReport();
+        report.setFields(Set.of(field));
+
+        reportViewService.getSortedFields(report);
+
+        ArgumentCaptor<ImageLocation> captor = ArgumentCaptor.forClass(ImageLocation.class);
+        verify(inspectionImagesService).toBase64(captor.capture(), any());
+        assertThat(captor.getValue().getInspectionNumber()).isNull();
+        assertThat(captor.getValue().getImageUrl()).isEqualTo("legacy.jpg");
     }
 
     @Test
@@ -554,15 +602,19 @@ public class ReportViewServiceTest {
     void setCoverPageImageBase64_hasCoverImage_setsBase64FromService(){
         InspectionImage cover = new InspectionImage();
         cover.setImageUrl("cover.jpg");
-        InspectionReport report = new InspectionReport();
+        InspectionReport report = reportForInspection(1001);
         report.setCoverPageImage(cover);
 
-        when(inspectionImagesService.toBase64("cover.jpg", null))
+        when(inspectionImagesService.toBase64(any(ImageLocation.class), isNull()))
                 .thenReturn("data:image/jpeg;base64,COVER");
 
         reportViewService.setCoverPageImageBase64(report);
 
         assertThat(cover.getBase64()).isEqualTo("data:image/jpeg;base64,COVER");
+        ArgumentCaptor<ImageLocation> captor = ArgumentCaptor.forClass(ImageLocation.class);
+        verify(inspectionImagesService).toBase64(captor.capture(), isNull());
+        assertThat(captor.getValue().getInspectionNumber()).isEqualTo(1001);
+        assertThat(captor.getValue().getImageUrl()).isEqualTo("cover.jpg");
     }
 
     @Test

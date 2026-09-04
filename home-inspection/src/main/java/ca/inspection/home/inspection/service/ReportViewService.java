@@ -1,5 +1,6 @@
 package ca.inspection.home.inspection.service;
 
+import ca.inspection.home.inspection.DTO.ImageLocation;
 import ca.inspection.home.inspection.DTO.NavSection;
 import ca.inspection.home.inspection.entity.*;
 import ca.inspection.home.inspection.repository.ImageAnnotationRepository;
@@ -123,6 +124,13 @@ public class ReportViewService {
         return fieldComparator;
     }
 
+    // The report already carries its booking (it is fetch joined), so the inspection number
+    // is read once here rather than re-queried per image.
+    private Integer inspectionNumberOf(InspectionReport report){
+        InspectionBookings booking = report == null ? null : report.getInspectionBooking();
+        return booking == null ? null : booking.getInspectionNumber();
+    }
+
     public List<InspectionField> getSortedFields(InspectionReport report){
         Comparator<InspectionField> fieldComparator = getComparator();
         List<InspectionField> fields = report.getFields().stream()
@@ -133,10 +141,13 @@ public class ReportViewService {
                 .sorted(fieldComparator)
                 .toList();
 
+        Integer inspectionNumber = inspectionNumberOf(report);
         fields.forEach(field -> {
             if (field.getInspectionImages() != null && !field.getInspectionImages().isEmpty()){
                 field.getInspectionImages().forEach(image -> {
-                    String src = inspectionImagesService.toBase64(image.getImageUrl(), image.getAnnotations());
+                    ImageLocation location =
+                            ImageLocation.of(inspectionNumber, image.getImageUrl());
+                    String src = inspectionImagesService.toBase64(location, image.getAnnotations());
                     image.setBase64(src);
                 });
             }
@@ -174,7 +185,9 @@ public class ReportViewService {
     public void setCoverPageImageBase64(InspectionReport report){
         InspectionImage coverImage = report.getCoverPageImage();
         if (coverImage != null){
-            String base64 = inspectionImagesService.toBase64(coverImage.getImageUrl(), null);
+            ImageLocation location = ImageLocation.of(
+                    inspectionNumberOf(report), coverImage.getImageUrl());
+            String base64 = inspectionImagesService.toBase64(location, null);
             coverImage.setBase64(base64);
         }
     }

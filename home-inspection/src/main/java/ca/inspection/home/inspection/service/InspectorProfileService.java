@@ -2,7 +2,9 @@ package ca.inspection.home.inspection.service;
 
 import ca.inspection.home.inspection.entity.InspectionReport;
 import ca.inspection.home.inspection.entity.InspectorProfile;
+import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
 import ca.inspection.home.inspection.repository.InspectorProfileRepository;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,9 @@ public class InspectorProfileService {
     @Autowired
     private HelperFunctions helperFunctions;
 
+    @Autowired
+    private InspectionBookingsRepository inspectionBookingsRepository;
+
     public InspectorProfile getProfile() {
         return inspectorProfileRepository.findById(1L)
                 .orElseGet(() -> inspectorProfileRepository.save(new InspectorProfile()));
@@ -48,6 +53,7 @@ public class InspectorProfileService {
         InspectorProfile existing = inspectorProfileRepository.findById(1L).orElse(null);
         if (existing == null) return;
 
+        if (incoming.getInspectionNumber() == null) incoming.setInspectionNumber(existing.getInspectionNumber());
         if (incoming.getAppendixPdf() == null) incoming.setAppendixPdf(existing.getAppendixPdf());
         if (incoming.getGoogleRefreshToken() == null) incoming.setGoogleRefreshToken(existing.getGoogleRefreshToken());
         if (incoming.getGoogleAccessToken() == null) incoming.setGoogleAccessToken(existing.getGoogleAccessToken());
@@ -89,10 +95,17 @@ public class InspectorProfileService {
         }
     }
 
+    @Transactional
     public Integer getAndUpdateNumber() {
         InspectorProfile profile = inspectorProfileRepository.findById(1L)
                 .orElseThrow(() -> new RuntimeException("Inspector profile not found"));
-        Integer updated = profile.getInspectionNumber() + 1;
+
+        Integer current = profile.getInspectionNumber();
+        int updated = (current == null ? 0 : current) + 1;
+        while (inspectionBookingsRepository.existsByInspectionNumber(updated)) {
+            updated++;
+        }
+
         profile.setInspectionNumber(updated);
         inspectorProfileRepository.save(profile);
         return updated;

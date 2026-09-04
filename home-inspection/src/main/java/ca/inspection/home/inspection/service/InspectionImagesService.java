@@ -1,5 +1,6 @@
 package ca.inspection.home.inspection.service;
 
+import ca.inspection.home.inspection.DTO.ImageLocation;
 import ca.inspection.home.inspection.entity.ImageAnnotation;
 import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectionImage;
@@ -62,10 +63,13 @@ public class InspectionImagesService {
         try {
             if (report == null) return null;
 
-            Files.createDirectories(helperFunctions.getDirectory());
+            InspectionBookings booking = report.getInspectionBooking();
+            Path dir = helperFunctions.getDirectory(
+                    booking == null ? null : booking.getInspectionNumber());
+            Files.createDirectories(dir);
 
             String fileName = System.currentTimeMillis() + "_" + UUID.randomUUID().toString() + ".jpg";
-            Path path = helperFunctions.getDirectory().resolve(fileName);
+            Path path = dir.resolve(fileName);
             file.transferTo(path.toFile());
 
             InspectionImage inspectionImage = new InspectionImage();
@@ -85,8 +89,8 @@ public class InspectionImagesService {
 
     public ResponseEntity<Resource> getImageFile(UUID id){
         try {
-            String imageUrl = inspectionImagesRepository.findImageUrlById(id).orElseThrow();
-            Path filePath = helperFunctions.getDirectory().resolve(imageUrl);
+            ImageLocation location = inspectionImagesRepository.findLocationById(id).orElseThrow();
+            Path filePath = helperFunctions.resolveUpload(location);
             Resource resource = new UrlResource(filePath.toUri());
 
             return ResponseEntity.ok()
@@ -104,8 +108,8 @@ public class InspectionImagesService {
     // Smaller file for preview
     public ResponseEntity<Resource> getThumbnailFile(UUID id){
         try {
-            String imageUrl = inspectionImagesRepository.findImageUrlById(id).orElseThrow();
-            Path thumbPath = getOrCreateThumbnail(imageUrl);
+            ImageLocation location = inspectionImagesRepository.findLocationById(id).orElseThrow();
+            Path thumbPath = getOrCreateThumbnail(location);
             Resource resource = new UrlResource(thumbPath.toUri());
 
             return ResponseEntity.ok()
@@ -117,15 +121,16 @@ public class InspectionImagesService {
         }
     }
 
-    private Path getOrCreateThumbnail(String imageUrl) throws IOException {
-        Path thumbsDir = helperFunctions.getDirectory().resolve("thumbs");
+    private Path getOrCreateThumbnail(ImageLocation location) throws IOException {
+        Path thumbsDir = helperFunctions.getDirectory(location.getInspectionNumber())
+                .resolve("thumbs");
         Files.createDirectories(thumbsDir);
-        Path thumbPath = thumbsDir.resolve(imageUrl);
+        Path thumbPath = thumbsDir.resolve(location.getImageUrl());
         if (Files.exists(thumbPath)) return thumbPath;
 
-        Path source = helperFunctions.getDirectory().resolve(imageUrl);
+        Path source = helperFunctions.resolveUpload(location);
         BufferedImage src = ImageIO.read(source.toFile());
-        if (src == null) throw new IOException("Unreadable image: " + imageUrl);
+        if (src == null) throw new IOException("Unreadable image: " + location.getImageUrl());
 
         double scale = Math.min(1.0, (double) THUMB_MAX_WIDTH / src.getWidth());
         int w = Math.max(1, (int) Math.round(src.getWidth() * scale));
@@ -172,13 +177,13 @@ public class InspectionImagesService {
     }
 
     public String toBase64(UUID id, Set<ImageAnnotation> annotations){
-        String imageUrl = inspectionImagesRepository.findImageUrlById(id).orElseThrow();
-        return toBase64(imageUrl, annotations);
+        ImageLocation location = inspectionImagesRepository.findLocationById(id).orElseThrow();
+        return toBase64(location, annotations);
     }
 
-    public String toBase64(String imageUrl, Set<ImageAnnotation> annotations){
+    public String toBase64(ImageLocation location, Set<ImageAnnotation> annotations){
         try {
-            Path filePath = helperFunctions.getDirectory().resolve(imageUrl);
+            Path filePath = helperFunctions.resolveUpload(location);
             BufferedImage img = ImageIO.read(filePath.toFile());
 
             // Down to print size before anything else: annotations are placed against the
@@ -325,13 +330,22 @@ public class InspectionImagesService {
             InspectionImage image = inspectionImagesRepository.findById(id)
                     .orElseThrow();
 
+            Integer inspectionNumber = inspectionImagesRepository.findLocationById(id)
+                    .map(ImageLocation::getInspectionNumber)
+                    .orElse(null);
+
             //delete from database
             inspectionImagesRepository.delete(image);
 
-            //delete from disk
-            Path path = helperFunctions.getDirectory().resolve(image.getImageUrl());
-            Files.deleteIfExists(path);
-            Files.deleteIfExists(helperFunctions.getDirectory().resolve("thumbs").resolve(image.getImageUrl()));
+            //delete from disk, including the flat root for images that predate
+            //per-inspection folders
+            Set<Path> dirs = new LinkedHashSet<>();
+            dirs.add(helperFunctions.getDirectory(inspectionNumber));
+            dirs.add(helperFunctions.getDirectory());
+            for (Path dir : dirs) {
+                Files.deleteIfExists(dir.resolve(image.getImageUrl()));
+                Files.deleteIfExists(dir.resolve("thumbs").resolve(image.getImageUrl()));
+            }
 
             return ResponseEntity.ok().build();
 

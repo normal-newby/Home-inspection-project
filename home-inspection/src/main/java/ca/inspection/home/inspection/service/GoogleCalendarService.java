@@ -147,6 +147,7 @@ public class GoogleCalendarService {
             event.put("end", Map.of("date", schedule.date().plusDays(1).format(dateOnly)));
         } else {
             String zone = ZoneId.systemDefault().getId();
+            log.info("System zone detected as: {}", ZoneId.systemDefault());
             event.put("start", Map.of(
                     "dateTime", schedule.start().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                     "timeZone", zone));

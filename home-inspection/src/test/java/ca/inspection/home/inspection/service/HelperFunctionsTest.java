@@ -1,7 +1,14 @@
 package ca.inspection.home.inspection.service;
 
+import ca.inspection.home.inspection.DTO.ImageLocation;
 import lombok.experimental.Helper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.in;
@@ -91,5 +98,69 @@ public class HelperFunctionsTest {
         String result = HelperFunctions.capitalizeFirstLetter(input);
 
         assertThat(result).isNull();
+    }
+
+    // Upload directories
+
+    @TempDir
+    Path tempDir;
+
+    private HelperFunctions helperRootedAtTempDir() {
+        HelperFunctions helperFunctions = new HelperFunctions();
+        ReflectionTestUtils.setField(helperFunctions, "uploadDir", tempDir.toString());
+        return helperFunctions;
+    }
+
+    @Test
+    void getDirectory_withInspectionNumber_isThatInspectionsOwnFolder() {
+        Path directory = helperRootedAtTempDir().getDirectory(1312);
+
+        assertThat(directory).isEqualTo(tempDir.resolve("booking_1312"));
+    }
+
+    @Test
+    void getDirectory_nullInspectionNumber_fallsBackToRootInsteadOfABookingNullFolder() {
+        Path directory = helperRootedAtTempDir().getDirectory(null);
+
+        assertThat(directory).isEqualTo(tempDir);
+    }
+
+    @Test
+    void resolveImage_fileInTheInspectionFolder_usesIt() throws IOException {
+        HelperFunctions helperFunctions = helperRootedAtTempDir();
+        Path expected = tempDir.resolve("booking_1312").resolve("photo.jpg");
+        Files.createDirectories(expected.getParent());
+        Files.writeString(expected, "new");
+
+        assertThat(helperFunctions.resolveUpload(1312, "photo.jpg")).isEqualTo(expected);
+    }
+
+    @Test
+    void resolveImage_fileStillInTheFlatRoot_fallsBackToIt() throws IOException {
+        // Images uploaded before per-inspection folders existed were never moved.
+        HelperFunctions helperFunctions = helperRootedAtTempDir();
+        Path legacy = tempDir.resolve("photo.jpg");
+        Files.writeString(legacy, "old");
+
+        assertThat(helperFunctions.resolveUpload(1312, "photo.jpg")).isEqualTo(legacy);
+    }
+
+    @Test
+    void resolveImage_fileInNeitherPlace_returnsTheInspectionFolderPath() {
+        HelperFunctions helperFunctions = helperRootedAtTempDir();
+
+        assertThat(helperFunctions.resolveUpload(1312, "gone.jpg"))
+                .isEqualTo(tempDir.resolve("booking_1312").resolve("gone.jpg"));
+    }
+
+    @Test
+    void resolveImage_fromLocation_readsBothPartsOfIt() throws IOException {
+        HelperFunctions helperFunctions = helperRootedAtTempDir();
+        Path expected = tempDir.resolve("booking_7").resolve("photo.jpg");
+        Files.createDirectories(expected.getParent());
+        Files.writeString(expected, "new");
+
+        assertThat(helperFunctions.resolveUpload(ImageLocation.of(7, "photo.jpg")))
+                .isEqualTo(expected);
     }
 }

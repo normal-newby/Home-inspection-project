@@ -27,4 +27,6 @@ public interface InspectionBookingsRepository extends JpaRepository<InspectionBo
         WHERE b.id = :id
     """)
     BookingDetails getBookingDetails(@Param("id")UUID id);
+
+    boolean existsByInspectionNumber(Integer inspectionNumber);
 }

@@ -1,5 +1,6 @@
 package ca.inspection.home.inspection.repository;
 
+import ca.inspection.home.inspection.DTO.ImageLocation;
 import ca.inspection.home.inspection.entity.InspectionImage;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -22,7 +23,12 @@ public interface InspectionImagesRepository extends JpaRepository<InspectionImag
     """)
     List<InspectionImage> findByBookingIdOrdered(@Param("bookingId") UUID bookingId);
 
-    // Lean fetch of image
-    @Query("SELECT i.imageUrl FROM InspectionImage i WHERE i.id = :id")
-    Optional<String> findImageUrlById(@Param("id") UUID id);
+    @Query("""
+            SELECT i.imageUrl AS imageUrl, b.inspectionNumber AS inspectionNumber
+            FROM InspectionImage i
+            LEFT JOIN i.inspectionReport r
+            LEFT JOIN r.inspectionBooking b
+            WHERE i.id = :id
+            """)
+    Optional<ImageLocation> findLocationById(@Param("id") UUID id);
 }

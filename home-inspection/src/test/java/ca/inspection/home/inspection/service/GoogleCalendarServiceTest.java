@@ -14,8 +14,8 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -48,6 +48,13 @@ public class GoogleCalendarServiceTest {
         booking.setDay(12);
         booking.setYear(2026);
         return booking;
+    }
+
+    // Checking isConfigured/isConnected is how these methods decide to stand down, so those
+    // calls are expected; the assertion that matters is that nothing was sent to Google.
+    private static void verifyNoRequestsTo(GoogleService googleService) {
+        verify(googleService, never()).send(any(), any(), any());
+        verify(googleService, never()).get(any());
     }
 
     @SuppressWarnings("unchecked")
@@ -133,7 +140,7 @@ public class GoogleCalendarServiceTest {
         InspectionBookings booking = sampleBooking();
 
         assertThat(googleCalendarService.syncBooking(booking)).isNull();
-        verifyNoInteractions(googleService.getClass() == null ? null : googleService); // see note below
+        verifyNoRequestsTo(googleService);
     }
 
     @Test
@@ -148,17 +155,14 @@ public class GoogleCalendarServiceTest {
 
         // The existing event is left alone rather than deleted; syncing is just paused.
         assertThat(googleCalendarService.syncBooking(booking)).isEqualTo("existing-event");
-        verifyNoInteractions(googleService);
+        verifyNoRequestsTo(googleService);
     }
 
     @Test
     void deleteEvent_bookingHasNoEvent_doesNotCallGoogle() {
-        when(googleService.isConnected()).thenReturn(true);
-
-        // No googleEventId: nothing to delete, so no request and no exception.
         googleCalendarService.deleteEvent(sampleBooking());
 
-        verifyNoInteractions(googleService);
+        verifyNoRequestsTo(googleService);
     }
 
     @Test
@@ -169,7 +173,7 @@ public class GoogleCalendarServiceTest {
 
         googleCalendarService.deleteEvent(booking);
 
-        verifyNoInteractions(googleService);
+        verifyNoRequestsTo(googleService);
     }
 
     // STATUS

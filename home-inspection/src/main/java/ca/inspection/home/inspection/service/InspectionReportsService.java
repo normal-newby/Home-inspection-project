@@ -8,7 +8,6 @@ import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
 import ca.inspection.home.inspection.repository.InspectionReportsRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -20,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -40,11 +38,12 @@ public class InspectionReportsService {
     @Autowired
     private GeminiService geminiService;
 
-    @Value("${app.upload-dir}")
-    private String uploadDir;
+    @Autowired
+    private HelperFunctions helperFunctions;
 
-    private Path getDirectory(){
-        return Paths.get(uploadDir);
+    private Integer inspectionNumberOf(InspectionReport report){
+        InspectionBookings booking = report == null ? null : report.getInspectionBooking();
+        return booking == null ? null : booking.getInspectionNumber();
     }
 
     public InspectionReport getBooking(UUID bookingId){
@@ -78,8 +77,9 @@ public class InspectionReportsService {
             InspectionReport report = inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId);
 
             String fileName = "appendix_" + bookingId + ".pdf";
-            Path path = getDirectory().resolve(fileName);
-            pdf.transferTo(path.toFile());
+            Path dir = helperFunctions.getDirectory(inspectionNumberOf(report));
+            Files.createDirectories(dir);
+            pdf.transferTo(dir.resolve(fileName).toFile());
 
             report.setAppendixPdf(fileName);
             inspectionReportsRepository.save(report);
@@ -116,7 +116,8 @@ public class InspectionReportsService {
         try {
             Path path;
             if (report.getAppendixPdf() != null){
-                path = getDirectory().resolve(report.getAppendixPdf());
+                path = helperFunctions.resolveUpload(
+                        inspectionNumberOf(report), report.getAppendixPdf());
             } else {
                 Path profilePath = inspectorProfileService.getAppendixPdfPath();
                 if (profilePath == null) return null;
