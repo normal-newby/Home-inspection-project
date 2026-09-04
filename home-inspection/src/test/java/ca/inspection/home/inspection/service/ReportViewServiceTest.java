@@ -1,5 +1,6 @@
 package ca.inspection.home.inspection.service;
 
+import ca.inspection.home.inspection.DTO.FieldGroup;
 import ca.inspection.home.inspection.DTO.ImageLocation;
 import ca.inspection.home.inspection.DTO.NavSection;
 import ca.inspection.home.inspection.entity.*;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -63,6 +65,25 @@ public class ReportViewServiceTest {
         field.setInspectionFieldDefinition(definition);
 
         return field;
+    }
+
+    private InspectionFieldDefinition definitionFor(String place, String type){
+        InspectionFieldDefinition definition = new InspectionFieldDefinition();
+        definition.setId(UUID.randomUUID());
+        definition.setFieldType(type);
+        definition.setFieldPlace(place);
+        return definition;
+    }
+
+    private InspectionField fieldUsing(InspectionFieldDefinition definition){
+        InspectionField field = new InspectionField();
+        field.setId(UUID.randomUUID());
+        field.setInspectionFieldDefinition(definition);
+        return field;
+    }
+
+    private static List<InspectionField> fieldsIn(List<FieldGroup> groups){
+        return groups.stream().flatMap(group -> group.fields().stream()).toList();
     }
 
     private InspectionField fieldWithSummary(String place,String type, boolean inSummary){
@@ -184,11 +205,12 @@ public class ReportViewServiceTest {
         InspectionField field2 = fieldWithTypeAndPlace("roofing", "description");
 
         List<InspectionField> fields = List.of(field1, field2);
-        Map<String, Map<String, List<InspectionField>>> result = reportViewService.getAllFields(fields);
+        Map<String, Map<String, List<FieldGroup>>> result = reportViewService.getAllFields(fields);
 
         assertThat(result).containsOnlyKeys("roofing");
         assertThat(result.get("roofing")).containsOnlyKeys("description");
-        assertThat(result.get("roofing").get("description")).containsExactlyInAnyOrder(field1, field2);
+        assertThat(fieldsIn(result.get("roofing").get("description")))
+                .containsExactlyInAnyOrder(field1, field2);
     }
 
     @Test
@@ -197,11 +219,11 @@ public class ReportViewServiceTest {
         InspectionField limitations = fieldWithTypeAndPlace("roofing", "limitations");
 
         List<InspectionField> fields = List.of(description, limitations);
-        Map<String, Map<String, List<InspectionField>>> result = reportViewService.getAllFields(fields);
+        Map<String, Map<String, List<FieldGroup>>> result = reportViewService.getAllFields(fields);
 
         assertThat(result.get("roofing")).containsOnlyKeys("description", "limitations");
-        assertThat(result.get("roofing").get("description")).containsExactly(description);
-        assertThat(result.get("roofing").get("limitations")).containsExactly(limitations);
+        assertThat(fieldsIn(result.get("roofing").get("description"))).containsExactly(description);
+        assertThat(fieldsIn(result.get("roofing").get("limitations"))).containsExactly(limitations);
     }
 
     @Test
@@ -210,11 +232,129 @@ public class ReportViewServiceTest {
         InspectionField exterior = fieldWithTypeAndPlace("exterior", "description");
 
         List<InspectionField> fields = List.of(roofing, exterior);
-        Map<String, Map<String, List<InspectionField>>> result = reportViewService.getAllFields(fields);
+        Map<String, Map<String, List<FieldGroup>>> result = reportViewService.getAllFields(fields);
 
         assertThat(result).containsOnlyKeys("roofing", "exterior");
-        assertThat(result.get("roofing").get("description")).containsExactly(roofing);
-        assertThat(result.get("exterior").get("description")).containsExactly(exterior);
+        assertThat(fieldsIn(result.get("roofing").get("description"))).containsExactly(roofing);
+        assertThat(fieldsIn(result.get("exterior").get("description"))).containsExactly(exterior);
+    }
+
+    // Grouping by definition
+
+    @Test
+    void getAllFields_definitionUsedTwice_becomesOneGroup(){
+        InspectionFieldDefinition shingles = definitionFor("roofing", "description");
+        InspectionField first = fieldUsing(shingles);
+        InspectionField second = fieldUsing(shingles);
+
+        Map<String, Map<String, List<FieldGroup>>> result =
+                reportViewService.getAllFields(List.of(first, second));
+
+        List<FieldGroup> groups = result.get("roofing").get("description");
+        assertThat(groups).hasSize(1);
+        assertThat(groups.get(0).definition()).isSameAs(shingles);
+        assertThat(groups.get(0).fields()).containsExactly(first, second);
+        assertThat(groups.get(0).isGrouped()).isTrue();
+    }
+
+    @Test
+    void getAllFields_differentDefinitions_stayInSeparateGroups(){
+        InspectionField shingles = fieldUsing(definitionFor("roofing", "description"));
+        InspectionField flashing = fieldUsing(definitionFor("roofing", "description"));
+
+        Map<String, Map<String, List<FieldGroup>>> result =
+                reportViewService.getAllFields(List.of(shingles, flashing));
+
+        List<FieldGroup> groups = result.get("roofing").get("description");
+        assertThat(groups).hasSize(2);
+        assertThat(groups).allMatch(group -> !group.isGrouped());
+    }
+
+    @Test
+    void getAllFields_definitionRepeatedOutOfOrder_stillCollapsesIntoOneGroup(){
+        // Nothing sorts by definition, so entries sharing one can arrive apart.
+        InspectionFieldDefinition shingles = definitionFor("roofing", "description");
+        InspectionField first = fieldUsing(shingles);
+        InspectionField other = fieldUsing(definitionFor("roofing", "description"));
+        InspectionField third = fieldUsing(shingles);
+
+        List<FieldGroup> groups = reportViewService
+                .getAllFields(List.of(first, other, third))
+                .get("roofing").get("description");
+
+        assertThat(groups).hasSize(2);
+        // The group keeps the position of its first entry.
+        assertThat(groups.get(0).fields()).containsExactly(first, third);
+        assertThat(groups.get(1).fields()).containsExactly(other);
+    }
+
+    // Figure numbering
+
+    private InspectionField fieldWithImages(InspectionFieldDefinition definition, int imageCount){
+        InspectionField field = fieldUsing(definition);
+        List<InspectionImage> images = new ArrayList<>();
+        for (int i = 0; i < imageCount; i++){
+            InspectionImage image = new InspectionImage();
+            image.setId(UUID.randomUUID());
+            images.add(image);
+        }
+        field.setInspectionImages(images);
+        return field;
+    }
+
+    @Test
+    void numberFigures_countsStraightThroughTheWholeReport(){
+        // Two photos in roofing then one in exterior: the exterior photo is figure 3, not
+        // figure 1 all over again.
+        InspectionField roofing = fieldWithImages(definitionFor("roofing", "description"), 2);
+        InspectionField exterior = fieldWithImages(definitionFor("exterior", "description"), 1);
+
+        Map<String, Map<String, List<FieldGroup>>> allFields =
+                reportViewService.getAllFields(List.of(roofing, exterior));
+        reportViewService.numberFigures(allFields);
+
+        assertThat(roofing.getInspectionImages()).extracting(InspectionImage::getFigureNumber)
+                .containsExactly(1, 2);
+        assertThat(exterior.getInspectionImages()).extracting(InspectionImage::getFigureNumber)
+                .containsExactly(3);
+    }
+
+    @Test
+    void numberFigures_keepsCountingAcrossEntriesOfOneGroup(){
+        InspectionFieldDefinition shingles = definitionFor("roofing", "description");
+        InspectionField first = fieldWithImages(shingles, 1);
+        InspectionField second = fieldWithImages(shingles, 2);
+
+        Map<String, Map<String, List<FieldGroup>>> allFields =
+                reportViewService.getAllFields(List.of(first, second));
+        reportViewService.numberFigures(allFields);
+
+        assertThat(first.getInspectionImages()).extracting(InspectionImage::getFigureNumber)
+                .containsExactly(1);
+        assertThat(second.getInspectionImages()).extracting(InspectionImage::getFigureNumber)
+                .containsExactly(2, 3);
+    }
+
+    @Test
+    void numberFigures_fieldWithoutImages_doesNotConsumeANumber(){
+        InspectionField empty = fieldUsing(definitionFor("roofing", "description"));
+        InspectionField withPhoto = fieldWithImages(definitionFor("roofing", "description"), 1);
+
+        Map<String, Map<String, List<FieldGroup>>> allFields =
+                reportViewService.getAllFields(List.of(empty, withPhoto));
+        reportViewService.numberFigures(allFields);
+
+        assertThat(withPhoto.getInspectionImages().get(0).getFigureNumber()).isEqualTo(1);
+    }
+
+    @Test
+    void numberFigures_noImagesAnywhere_doesNothing(){
+        InspectionField field = fieldUsing(definitionFor("roofing", "description"));
+
+        Map<String, Map<String, List<FieldGroup>>> allFields =
+                reportViewService.getAllFields(List.of(field));
+
+        assertThatCode(() -> reportViewService.numberFigures(allFields)).doesNotThrowAnyException();
     }
 
     private static InspectionReport reportForInspection(int inspectionNumber){

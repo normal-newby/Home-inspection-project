@@ -1,5 +1,6 @@
 package ca.inspection.home.inspection.service;
 
+import ca.inspection.home.inspection.DTO.FieldGroup;
 import ca.inspection.home.inspection.DTO.ImageLocation;
 import ca.inspection.home.inspection.DTO.NavSection;
 import ca.inspection.home.inspection.entity.*;
@@ -20,6 +21,8 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -156,17 +159,46 @@ public class ReportViewService {
         return fields;
     }
 
-    public Map<String, Map<String, List<InspectionField>>> getAllFields(List<InspectionField> fields){
-        return fields.stream()
-                .collect(Collectors.groupingBy(
-                        f -> f.getInspectionFieldDefinition().getFieldPlace(),
-                        LinkedHashMap::new,
-                        Collectors.groupingBy(
-                                f -> f.getInspectionFieldDefinition().getFieldType(),
-                                LinkedHashMap::new,
-                                Collectors.toList()
-                        )
-                ));
+    public Map<String, Map<String, List<FieldGroup>>> getAllFields(List<InspectionField> fields){
+        Map<String, Map<String, List<FieldGroup>>> byPlace = new LinkedHashMap<>();
+
+        for (InspectionField field : fields){
+            InspectionFieldDefinition definition = field.getInspectionFieldDefinition();
+
+            List<FieldGroup> groups = byPlace
+                    .computeIfAbsent(definition.getFieldPlace(), place -> new LinkedHashMap<>())
+                    .computeIfAbsent(definition.getFieldType(), type -> new ArrayList<>());
+
+            FieldGroup group = groups.stream()
+                    .filter(existing -> existing.matches(definition))
+                    .findFirst()
+                    .orElse(null);
+
+            if (group == null){
+                group = new FieldGroup(definition, new ArrayList<>());
+                groups.add(group);
+            }
+            group.fields().add(field);
+        }
+
+        return byPlace;
+    }
+
+    public void numberFigures(Map<String, Map<String, List<FieldGroup>>> allFields){
+        int figure = 0;
+
+        for (Map<String, List<FieldGroup>> byType : allFields.values()){
+            for (List<FieldGroup> groups : byType.values()){
+                for (FieldGroup group : groups){
+                    for (InspectionField field : group.fields()){
+                        if (field.getInspectionImages() == null) continue;
+                        for (InspectionImage image : field.getInspectionImages()){
+                            image.setFigureNumber(++figure);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public Map<String, List<InspectionField>> getSummaryFields(List<InspectionField> fields){
@@ -201,7 +233,8 @@ public class ReportViewService {
     // Nav section colours
 
     public List<NavSection> getPopulatedNavSections(
-            Map<String, Map<String, List<InspectionField>>> allFields,
+            // Only the place keys matter here, so the shape of the values is left open.
+            Map<String, ?> allFields,
             Map<String, List<InspectionField>> summaryFields,
             boolean hasAppendix
     ){
@@ -254,12 +287,12 @@ public class ReportViewService {
     // PDF generation
 
     public byte[] generatePdf(String templateName, Context context, UUID bookingId, InspectionReport report){
-        try {
-            // Read CSS file and inject into context
-            String css = new String(getClass()
-                    .getClassLoader()
-                    .getResourceAsStream("static/styles.css")
-                    .readAllBytes());
+        // try-with-resources: an unclosed stream keeps a handle on the file, which on Windows
+        // blocks the next build from overwriting target/classes/static/styles.css.
+        try (InputStream stylesheet = getClass().getClassLoader().getResourceAsStream("static/styles.css")) {
+            if (stylesheet == null) throw new IOException("static/styles.css not found on the classpath");
+
+            String css = new String(stylesheet.readAllBytes(), StandardCharsets.UTF_8);
             css += "\n" + buildColourVariablesCSS();
             css += "\n" + buildNavPageCSS();
             context.setVariable("css", css);

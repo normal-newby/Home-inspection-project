@@ -1,6 +1,7 @@
 package ca.inspection.home.inspection.controller;
 
 import ca.inspection.home.inspection.DTO.InvoiceAmount;
+import ca.inspection.home.inspection.DTO.FieldGroup;
 import ca.inspection.home.inspection.entity.*;
 import ca.inspection.home.inspection.repository.InspectionReportsRepository;
 import ca.inspection.home.inspection.service.*;
@@ -99,7 +100,8 @@ public class ReportViewController {
         reportViewService.setCoverPageImageBase64(report);
 
         List<InspectionField> fields = reportViewService.getSortedFields(report);
-        Map<String, Map<String, List<InspectionField>>> allFields = reportViewService.getAllFields(fields);
+        Map<String, Map<String, List<FieldGroup>>> allFields = reportViewService.getAllFields(fields);
+        reportViewService.numberFigures(allFields);
         Map<String, List<InspectionField>> summaryFields = reportViewService.getSummaryFields(fields);
 
         boolean hasAppendix = inspectionReportsService.readAppendixPdfBytes(report) != null;

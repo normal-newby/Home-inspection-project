@@ -762,6 +762,29 @@ body {
     padding-bottom: 0;
 }
 
+/* A grouped card can hold several entries with photos, so let it split across pages and
+   keep each entry whole instead — otherwise one card could push a mostly empty page. */
+.report-field-entry--grouped {
+    page-break-inside: auto;
+    break-inside: auto;
+}
+
+.report-field-instance {
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.report-field-instance + .report-field-instance {
+    margin-top: var(--space-sm);
+    padding-top: var(--space-sm);
+    border-top: 1px dashed var(--border);
+}
+
+/* The heading shows one value at most, so grouped entries state their own. */
+.report-field-value-line {
+    margin-bottom: var(--space-sm);
+}
+
 /* ── Header row ── */
 .report-field-header {
     display: flex;

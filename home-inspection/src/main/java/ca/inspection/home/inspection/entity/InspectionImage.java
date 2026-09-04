@@ -29,6 +29,9 @@ public class InspectionImage {
     @Transient
     private String base64;
 
+    @Transient
+    private Integer figureNumber;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonBackReference
     @JoinColumn(name = "inspection_report_id", nullable = false)
