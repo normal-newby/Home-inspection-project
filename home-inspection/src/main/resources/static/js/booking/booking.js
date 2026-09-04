@@ -187,41 +187,139 @@ async function loadTemplates() {
 
 function renderTemplateManageList(templates){
     templateManageList.innerHTML = "";
+
+    if (!templates.length){
+        const empty = document.createElement("p");
+        empty.className = "template-empty";
+        empty.textContent = "No templates yet.";
+        templateManageList.appendChild(empty);
+        return;
+    }
+
     templates.forEach(template => createTemplateManageRow(template));
+}
+
+// Only one editor open at a time, so a long list stays scannable.
+function openTemplateRow(row){
+    const alreadyOpen = row.classList.contains("open");
+    templateManageList.querySelectorAll(".template-row.open").forEach(other => {
+        other.classList.remove("open");
+        other.querySelector(".template-summary").setAttribute("aria-expanded", "false");
+    });
+    if (alreadyOpen) return;
+
+    row.classList.add("open");
+    row.querySelector(".template-summary").setAttribute("aria-expanded", "true");
+    row.querySelector(".template-edit-type").focus();
 }
 
 function createTemplateManageRow(template){
     const row = document.createElement("div");
-    row.className = "asset-item";
+    row.className = "template-row";
     row.dataset.id = template.id;
 
+    // Header: the collapsed state, and the control that expands the editor.
+    const header = document.createElement("div");
+    header.className = "template-header";
+
+    const summary = document.createElement("button");
+    summary.type = "button";
+    summary.className = "template-summary";
+    summary.setAttribute("aria-expanded", "false");
+
+    const chevron = document.createElement("span");
+    chevron.className = "template-chevron";
+    chevron.setAttribute("aria-hidden", "true");
+    chevron.textContent = "›";
+
+    const typeLabel = document.createElement("span");
+    typeLabel.className = "template-name";
+    typeLabel.textContent = template.type;
+
+    const feeLabel = document.createElement("span");
+    feeLabel.className = "template-fee";
+    feeLabel.textContent = `$${Number(template.fee).toFixed(2)}`;
+
+    summary.append(chevron, typeLabel, feeLabel);
+    summary.addEventListener("click", () => openTemplateRow(row));
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.textContent = "✕";
+    removeBtn.className = "remove-btn";
+    removeBtn.title = "Delete template";
+    removeBtn.addEventListener("click", () => deleteTemplate(template.id, row));
+
+    header.append(summary, removeBtn);
+
+    // Editor: collapsed to zero height until the row is opened.
+    const body = document.createElement("div");
+    body.className = "template-body";
+
+    const bodyInner = document.createElement("div");
+    bodyInner.className = "template-body-inner";
+
+    const typeField = document.createElement("div");
+    typeField.className = "field";
+    const typeFieldLabel = document.createElement("label");
+    typeFieldLabel.textContent = "Type";
     const typeInput = document.createElement("input");
     typeInput.type = "text";
     typeInput.value = template.type;
     typeInput.className = "template-edit-type";
-    typeInput.style.flex = "1";
+    typeFieldLabel.htmlFor = typeInput.id = `template-type-${template.id}`;
+    typeField.append(typeFieldLabel, typeInput);
 
+    const feeField = document.createElement("div");
+    feeField.className = "field";
+    const feeFieldLabel = document.createElement("label");
+    feeFieldLabel.textContent = "Fee ($)";
     const feeInput = document.createElement("input");
     feeInput.type = "number";
     feeInput.min = "0";
     feeInput.step = "0.01";
     feeInput.value = template.fee;
     feeInput.className = "template-edit-fee";
-    feeInput.style.width = "6rem";
+    feeFieldLabel.htmlFor = feeInput.id = `template-fee-${template.id}`;
+    feeField.append(feeFieldLabel, feeInput);
+
+    const grid = document.createElement("div");
+    grid.className = "form-grid";
+    grid.append(typeField, feeField);
+
+    const actions = document.createElement("div");
+    actions.className = "template-actions";
+
+    const cancelBtn = document.createElement("button");
+    cancelBtn.type = "button";
+    cancelBtn.textContent = "Cancel";
+    cancelBtn.className = "btn btn-secondary";
+    cancelBtn.addEventListener("click", () => {
+        // Drop any half-made edit so reopening shows what is actually stored.
+        typeInput.value = template.type;
+        feeInput.value = template.fee;
+        openTemplateRow(row);
+    });
 
     const saveBtn = document.createElement("button");
     saveBtn.type = "button";
     saveBtn.textContent = "Save";
-    saveBtn.className = "btn btn-secondary";
+    saveBtn.className = "btn btn-primary";
     saveBtn.addEventListener("click", () => saveTemplateEdit(template.id, typeInput, feeInput, saveBtn));
 
-    const removeBtn = document.createElement("button");
-    removeBtn.type = "button";
-    removeBtn.textContent = "✕";
-    removeBtn.className = "remove-btn";
-    removeBtn.addEventListener("click", () => deleteTemplate(template.id, row));
+    actions.append(cancelBtn, saveBtn);
+    bodyInner.append(grid, actions);
+    body.appendChild(bodyInner);
 
-    row.append(typeInput, feeInput, saveBtn, removeBtn);
+    // Enter saves from either input, matching the rest of the form.
+    [typeInput, feeInput].forEach(input => input.addEventListener("keydown", event => {
+        if (event.key === "Enter"){
+            event.preventDefault();
+            saveBtn.click();
+        }
+    }));
+
+    row.append(header, body);
     templateManageList.appendChild(row);
 }
 
@@ -230,13 +328,13 @@ async function saveTemplateEdit(id, typeInput, feeInput, saveBtn){
     const fee = parseFloat(feeInput.value);
 
     if (!type || Number.isNaN(fee)){
-        notify("Enter a type and falid fee before saving", {error : true});
+        notify("Enter a type and valid fee before saving", { error: true });
         return;
     }
 
     saveBtn.disabled = true;
     try {
-        const res = await fetch(`${templateURI}/{${id}`, {
+        const res = await fetch(`${templateURI}/${id}`, {
             method: "PUT",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({type, fee})
@@ -245,7 +343,8 @@ async function saveTemplateEdit(id, typeInput, feeInput, saveBtn){
         await loadTemplates();
         notify("Template updated");
     } catch (error){
-        notify("Could not update template", { error: true});
+        console.error("Error updating template:", error);
+        notify("Could not update template", { error: true });
     } finally {
         saveBtn.disabled = false;
     }

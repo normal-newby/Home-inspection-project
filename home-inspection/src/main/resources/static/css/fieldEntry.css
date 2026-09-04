@@ -297,6 +297,126 @@
     gap: 1.25rem;
 }
 
+/* ── Manage templates: one collapsed row each, editor opens in place ── */
+
+#template-manage-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.template-empty {
+    font-size: 0.9rem;
+    font-weight: 300;
+    color: var(--muted);
+    padding: 0.75rem 0.1rem;
+}
+
+.template-row {
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--card);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.template-row:hover { border-color: var(--muted); }
+
+.template-row.open {
+    border-color: var(--accent);
+    box-shadow: 0 1px 3px rgba(26, 26, 24, 0.06);
+}
+
+.template-header {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding-right: 0.6rem;
+}
+
+/* The summary is the toggle, so it takes the whole row bar the delete button. */
+.template-summary {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    padding: 0.7rem 0.85rem;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--ink);
+}
+
+.template-chevron {
+    color: var(--muted);
+    font-size: 1.05rem;
+    line-height: 1;
+    transition: transform 0.2s, color 0.2s;
+}
+
+.template-row.open .template-chevron {
+    transform: rotate(90deg);
+    color: var(--accent);
+}
+
+.template-row .template-name {
+    flex: 1;
+    font-size: 0.95rem;
+    font-weight: 300;
+    color: var(--ink);
+    letter-spacing: normal;
+    text-transform: none;
+}
+
+.template-row .template-fee {
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: var(--muted);
+    letter-spacing: normal;
+    text-transform: none;
+    font-variant-numeric: tabular-nums;
+}
+
+/* 0fr -> 1fr animates to the editor's natural height without hardcoding one. */
+.template-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.22s ease;
+}
+
+.template-row.open .template-body { grid-template-rows: 1fr; }
+
+.template-body-inner {
+    overflow: hidden;
+    min-height: 0;
+}
+
+.template-row.open .template-body-inner {
+    border-top: 1px solid var(--border);
+}
+
+.template-row.open .template-body-inner > * {
+    margin: 0 0.85rem;
+}
+
+.template-row.open .form-grid {
+    margin-top: 1rem;
+    grid-template-columns: 2fr 1fr;
+    gap: 1rem;
+}
+
+.template-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    margin-top: 1rem;
+    padding-bottom: 0.95rem;
+}
+
+.template-actions .btn { padding: 0.5rem 1.2rem; }
+
 .divider {
     border: none;
     border-top: 1px solid var(--border);
