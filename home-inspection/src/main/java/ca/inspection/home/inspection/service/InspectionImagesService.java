@@ -51,25 +51,23 @@ public class InspectionImagesService {
     @Autowired
     private HelperFunctions helperFunctions;
 
-    @Transactional
     public InspectionImage saveImages(MultipartFile file, UUID bookingId) {
         InspectionReport report = inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId);
         return saveImages(file, report);
     }
 
-    // Overload used when the caller already has the report loaded
-    @Transactional
     public InspectionImage saveImages(MultipartFile file, InspectionReport report) {
-        try {
-            if (report == null) return null;
+        if (report == null) return null;
 
+        Path path = null;
+        try {
             InspectionBookings booking = report.getInspectionBooking();
             Path dir = helperFunctions.getDirectory(
                     booking == null ? null : booking.getInspectionNumber());
             Files.createDirectories(dir);
 
             String fileName = System.currentTimeMillis() + "_" + UUID.randomUUID().toString() + ".jpg";
-            Path path = dir.resolve(fileName);
+            path = dir.resolve(fileName);
             file.transferTo(path.toFile());
 
             InspectionImage inspectionImage = new InspectionImage();
@@ -78,7 +76,17 @@ public class InspectionImagesService {
 
             return inspectionImagesRepository.save(inspectionImage);
         } catch (Exception e){
-            log.error("Failed to save uploaded image (report={})", report == null ? null : report.getId(), e);
+            log.error("Failed to save uploaded image (report={})", report.getId(), e);
+
+            // No row means nothing will ever point at those bytes, and nothing will ever
+            // clean them up either, so the half-done upload is undone here.
+            if (path != null) {
+                try {
+                    Files.deleteIfExists(path);
+                } catch (Exception cleanupFailure) {
+                    log.warn("Left an orphaned upload behind at {}", path, cleanupFailure);
+                }
+            }
             return null;
         }
     }

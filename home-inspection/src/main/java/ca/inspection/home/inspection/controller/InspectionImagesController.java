@@ -3,6 +3,7 @@ package ca.inspection.home.inspection.controller;
 import ca.inspection.home.inspection.entity.InspectionImage;
 import ca.inspection.home.inspection.repository.InspectionImagesRepository;
 import ca.inspection.home.inspection.service.InspectionImagesService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/images")
 @CrossOrigin(origins = "*")
@@ -31,6 +33,7 @@ public class InspectionImagesController {
             }
             return ResponseEntity.ok("Saved");
         } catch (Exception e) {
+            log.error("Upload failed for booking {}", id, e);
             return ResponseEntity.status(500).body("Error: " + e.getMessage());
         }
     }
