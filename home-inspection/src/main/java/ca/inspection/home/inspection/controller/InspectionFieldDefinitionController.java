@@ -1,5 +1,6 @@
 package ca.inspection.home.inspection.controller;
 
+import ca.inspection.home.inspection.DTO.ReportLayoutPlace;
 import ca.inspection.home.inspection.entity.InspectionFieldDefinition;
 import ca.inspection.home.inspection.service.InspectionFieldDefinitionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,5 +32,18 @@ public class InspectionFieldDefinitionController {
     @GetMapping("/{place}/{type}")
     public List<InspectionFieldDefinition> getAllFields(@PathVariable String place, @PathVariable String type){
         return inspectionFieldDefinitionService.getAllFields(place, type);
+    }
+
+    @GetMapping("/layout")
+    public List<ReportLayoutPlace> getReportLayout(){
+        return inspectionFieldDefinitionService.getReportLayout();
+    }
+
+    @PutMapping("/layout/{place}/{type}")
+    public ResponseEntity<?> saveReportOrder(
+            @PathVariable String place,
+            @PathVariable String type,
+            @RequestBody List<UUID> orderedIds){
+        return inspectionFieldDefinitionService.saveReportOrder(place, type, orderedIds);
     }
 }

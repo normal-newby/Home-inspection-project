@@ -33,4 +33,6 @@ public interface InspectionFieldDefinitionRepository extends JpaRepository<Inspe
     InspectionFieldDefinition findWithValues(
             @Param("id") UUID id
     );
+
+    List<InspectionFieldDefinition> findByFieldPlaceAndFieldType(String fieldPlace, String fieldType);
 }

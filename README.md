@@ -35,8 +35,14 @@ go to http://localhost:8080 on your web browser once it does start.
 ## 2. Profile setup
 
 1. Open the app and click **Profile** in the top navbar.
-2. Fill in all sections.
+2. Fill in all sections — who you are, how to reach you, and your address. This is
+   what appears on your cover letters, invoices, and reports.
 3. Click save.
+
+The parts of the report that are the same on every inspection — the cover letter,
+summary letter and agreement text, the default appendix PDF, the cover page images,
+and the order fields appear in — live under **Report Layout** instead. See
+[Report layout](#report-layout).
 
 ### Linking Google Calendar (optional)
 
@@ -73,6 +79,31 @@ and switch syncing off without unlinking. **Disconnect** revokes the app's acces
 
 If Google is unreachable when a booking is saved, the booking is still saved --
 only the calendar entry is skipped, and the reason is written to the log.
+
+## Report layout
+
+Click **Report Layout** in the top navbar. Everything here is set once and reused
+on every report, so it is kept apart from your own details on the profile page.
+
+- **Cover Letter Body**, **Summary Letter Body** and **Agreement** -- the standing
+  text of those pages. The summary letter is what pre-fills a new report's summary,
+  which you can then edit per booking.
+- **Default Appendix PDF** -- appended to every report, unless a booking sets its
+  own (see [Editing Report-Level Data](#36-editing-report-level-data)).
+- **Cover Page Images** -- the images available to a report's cover page. Give each
+  one an asset key and upload the file.
+
+Click **Save Layout** when you are done.
+
+### Field order
+
+**Report Layout -> Field Order** sets the order inspection fields appear in on the
+finished report. Pick a section along the top, then drag a field to move it or use
+the arrows beside it, and click **Save Order**.
+
+This only moves the report. The screens you write a report on sort themselves --
+fields you have already filled in first, then pinned ones, then alphabetically --
+and that does not change.
 
 ## 2. Booking an Inspection
 

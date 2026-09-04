@@ -112,6 +112,60 @@ public class InspectorProfileServiceTest {
     }
 
     @Test
+    void saveProfile_reportLayoutPageSaves_keepsTheProfilePagesFields() {
+        // The two pages share one row. The layout page only sends the document bodies, so
+        // everything it left out has to survive the save.
+        InspectorProfile existing = storedProfile(1330);
+        existing.setName("John Smith");
+        existing.setCompany("Smith Inspections Inc.");
+        existing.setCity("Toronto");
+
+        InspectorProfile incoming = new InspectorProfile();
+        incoming.setCoverLetterBody("Thank you for choosing us.");
+        inspectorProfileService.saveProfile(incoming);
+
+        ArgumentCaptor<InspectorProfile> captor = ArgumentCaptor.forClass(InspectorProfile.class);
+        verify(inspectorProfileRepository).save(captor.capture());
+        assertThat(captor.getValue().getName()).isEqualTo("John Smith");
+        assertThat(captor.getValue().getCompany()).isEqualTo("Smith Inspections Inc.");
+        assertThat(captor.getValue().getCity()).isEqualTo("Toronto");
+        assertThat(captor.getValue().getCoverLetterBody()).isEqualTo("Thank you for choosing us.");
+    }
+
+    @Test
+    void saveProfile_profilePageSaves_keepsTheReportLayoutPagesFields() {
+        InspectorProfile existing = storedProfile(1330);
+        existing.setCoverLetterBody("Thank you for choosing us.");
+        existing.setSummaryLetterBody("The following is a summary.");
+        existing.setAgreementBody("This agreement is entered into.");
+
+        InspectorProfile incoming = new InspectorProfile();
+        incoming.setName("John Smith");
+        inspectorProfileService.saveProfile(incoming);
+
+        ArgumentCaptor<InspectorProfile> captor = ArgumentCaptor.forClass(InspectorProfile.class);
+        verify(inspectorProfileRepository).save(captor.capture());
+        assertThat(captor.getValue().getCoverLetterBody()).isEqualTo("Thank you for choosing us.");
+        assertThat(captor.getValue().getSummaryLetterBody()).isEqualTo("The following is a summary.");
+        assertThat(captor.getValue().getAgreementBody()).isEqualTo("This agreement is entered into.");
+    }
+
+    @Test
+    void saveProfile_fieldClearedOnTheForm_isActuallyCleared() {
+        // An emptied box arrives as "", not null, so carrying values over must not undo it.
+        InspectorProfile existing = storedProfile(1330);
+        existing.setWebsite("https://www.abc.ca");
+
+        InspectorProfile incoming = new InspectorProfile();
+        incoming.setWebsite("");
+        inspectorProfileService.saveProfile(incoming);
+
+        ArgumentCaptor<InspectorProfile> captor = ArgumentCaptor.forClass(InspectorProfile.class);
+        verify(inspectorProfileRepository).save(captor.capture());
+        assertThat(captor.getValue().getWebsite()).isEmpty();
+    }
+
+    @Test
     void saveProfile_noExistingProfile_savesWhatCameIn() {
         when(inspectorProfileRepository.findById(1L)).thenReturn(Optional.empty());
 

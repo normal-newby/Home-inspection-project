@@ -140,6 +140,58 @@ public class ReportViewServiceTest {
         assertThat(result).isZero();
     }
 
+    // Report order: what the field order page sets. It is a tie break inside a place and
+    // type, so it can never pull a field out of the section it belongs to.
+
+    private InspectionField fieldOrdered(String place, String type, String name, Integer reportOrder){
+        InspectionField field = fieldWithTypeAndPlace(place, type);
+        field.getInspectionFieldDefinition().setFieldName(name);
+        field.getInspectionFieldDefinition().setReportOrder(reportOrder);
+        return field;
+    }
+
+    @Test
+    void getComparator_samePlaceAndType_followsTheReportOrder(){
+        // Alphabetically these are the wrong way round, which is the point: the inspector
+        // moved the second one up on the field order page.
+        InspectionField first = fieldOrdered("roofing", "description", "Ventilation", 0);
+        InspectionField second = fieldOrdered("roofing", "description", "Covering", 1);
+        Comparator<InspectionField> comparator = reportViewService.getComparator();
+
+        assertThat(comparator.compare(first, second)).isNegative();
+    }
+
+    @Test
+    void getComparator_reportOrderNeverSet_sortsAfterTheOrderedFields(){
+        // A definition seeded after the order was saved must not jump to the top of its
+        // section just because its order is still null.
+        InspectionField ordered = fieldOrdered("roofing", "description", "Ventilation", 7);
+        InspectionField unordered = fieldOrdered("roofing", "description", "Covering", null);
+        Comparator<InspectionField> comparator = reportViewService.getComparator();
+
+        assertThat(comparator.compare(ordered, unordered)).isNegative();
+    }
+
+    @Test
+    void getComparator_noReportOrderOnEither_fallsBackToTheName(){
+        // The report's fields are a HashSet, so without a last tie break two runs of the
+        // same report could print the same section in different orders.
+        InspectionField covering = fieldOrdered("roofing", "description", "Covering", null);
+        InspectionField ventilation = fieldOrdered("roofing", "description", "Ventilation", null);
+        Comparator<InspectionField> comparator = reportViewService.getComparator();
+
+        assertThat(comparator.compare(covering, ventilation)).isNegative();
+    }
+
+    @Test
+    void getComparator_reportOrderSetOnALaterPlace_stillSortsByPlaceFirst(){
+        InspectionField roofing = fieldOrdered("roofing", "description", "Covering", 90);
+        InspectionField plumbing = fieldOrdered("plumbing", "description", "Covering", 0);
+        Comparator<InspectionField> comparator = reportViewService.getComparator();
+
+        assertThat(comparator.compare(roofing, plumbing)).isNegative();
+    }
+
     // Summary Field Tests
 
     @Test
@@ -378,6 +430,21 @@ public class ReportViewServiceTest {
         List<InspectionField> result = reportViewService.getSortedFields(report);
 
         assertThat(result).containsExactly(completeField);
+    }
+
+    @Test
+    void getSortedFields_sectionWithASavedOrder_printsInThatOrder(){
+        // End to end for what the field order page sets: the report holds its fields in a
+        // HashSet, so this is the only thing deciding what the section looks like.
+        InspectionField ventilation = fieldOrdered("roofing", "description", "Ventilation", 0);
+        InspectionField covering = fieldOrdered("roofing", "description", "Covering", 1);
+        InspectionField flashing = fieldOrdered("roofing", "description", "Flashing", 2);
+
+        InspectionReport report = new InspectionReport();
+        report.setFields(Set.of(covering, flashing, ventilation));
+
+        assertThat(reportViewService.getSortedFields(report))
+                .containsExactly(ventilation, covering, flashing);
     }
 
     @Test

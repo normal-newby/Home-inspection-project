@@ -31,6 +31,8 @@ public class InspectionFieldDefinition {
 
     private Boolean expandedByDefault = false; //setting to show in fields
 
+    private Integer reportOrder;
+
     @JsonManagedReference
     @OneToMany(mappedBy = "inspectionFieldDefinition", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("value ASC")

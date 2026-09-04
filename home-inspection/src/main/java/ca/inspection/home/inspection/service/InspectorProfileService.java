@@ -40,7 +40,7 @@ public class InspectorProfileService {
     public ResponseEntity<?> saveProfile(InspectorProfile profile) {
         try {
             profile.setId(1L);
-            carryOverServerOwnedFields(profile);
+            carryOverMissingFields(profile);
             inspectorProfileRepository.save(profile);
             return ResponseEntity.ok().build();
         } catch (Exception e){
@@ -49,12 +49,29 @@ public class InspectorProfileService {
         }
     }
 
-    private void carryOverServerOwnedFields(InspectorProfile incoming) {
+    private void carryOverMissingFields(InspectorProfile incoming) {
         InspectorProfile existing = inspectorProfileRepository.findById(1L).orElse(null);
         if (existing == null) return;
 
+        if (incoming.getName() == null) incoming.setName(existing.getName());
+        if (incoming.getCompany() == null) incoming.setCompany(existing.getCompany());
+        if (incoming.getPhone() == null) incoming.setPhone(existing.getPhone());
+        if (incoming.getEmail() == null) incoming.setEmail(existing.getEmail());
+        if (incoming.getWebsite() == null) incoming.setWebsite(existing.getWebsite());
+        if (incoming.getLogoPath() == null) incoming.setLogoPath(existing.getLogoPath());
         if (incoming.getInspectionNumber() == null) incoming.setInspectionNumber(existing.getInspectionNumber());
+
+        if (incoming.getAddress() == null) incoming.setAddress(existing.getAddress());
+        if (incoming.getCity() == null) incoming.setCity(existing.getCity());
+        if (incoming.getProvince() == null) incoming.setProvince(existing.getProvince());
+        if (incoming.getPostalCode() == null) incoming.setPostalCode(existing.getPostalCode());
+
+        if (incoming.getCoverLetterBody() == null) incoming.setCoverLetterBody(existing.getCoverLetterBody());
+        if (incoming.getSummaryLetterBody() == null) incoming.setSummaryLetterBody(existing.getSummaryLetterBody());
+        if (incoming.getAgreementBody() == null) incoming.setAgreementBody(existing.getAgreementBody());
+        if (incoming.getEmailTemplate() == null) incoming.setEmailTemplate(existing.getEmailTemplate());
         if (incoming.getAppendixPdf() == null) incoming.setAppendixPdf(existing.getAppendixPdf());
+
         if (incoming.getGoogleRefreshToken() == null) incoming.setGoogleRefreshToken(existing.getGoogleRefreshToken());
         if (incoming.getGoogleAccessToken() == null) incoming.setGoogleAccessToken(existing.getGoogleAccessToken());
         if (incoming.getGoogleTokenExpiry() == null) incoming.setGoogleTokenExpiry(existing.getGoogleTokenExpiry());

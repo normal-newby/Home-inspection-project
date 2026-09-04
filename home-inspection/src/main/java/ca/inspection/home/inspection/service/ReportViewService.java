@@ -29,14 +29,6 @@ import java.util.stream.Collectors;
 @Service
 public class ReportViewService {
 
-    private List<String> placeOrder = List.of(
-            "roofing", "exterior", "structure", "electrical", "heating", "cooling", "insulation", "plumbing", "interior"
-    );
-
-    private List<String> typeOrder = List.of(
-            "description", "limitations", "recommendations"
-    );
-
     private static final Map<String, String> navSectionColours = new LinkedHashMap<>() {{
         put("summary",     "#943b08");
         put("roofing",     "#a68368");
@@ -112,17 +104,21 @@ public class ReportViewService {
     }
 
     public Comparator<InspectionField> getComparator(){
-        Comparator<InspectionField> fieldComparator = Comparator.comparingInt(f -> {
-                    String place = f.getInspectionFieldDefinition().getFieldPlace().toLowerCase();
-                    int idx = placeOrder.indexOf(place);
-                    return idx == -1 ? Integer.MAX_VALUE : idx; // unknown places go to end
-                });
+        // Place, then type, then the order the inspector set on the report layout page.
+        Comparator<InspectionField> fieldComparator = Comparator.comparingInt(
+                f -> ReportSectionOrder.placeIndex(f.getInspectionFieldDefinition().getFieldPlace()));
+
+        fieldComparator = fieldComparator.thenComparingInt(
+                f -> ReportSectionOrder.typeIndex(f.getInspectionFieldDefinition().getFieldType()));
 
         fieldComparator = fieldComparator.thenComparingInt(f -> {
-            String type = f.getInspectionFieldDefinition().getFieldType().toLowerCase();
-            int idx = typeOrder.indexOf(type);
-            return idx == -1 ? Integer.MAX_VALUE : idx;
+            Integer order = f.getInspectionFieldDefinition().getReportOrder();
+            return order == null ? Integer.MAX_VALUE : order;
         });
+
+        fieldComparator = fieldComparator.thenComparing(
+                f -> f.getInspectionFieldDefinition().getFieldName(),
+                Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
 
         return fieldComparator;
     }
