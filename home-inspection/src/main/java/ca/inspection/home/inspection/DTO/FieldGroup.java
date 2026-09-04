@@ -4,6 +4,7 @@ import ca.inspection.home.inspection.entity.InspectionField;
 import ca.inspection.home.inspection.entity.InspectionFieldDefinition;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public record FieldGroup(InspectionFieldDefinition definition, List<InspectionField> fields) {
 
@@ -11,13 +12,26 @@ public record FieldGroup(InspectionFieldDefinition definition, List<InspectionFi
         return fields.size() > 1;
     }
 
-    public boolean isDetailed() {
-        if (isGrouped()) return true;
+    public boolean isRecommendations() {
+        return definition != null && "recommendations".equals(definition.getFieldType());
+    }
 
-        InspectionField only = fields.get(0);
-        return only.getInspectionRecommendationField() != null
-                || (only.getNote() != null && !only.getNote().isBlank())
-                || (only.getInspectionImages() != null && !only.getInspectionImages().isEmpty());
+    // Recs cant be merged together
+    public String getDisplayValues() {
+        if (isRecommendations()) return null;
+
+        String joined = fields.stream()
+                .map(InspectionField::getDisplayValue)
+                .filter(value -> value != null && !value.isBlank())
+                .collect(Collectors.joining(", "));
+
+        return joined.isEmpty() ? null : joined;
+    }
+
+    public boolean isDetailed() {
+        if (isGrouped() || getDisplayValues() != null) return true;
+
+        return fields.get(0).isDetailed();
     }
 
     // Definitions are compared by id, falling back to identity for anything not yet persisted.

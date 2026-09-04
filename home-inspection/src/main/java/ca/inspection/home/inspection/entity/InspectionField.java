@@ -65,6 +65,12 @@ public class InspectionField {
                 && InspectionFieldDefinitionValue.BLANK_ITEM.equalsIgnoreCase(selectedValue.getValue());
     }
 
+    public boolean isDetailed() {
+        return inspectionRecommendationField != null
+                || (note != null && !note.isBlank())
+                || (inspectionImages != null && !inspectionImages.isEmpty());
+    }
+
     public String getDisplayValue() {
         if (conditionName != null && !conditionName.isBlank()) {
             return conditionName.trim();

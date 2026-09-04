@@ -313,27 +313,20 @@
                            ? 'report-field-entry report-field-entry--grouped'
                            : 'report-field-entry'">
 
-                <!-- Card Header: definition name, plus the value when there is a single entry -->
-                <div th:with="only=${group.fields[0]}"
-                     th:class="${group.detailed}
+                <!-- Card Header: definition name only; the value always sits on its own line -->
+                <div th:class="${group.detailed}
                                ? 'report-field-header'
                                : 'report-field-header report-field-header--no-border'">
                     <span class="report-field-name" th:text="${group.definition.fieldName}"></span>
-                    <!-- displayValue is the named condition for blank items, the picked option otherwise. -->
-                    <div class="report-field-value report-field-value--right"
-                        th:if="${!group.grouped and group.definition.fieldType != 'recommendations' and only.displayValue != null}"
-                        th:text="${only.displayValue}"></div>
+                </div>
+
+                <div class="report-field-value-line"
+                     th:if="${group.displayValues != null}">
+                    <span class="report-field-value-text" th:text="${group.displayValues}"></span>
                 </div>
 
                 <div th:each="field : ${group.fields}"
                      th:class="${group.grouped} ? 'report-field-instance' : null">
-
-                    <!-- Grouped entries carry their own value, since the header can only show one. -->
-                    <div class="report-field-value-line"
-                         th:if="${group.grouped and field.inspectionFieldDefinition.fieldType != 'recommendations'
-                                 and field.displayValue != null}">
-                        <span class="report-field-value-text" th:text="${field.displayValue}"></span>
-                    </div>
 
                     <div class="report-field-condition"
                          th:if="${field.inspectionFieldDefinition.fieldType == 'recommendations'}">
