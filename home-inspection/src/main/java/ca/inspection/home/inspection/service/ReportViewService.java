@@ -3,10 +3,12 @@ package ca.inspection.home.inspection.service;
 import ca.inspection.home.inspection.DTO.FieldGroup;
 import ca.inspection.home.inspection.DTO.ImageLocation;
 import ca.inspection.home.inspection.DTO.NavSection;
+import ca.inspection.home.inspection.DTO.ReportDiagram;
 import ca.inspection.home.inspection.entity.*;
 import ca.inspection.home.inspection.repository.ImageAnnotationRepository;
 import ca.inspection.home.inspection.repository.InspectionImagesRepository;
 import ca.inspection.home.inspection.repository.InspectionRecommendationFieldRepository;
+import ca.inspection.home.inspection.repository.InspectionFieldDefinitionValueRepository;
 import ca.inspection.home.inspection.repository.InspectionReportsRepository;
 import lombok.AllArgsConstructor;
 import org.apache.tomcat.util.http.fileupload.ByteArrayOutputStream;
@@ -70,6 +72,12 @@ public class ReportViewService {
     @Autowired
     private CompanyAssetService companyAssetService;
 
+    @Autowired
+    private RecommendationDiagramService recommendationDiagramService;
+
+    @Autowired
+    private InspectionFieldDefinitionValueRepository inspectionFieldDefinitionValueRepository;
+
     public void getOtherFields(InspectionReport report){
         List<UUID> fieldIds = report.getFields().stream().map(InspectionField::getId).toList();
         if (fieldIds.isEmpty()) return;
@@ -100,6 +108,46 @@ public class ReportViewService {
                 img.setAnnotations(annotationMap.getOrDefault(img.getId(), new HashSet<>()));
             });
             field.setInspectionImages(images);
+        });
+
+        getRecommendationDiagrams(report);
+    }
+
+    public void getRecommendationDiagrams(InspectionReport report){
+        Set<UUID> valueIds = report.getFields().stream()
+                .map(InspectionField::getSelectedValue)
+                .filter(Objects::nonNull)
+                .map(InspectionFieldDefinitionValue::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        if (valueIds.isEmpty()) return;
+
+        // Encoded once per distinct file, however many recommendations use it.
+        Map<String, String> base64ByFile = new HashMap<>();
+        Map<UUID, List<ReportDiagram>> diagramsByValue = new HashMap<>();
+
+        inspectionFieldDefinitionValueRepository.findAllWithDiagrams(valueIds).forEach(value -> {
+            List<ReportDiagram> diagrams = value.getDiagrams().stream()
+                    .map(diagram -> {
+                        String base64 = base64ByFile.computeIfAbsent(diagram.getFileName(),
+                                file -> recommendationDiagramService.toBase64(diagram));
+                        return base64 == null ? null : new ReportDiagram(diagram.getTitle(), base64, null);
+                    })
+                    .filter(Objects::nonNull)
+                    .toList();
+
+            if (!diagrams.isEmpty()) diagramsByValue.put(value.getId(), diagrams);
+        });
+
+        report.getFields().forEach(field -> {
+            InspectionFieldDefinitionValue value = field.getSelectedValue();
+            List<ReportDiagram> diagrams = value == null
+                    ? null : diagramsByValue.get(value.getId());
+            if (diagrams == null) return;
+
+            field.setRecommendationDiagrams(diagrams.stream()
+                    .map(d -> new ReportDiagram(d.getTitle(), d.getBase64(), null))
+                    .collect(Collectors.toList()));
         });
     }
 
@@ -187,6 +235,13 @@ public class ReportViewService {
             for (List<FieldGroup> groups : byType.values()){
                 for (FieldGroup group : groups){
                     for (InspectionField field : group.fields()){
+                        // Diagrams first: they print above the photos.
+                        if (field.getRecommendationDiagrams() != null){
+                            for (ReportDiagram diagram : field.getRecommendationDiagrams()){
+                                diagram.setFigureNumber(++figure);
+                            }
+                        }
+
                         if (field.getInspectionImages() == null) continue;
                         for (InspectionImage image : field.getInspectionImages()){
                             image.setFigureNumber(++figure);

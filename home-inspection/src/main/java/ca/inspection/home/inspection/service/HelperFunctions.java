@@ -43,6 +43,10 @@ public class HelperFunctions {
         return getDirectory().resolve("company");
     }
 
+    public Path getRecommendationDiagramDirectory() {
+        return getDirectory().resolve("recommendations_diagrams");
+    }
+
     public static String getFileExtension(String originalFileName){
         if (originalFileName == null || !originalFileName.contains(".")) return "";
         int dotIndex = originalFileName.lastIndexOf(".");

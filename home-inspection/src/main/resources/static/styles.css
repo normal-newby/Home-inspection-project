@@ -911,6 +911,13 @@ body {
     border: 1px solid var(--border);
 }
 
+/* Reference drawings rather than photos of the house: usually line art, often with a
+   transparent background, so they get paper behind them instead of the card colour. */
+.report-field-diagram {
+    background: #ffffff;
+    object-fit: contain;
+}
+
 .report-field-image-caption {
     font-size: var(--label-size);
     font-weight: 400;

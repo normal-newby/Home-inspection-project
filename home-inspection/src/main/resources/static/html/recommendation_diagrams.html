@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recommendation Diagrams</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/fieldEntry.css">
+    <link rel="stylesheet" href="../css/reportLayout.css">
+    <link rel="stylesheet" href="../css/dialog.css">
+</head>
+<body>
+
+<div class="navbar">
+    <div class="container">
+        <div class="navbarBox"><a href="index.html">Home</a></div>
+        <div class="navbarBox"><a href="booking.html">Book Inspection</a></div>
+        <div class="navbarBox"><a href="profile.html">Profile</a></div>
+        <div class="navbarBox"><a href="report_layout.html" class="active">Report Layout</a></div>
+    </div>
+</div>
+
+<div class="page page-wide">
+
+    <a class="back-link" id="backLink" href="report_layout.html">← Report Layout</a>
+
+    <div class="page-header">
+        <h1 id="galleryHeading">Recommendation Diagrams</h1>
+        <p id="gallerySubtitle">
+            Supporting drawings you can attach to a recommendation while writing a report.
+        </p>
+    </div>
+
+    <div class="field-error" id="diagramError"></div>
+
+    <details class="diagram-upload" id="uploadPanel">
+        <summary class="diagram-upload-summary">Upload a diagram</summary>
+        <div class="diagram-upload-body">
+            <div class="form-grid">
+                <div class="field">
+                    <label for="diagramTitle">Title</label>
+                    <input type="text" id="diagramTitle" placeholder="Correct flashing detail"/>
+                </div>
+                <div class="field">
+                    <span class="diagramFile">File</span>
+                    <input type="file" id="diagramFile" name="diagramFile" accept="image/*" />
+                </div>
+            </div>
+            <div class="actions" style="margin-top: 1rem;">
+                <button type="button" id="uploadDiagramBtn" class="btn btn-primary">Upload Diagram</button>
+            </div>
+        </div>
+    </details>
+
+    <div class="diagram-toolbar">
+        <input type="search" id="diagramSearch" class="diagram-search" placeholder="Search diagrams…"
+               aria-label="Search diagrams by title"/>
+        <span class="diagram-count" id="diagramCount"></span>
+    </div>
+
+    <p class="diagram-picker-hint" id="pickHint" hidden>
+        Click a diagram to attach it. Diagrams stay with this recommendation, so every report
+        that uses it prints them.
+    </p>
+
+    <div class="diagram-grid" id="diagramGrid"></div>
+
+    <p class="diagram-empty" id="galleryEmpty" hidden>No diagrams uploaded yet.</p>
+    <p class="diagram-empty" id="noMatches" hidden>No diagrams match that search.</p>
+
+    <div class="actions" id="pickActions" hidden>
+        <button type="button" id="cancelDiagramsBtn" class="btn btn-secondary">Cancel</button>
+        <button type="button" id="saveDiagramsBtn" class="btn btn-primary">Save Diagrams</button>
+    </div>
+
+    <div class="resultBanner"></div>
+
+</div>
+
+<script type="module" src="../js/reportLayout/diagramGallery.js"></script>
+
+</body>
+</html>

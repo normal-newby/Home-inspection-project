@@ -3,6 +3,7 @@ package ca.inspection.home.inspection.service;
 import ca.inspection.home.inspection.DTO.FieldGroup;
 import ca.inspection.home.inspection.DTO.ImageLocation;
 import ca.inspection.home.inspection.DTO.NavSection;
+import ca.inspection.home.inspection.DTO.ReportDiagram;
 import ca.inspection.home.inspection.entity.*;
 import ca.inspection.home.inspection.repository.ImageAnnotationRepository;
 import ca.inspection.home.inspection.repository.InspectionImagesRepository;
@@ -385,6 +386,61 @@ public class ReportViewServiceTest {
                 .containsExactly(1);
         assertThat(second.getInspectionImages()).extracting(InspectionImage::getFigureNumber)
                 .containsExactly(2, 3);
+    }
+
+    private InspectionField fieldWithDiagrams(InspectionFieldDefinition definition, String... titles){
+        InspectionField field = fieldUsing(definition);
+        field.setRecommendationDiagrams(Arrays.stream(titles)
+                .map(title -> new ReportDiagram(title, "data:image/jpeg;base64,FAKE", null))
+                .collect(java.util.stream.Collectors.toList()));
+        return field;
+    }
+
+    @Test
+    void numberFigures_supportingDiagrams_areNumberedBeforeTheFieldsOwnPhotos(){
+        // They print above the photos, so a caption reading "Fig 2" under the first photo
+        // would not match the page.
+        InspectionField field = fieldWithDiagrams(
+                definitionFor("roofing", "recommendations"), "Flashing detail");
+        field.setInspectionImages(List.of(new InspectionImage(), new InspectionImage()));
+
+        Map<String, Map<String, List<FieldGroup>>> allFields =
+                reportViewService.getAllFields(List.of(field));
+        reportViewService.numberFigures(allFields);
+
+        assertThat(field.getRecommendationDiagrams()).extracting(ReportDiagram::getFigureNumber)
+                .containsExactly(1);
+        assertThat(field.getInspectionImages()).extracting(InspectionImage::getFigureNumber)
+                .containsExactly(2, 3);
+    }
+
+    @Test
+    void numberFigures_twoItemsOnTheSameRecommendation_eachGetTheirOwnDiagramNumbers(){
+        // Both carry the same drawing. They hold separate copies of it precisely so the
+        // second one does not overwrite the first one's figure number.
+        InspectionFieldDefinition flashings = definitionFor("roofing", "recommendations");
+        InspectionField first = fieldWithDiagrams(flashings, "Flashing detail");
+        InspectionField second = fieldWithDiagrams(flashings, "Flashing detail");
+
+        Map<String, Map<String, List<FieldGroup>>> allFields =
+                reportViewService.getAllFields(List.of(first, second));
+        reportViewService.numberFigures(allFields);
+
+        assertThat(first.getRecommendationDiagrams().get(0).getFigureNumber()).isEqualTo(1);
+        assertThat(second.getRecommendationDiagrams().get(0).getFigureNumber()).isEqualTo(2);
+    }
+
+    @Test
+    void numberFigures_fieldWithNoDiagrams_doesNotConsumeANumber(){
+        InspectionField plain = fieldUsing(definitionFor("roofing", "recommendations"));
+        InspectionField withDiagram = fieldWithDiagrams(
+                definitionFor("roofing", "recommendations"), "Flashing detail");
+
+        Map<String, Map<String, List<FieldGroup>>> allFields =
+                reportViewService.getAllFields(List.of(plain, withDiagram));
+        reportViewService.numberFigures(allFields);
+
+        assertThat(withDiagram.getRecommendationDiagrams().get(0).getFigureNumber()).isEqualTo(1);
     }
 
     @Test

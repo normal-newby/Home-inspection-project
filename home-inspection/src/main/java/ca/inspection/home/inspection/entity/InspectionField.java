@@ -1,6 +1,8 @@
 package ca.inspection.home.inspection.entity;
 
+import ca.inspection.home.inspection.DTO.ReportDiagram;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,8 +21,8 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString(exclude = {"inspectionReport", "inspectionFieldDefinition", "selectedValue", "inspectionImages", "inspectionRecommendationField"})
-@EqualsAndHashCode(exclude = {"inspectionReport", "inspectionFieldDefinition", "selectedValue", "inspectionImages", "inspectionRecommendationField"})
+@ToString(exclude = {"inspectionReport", "inspectionFieldDefinition", "selectedValue", "inspectionImages", "inspectionRecommendationField", "recommendationDiagrams"})
+@EqualsAndHashCode(exclude = {"inspectionReport", "inspectionFieldDefinition", "selectedValue", "inspectionImages", "inspectionRecommendationField", "recommendationDiagrams"})
 public class InspectionField {
     @Id
     @GeneratedValue
@@ -59,6 +61,11 @@ public class InspectionField {
 
     @Column(name = "include_in_summary")
     private Boolean includeInSummary;
+
+    // Filled in only while a report is rendered
+    @Transient
+    @JsonIgnore
+    private List<ReportDiagram> recommendationDiagrams = new ArrayList<>();
 
     public boolean isBlankItem() {
         return selectedValue != null

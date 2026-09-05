@@ -130,36 +130,11 @@ public class InspectionImagesService {
     }
 
     private Path getOrCreateThumbnail(ImageLocation location) throws IOException {
-        Path thumbsDir = helperFunctions.getDirectory(location.getInspectionNumber())
-                .resolve("thumbs");
-        Files.createDirectories(thumbsDir);
-        Path thumbPath = thumbsDir.resolve(location.getImageUrl());
-        if (Files.exists(thumbPath)) return thumbPath;
+        Path thumbPath = helperFunctions.getDirectory(location.getInspectionNumber())
+                .resolve("thumbs")
+                .resolve(location.getImageUrl());
 
-        Path source = helperFunctions.resolveUpload(location);
-        BufferedImage src = ImageIO.read(source.toFile());
-        if (src == null) throw new IOException("Unreadable image: " + location.getImageUrl());
-
-        double scale = Math.min(1.0, (double) THUMB_MAX_WIDTH / src.getWidth());
-        int w = Math.max(1, (int) Math.round(src.getWidth() * scale));
-        int h = Math.max(1, (int) Math.round(src.getHeight() * scale));
-
-        BufferedImage thumb = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g = thumb.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        g.drawImage(src, 0, 0, w, h, null);
-        g.dispose();
-
-        Path tmp = Files.createTempFile(thumbsDir, "thumb_", ".jpg");
-        try {
-            ImageIO.write(thumb, "jpeg", tmp.toFile());
-            Files.move(tmp, thumbPath);
-        } catch (Exception e) {
-            Files.deleteIfExists(tmp);
-            throw e;
-        }
-        return thumbPath;
+        return Thumbnails.getOrCreate(helperFunctions.resolveUpload(location), thumbPath, THUMB_MAX_WIDTH);
     }
 
     public ResponseEntity<?> updateCoverPageImage(UUID bookingId, MultipartFile file){
@@ -276,21 +251,7 @@ public class InspectionImagesService {
 
     // Scale to 1600 (no big difference in quality)
     private BufferedImage scaleForReport(BufferedImage source){
-        int maxWidth = maxReportWidth();
-        if (source == null || source.getWidth() <= maxWidth) return source;
-
-        int width = maxWidth;
-        int height = Math.max(1, (int) Math.round(
-                source.getHeight() * ((double) maxWidth / source.getWidth())));
-
-        BufferedImage scaled = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        Graphics2D graphics2D = scaled.createGraphics();
-        graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        graphics2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        graphics2D.drawImage(source, 0, 0, width, height, null);
-        graphics2D.dispose();
-
-        return scaled;
+        return Thumbnails.scaleToWidth(source, maxReportWidth());
     }
 
     private static double scaleFor(Double displayed, double actual){

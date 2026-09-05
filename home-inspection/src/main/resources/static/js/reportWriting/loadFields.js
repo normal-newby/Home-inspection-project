@@ -1,7 +1,7 @@
 import { bookingId } from "./getReport.js";
 import { initImagesSlider, refreshImageCounts } from "./loadImages.js";
 import { addAnnotationCanvas } from "./imageAnnotation.js";
-import { setUpRecommendationsPanel } from "./recommendations.js";
+import { setUpRecommendationsPanel, setUpDiagramsButton } from "./recommendations.js";
 import { fetchExisting, saveFunction } from "../fetchExisting.js";
 import { confirmDialog, notify } from "../ui/dialog.js";
 
@@ -37,6 +37,7 @@ const includeInSummaryRow = document.querySelector(".include-summary-row");
 const includeInSummaryBox = document.getElementById("include-in-summary");
 
 const recommendationsButton = document.getElementById("show-recommendation-button");
+const diagramsButton = document.getElementById("attach-diagrams-button");
 const recommendationsPanel = document.querySelector(".recommendations-panel");
 let currentRecommendationFieldId = null;
 
@@ -244,7 +245,9 @@ function createExistingField(parent, field, definition){ // Creates buttons for 
 
         if (type === "recommendations"){ // If field = recommendation, show button
             recommendationsButton.hidden = false;
+            diagramsButton.hidden = false;
             currentRecommendationFieldId = button.dataset.id;
+            setUpDiagramsButton(button.dataset.id);
 
             includeInSummaryRow.hidden = false;
             fetchInSummary(button.dataset.id) // Fetch in summary for field
@@ -601,6 +604,7 @@ async function closeFieldPanel(){
     if (!await flushAnnotations()) return false;
     selectImageDiv.hidden = true;
     recommendationsPanel.hidden = true;
+    diagramsButton.hidden = true;
     clearCanvas();
     curField = null;
     return true;
@@ -655,7 +659,9 @@ includeInSummaryBox.addEventListener("click", () => updateInSummary());
 
 document.addEventListener("click", async (e) => {
     const clickedInsideSelect = selectImageDiv.contains(e.target);
-    const clickedInsideRecommendations = recommendationsPanel.contains(e.target) || recommendationsButton.contains(e.target);
+    const clickedInsideRecommendations = recommendationsPanel.contains(e.target)
+        || recommendationsButton.contains(e.target)
+        || diagramsButton.contains(e.target);
 
     if (!clickedInsideSelect && !clickedInsideRecommendations) {
         if (selectImageDiv.hidden === false && !await flushAnnotations()) return; // stay open, work kept

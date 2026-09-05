@@ -22,3 +22,23 @@ async function saveWithPdf() {
 }
 
 loadForm(URI, fields);
+
+// Shown on the link out to the gallery, so its size is visible without opening it.
+async function showDiagramCount() {
+    const label = document.getElementById("diagramCount");
+    if (!label) return;
+
+    try {
+        const res = await fetch("http://localhost:8080/api/recommendation-diagrams");
+        if (!res.ok) return;
+
+        const diagrams = await res.json();
+        label.textContent = diagrams.length === 0
+            ? "None yet."
+            : `${diagrams.length} in the library.`;
+    } catch (error) {
+        console.error("Could not count recommendation diagrams:", error);
+    }
+}
+
+showDiagramCount();

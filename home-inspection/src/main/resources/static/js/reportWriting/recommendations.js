@@ -6,6 +6,15 @@ let sectionValues; /* = {Structure
 
 const recommendationsWrapper = document.querySelector(".recommendations-section-wrapper");
 const submitButton = document.getElementById("submit-recommendations-button");
+const diagramsButton = document.getElementById("attach-diagrams-button");
+const recommendationsPanel = document.querySelector(".recommendations-panel");
+
+// The panel is set up again every time it opens, so its listeners must not be added again
+// with it.
+let listenersBound = false;
+
+// The field the buttons act on, read at click time so they follow the selected item.
+let openFieldId = null;
 
 function createOptionButton(definition, type) {
     const btn = document.createElement("button");
@@ -206,7 +215,7 @@ function submitRecommendations(fieldId, saveAsDefault = false) {
 
     console.log(payload);
 
-    fetch(`http://localhost:8080/api/fields/${fieldId}/recommendations?saveAsDefaultImplication=${saveAsDefault}`, {
+    return fetch(`http://localhost:8080/api/fields/${fieldId}/recommendations?saveAsDefaultImplication=${saveAsDefault}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -234,13 +243,19 @@ function submitRecommendations(fieldId, saveAsDefault = false) {
 }
 
 export async function setUpRecommendationsPanel(fieldId) {
+    openFieldId = fieldId;
+
     await getSectionsConfig();
     renderSections();
 
-    submitButton.addEventListener("click", () => {
-        const saveAsDefault = document.getElementById("default-implication-checkbox").checked;
-        submitRecommendations(fieldId, saveAsDefault);
-    });
+    if (!listenersBound) {
+        listenersBound = true;
+
+        submitButton.addEventListener("click", () => {
+            const saveAsDefault = document.getElementById("default-implication-checkbox").checked;
+            submitRecommendations(openFieldId, saveAsDefault);
+        });
+    }
 
     fetch(`http://localhost:8080/api/fields/${fieldId}/recommendations`)
     .then(response => {
@@ -318,4 +333,45 @@ function deleteDefinition(button){
         else console.log("failed to delete")
     })
     .catch(error => console.log(error));
+}
+// --- Supporting diagrams ---
+
+const DIAGRAMS_URI = "http://localhost:8080/api/recommendation-diagrams";
+
+export async function setUpDiagramsButton(fieldId) {
+    if (!diagramsButton) return;
+
+    openFieldId = fieldId;
+    diagramsButton.textContent = "Diagrams";
+
+    if (!diagramsButton.dataset.bound) {
+        diagramsButton.dataset.bound = "true";
+        diagramsButton.addEventListener("click", () => openDiagramPicker());
+    }
+
+    try {
+        const res = await fetch(`${DIAGRAMS_URI}/field/${fieldId}`);
+        if (!res.ok) return;
+
+        const attached = await res.json().catch(() => null);
+        const count = attached?.diagramIds?.length ?? 0;
+        if (count > 0) diagramsButton.textContent = `Diagrams (${count})`;
+    } catch (error) {
+        console.error("Could not read attached diagrams:", error);
+    }
+}
+
+async function openDiagramPicker() {
+    if (!openFieldId) return;
+
+    // Picking happens on another page, so anything typed into the panel is saved on the way
+    // out rather than lost to the navigation.
+    if (!recommendationsPanel.hidden) {
+        const saveAsDefault = document.getElementById("default-implication-checkbox").checked;
+        await submitRecommendations(openFieldId, saveAsDefault);
+    }
+
+    const returnTo = window.location.pathname + window.location.search;
+    window.location.href = `recommendation_diagrams.html?fieldId=${encodeURIComponent(openFieldId)}`
+        + `&returnTo=${encodeURIComponent(returnTo)}`;
 }

@@ -267,7 +267,8 @@
     margin: auto;
 }
  
-#show-recommendation-button {
+#show-recommendation-button,
+#attach-diagrams-button {
     background: transparent;
     border: 1px solid var(--border);
     border-radius: 3px;
@@ -281,11 +282,13 @@
     cursor: pointer;
     transition: border-color 0.15s, color 0.15s;
 }
-#show-recommendation-button:hover { 
+#show-recommendation-button:hover,
+#attach-diagrams-button:hover { 
     border-color: var(--muted); 
     color: var(--ink); 
 }
-#show-recommendation-button[hidden] { 
+#show-recommendation-button[hidden],
+#attach-diagrams-button[hidden] { 
     display: none; 
 }
 
