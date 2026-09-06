@@ -24,6 +24,12 @@ public interface InspectionImagesRepository extends JpaRepository<InspectionImag
     List<InspectionImage> findByBookingIdOrdered(@Param("bookingId") UUID bookingId);
 
     @Query("""
+        SELECT i.imageUrl FROM InspectionImage i
+        WHERE i.inspectionReport.inspectionBooking.id = :bookingId
+    """)
+    List<String> findImageUrlsByBookingId(@Param("bookingId") UUID bookingId);
+
+    @Query("""
             SELECT i.imageUrl AS imageUrl, b.inspectionNumber AS inspectionNumber
             FROM InspectionImage i
             LEFT JOIN i.inspectionReport r

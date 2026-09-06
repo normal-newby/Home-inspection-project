@@ -1,6 +1,7 @@
 package ca.inspection.home.inspection.service;
 
 import javax.imageio.ImageIO;
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
@@ -35,19 +36,31 @@ public final class Thumbnails {
     }
 
     public static BufferedImage scaleToWidth(BufferedImage source, int maxWidth) {
-        if (source == null || source.getWidth() <= maxWidth) return source;
+        if (source == null) return null;
+        if (source.getWidth() <= maxWidth) return toOpaque(source);
 
-        int width = maxWidth;
         int height = Math.max(1, (int) Math.round(
                 source.getHeight() * ((double) maxWidth / source.getWidth())));
 
-        BufferedImage scaled = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        Graphics2D graphics2D = scaled.createGraphics();
+        return redraw(source, maxWidth, height);
+    }
+
+    public static BufferedImage toOpaque(BufferedImage source) {
+        if (source == null || !source.getColorModel().hasAlpha()) return source;
+        return redraw(source, source.getWidth(), source.getHeight());
+    }
+
+    private static BufferedImage redraw(BufferedImage source, int width, int height) {
+        BufferedImage target = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        Graphics2D graphics2D = target.createGraphics();
         graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         graphics2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        // TYPE_INT_RGB starts out black, so transparent pixels would print as black boxes.
+        graphics2D.setColor(Color.WHITE);
+        graphics2D.fillRect(0, 0, width, height);
         graphics2D.drawImage(source, 0, 0, width, height, null);
         graphics2D.dispose();
 
-        return scaled;
+        return target;
     }
 }

@@ -8,9 +8,11 @@ import ca.inspection.home.inspection.entity.InspectionReport;
 import ca.inspection.home.inspection.entity.InspectorProfile;
 import ca.inspection.home.inspection.entity.Invoice;
 import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
+import ca.inspection.home.inspection.repository.InspectionImagesRepository;
 import ca.inspection.home.inspection.repository.InspectionReportsRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -43,6 +45,12 @@ public class InspectionBookingsServiceTest {
 
     @Mock
     private GoogleCalendarService googleCalendarService;
+
+    @Mock
+    private InspectionImagesRepository inspectionImagesRepository;
+
+    @Mock
+    private InspectionImagesService inspectionImagesService;
 
     @InjectMocks
     private InspectionBookingsService inspectionBookingsService;
@@ -393,6 +401,37 @@ public class InspectionBookingsServiceTest {
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         verify(inspectionBookingsRepository).delete(booking);
+    }
+
+    @Test
+    void deleteBooking_takesTheUploadedFilesWithIt() {
+        UUID id = UUID.randomUUID();
+        InspectionBookings booking = new InspectionBookings();
+        booking.setId(id);
+        booking.setInspectionNumber(1330);
+
+        List<String> fileNames = List.of("a.jpg", "b.jpg");
+        when(inspectionBookingsRepository.findById(id)).thenReturn(Optional.of(booking));
+        when(inspectionImagesRepository.findImageUrlsByBookingId(id)).thenReturn(fileNames);
+
+        inspectionBookingsService.deleteBooking(id);
+
+        verify(inspectionImagesService).deleteBookingFiles(id, 1330, fileNames);
+    }
+
+    @Test
+    void deleteBooking_readsTheFileNamesBeforeTheRowsAreGone() {
+        UUID id = UUID.randomUUID();
+        InspectionBookings booking = new InspectionBookings();
+        booking.setId(id);
+
+        when(inspectionBookingsRepository.findById(id)).thenReturn(Optional.of(booking));
+
+        inspectionBookingsService.deleteBooking(id);
+
+        InOrder order = inOrder(inspectionImagesRepository, inspectionBookingsRepository);
+        order.verify(inspectionImagesRepository).findImageUrlsByBookingId(id);
+        order.verify(inspectionBookingsRepository).delete(booking);
     }
 
     @Test

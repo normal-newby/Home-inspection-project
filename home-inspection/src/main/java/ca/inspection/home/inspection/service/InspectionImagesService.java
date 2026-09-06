@@ -226,13 +226,13 @@ public class InspectionImagesService {
             graphics2D.dispose();
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(img, "jpeg", baos);
-            String base64 = Base64.getEncoder().encodeToString(baos.toByteArray());
+            if (!ImageIO.write(img, "jpeg", baos)) {
+                throw new IOException("No jpeg writer took " + location.getImageUrl());
+            }
 
-            String type = Files.probeContentType(filePath);
-            if (type == null) type = "image/jpeg";
-
-            return "data:" + type + ";base64," + base64;
+            // Always jpeg here, whatever the file on disk started out as.
+            return "data:image/jpeg;base64,"
+                    + Base64.getEncoder().encodeToString(baos.toByteArray());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -292,6 +292,40 @@ public class InspectionImagesService {
         graphics2D.fill(head);
 
         graphics2D.setTransform(original);
+    }
+
+    public void deleteBookingFiles(UUID bookingId, Integer inspectionNumber, Collection<String> fileNames){
+        if (inspectionNumber != null){
+            deleteDirectory(helperFunctions.getDirectory(inspectionNumber));
+        }
+
+        // Images that predate per-inspection folders, plus the appendix, still sit in the root.
+        Path root = helperFunctions.getDirectory();
+        List<String> leftovers = new ArrayList<>(fileNames);
+        leftovers.add("appendix_" + bookingId + ".pdf");
+
+        leftovers.forEach(name -> {
+            deleteQuietly(root.resolve(name));
+            deleteQuietly(root.resolve("thumbs").resolve(name));
+        });
+    }
+
+    private void deleteDirectory(Path dir){
+        if (!Files.isDirectory(dir)) return;
+        try (var paths = Files.walk(dir)) {
+            // Deepest first, so a directory is always empty by the time it is removed.
+            paths.sorted(Comparator.reverseOrder()).forEach(this::deleteQuietly);
+        } catch (Exception e){
+            log.warn("Left upload folder {} behind", dir, e);
+        }
+    }
+
+    private void deleteQuietly(Path path){
+        try {
+            Files.deleteIfExists(path);
+        } catch (Exception e){
+            log.warn("Could not delete {}", path, e);
+        }
     }
 
     public ResponseEntity<Void> deleteImage(UUID id){

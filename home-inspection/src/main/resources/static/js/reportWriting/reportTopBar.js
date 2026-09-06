@@ -4,7 +4,7 @@ import { notify, confirmDialog } from "../ui/dialog.js";
 const viewReportButton = document.getElementById("view-report-button");
 
 viewReportButton.addEventListener("click", () => {
-    window.location.href = `http://localhost:8080/report/${bookingId}`;
+    window.open(`http://localhost:8080/report/${bookingId}`, "_blank");
 });
 
 const editReportDataButton = document.getElementById("edit-report-data");

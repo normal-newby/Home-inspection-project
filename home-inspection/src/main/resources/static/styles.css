@@ -135,15 +135,16 @@ body {
 
 .report-nav {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: var(--space-xs) var(--space-sm);
+    flex-wrap: nowrap;
+    justify-content: flex-start;
     margin-bottom: 2mm;
     font-size: 7.5pt;
 }
 
 .report-nav a {
-    flex: 1;
+    /* A flex-basis cap rather than max-width: weasyprint lays the row out on the basis and
+       leaves a gap under the cap, so the tabs would not meet. */
+    flex: 0 1 100px;
     text-align: center;
     text-decoration: none;
     color: var(--muted);
@@ -152,8 +153,6 @@ body {
     text-transform: uppercase;
     padding: 1.5mm 1.5mm;
     background: var(--bg-subtle);
-    max-width: 100px;
-    width: 100px;
 }
 
 /* ── Utilities ── */

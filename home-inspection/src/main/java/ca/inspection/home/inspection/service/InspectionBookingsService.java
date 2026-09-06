@@ -8,6 +8,7 @@ import ca.inspection.home.inspection.entity.InspectionReport;
 import ca.inspection.home.inspection.entity.InspectorProfile;
 import ca.inspection.home.inspection.entity.Invoice;
 import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
+import ca.inspection.home.inspection.repository.InspectionImagesRepository;
 import ca.inspection.home.inspection.repository.InspectionReportsRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,12 @@ public class InspectionBookingsService {
 
     @Autowired
     private GoogleCalendarService googleCalendarService;
+
+    @Autowired
+    private InspectionImagesRepository inspectionImagesRepository;
+
+    @Autowired
+    private InspectionImagesService inspectionImagesService;
 
     public InspectionBookings createBooking(InspectionBookings booking){
         log.info("Creating booking for {} {}", booking.getClientFirstName(), booking.getClientLastName());
@@ -201,7 +208,13 @@ public class InspectionBookingsService {
             } catch (Exception e){
                 log.warn("Could not remove Google Calendar event for booking {}: {}", id, e.getMessage());
             }
+
+            // Read while the rows are still there; the cascade takes them with the booking.
+            Integer inspectionNumber = bookings.getInspectionNumber();
+            List<String> fileNames = inspectionImagesRepository.findImageUrlsByBookingId(id);
+
             inspectionBookingsRepository.delete(bookings);
+            inspectionImagesService.deleteBookingFiles(id, inspectionNumber, fileNames);
             log.info("Deleted booking {}", id);
             return ResponseEntity.ok().build();
         } catch (Exception e){
