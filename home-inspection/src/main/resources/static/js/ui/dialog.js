@@ -99,6 +99,11 @@ export function confirmDialog(message, options = {}){
     });
 }
 
+// Prevents overlay from closing
+export function isOverlayClick(target){
+    return target instanceof Element && Boolean(target.closest(".app-dialog-backdrop, .app-toasts"));
+}
+
 function toastContainer(){
     let container = document.querySelector(".app-toasts");
     if (!container){

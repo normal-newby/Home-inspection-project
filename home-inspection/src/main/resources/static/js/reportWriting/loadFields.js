@@ -1,9 +1,9 @@
 import { bookingId } from "./getReport.js";
-import { initImagesSlider, refreshImageCounts } from "./loadImages.js";
+import { initImagesSlider, refreshImagePool } from "./loadImages.js";
 import { addAnnotationCanvas } from "./imageAnnotation.js";
 import { setUpRecommendationsPanel, setUpDiagramsButton } from "./recommendations.js";
 import { fetchExisting, saveFunction } from "../fetchExisting.js";
-import { confirmDialog, notify } from "../ui/dialog.js";
+import { confirmDialog, notify, isOverlayClick } from "../ui/dialog.js";
 
 const params = new URLSearchParams(window.location.search);
 let place = params.get("place");
@@ -489,7 +489,7 @@ function showExistingImage(images, fieldId){
             );
             if (!confirmed) return;
             if (!await flushAnnotations()) return;
-            deleteImageFromField(thumb, image.id, fieldId);
+            deleteImageFromField(image, fieldId, images);
         });
                     
         gallery.appendChild(thumb);
@@ -525,8 +525,8 @@ async function deleteInspectionField(id){
         const response = await fetch(`http://localhost:8080/api/fields/${id}`, { method: "DELETE" });
         if (!response.ok) return false;
 
-        // Deleting a field hands its images back to the pool, so the tally moves.
-        await refreshImageCounts();
+        // Deleting a field hands its images back to the pool.
+        await refreshImagePool();
         return true;
     } catch (error){
         console.error("Error deleting inspection field:", error);
@@ -541,25 +541,31 @@ function selectImageFunction(bookingId, selectImageDiv, imageId, fieldId, images
     .then(async () => {
         if (!await flushAnnotations()) return;
         images.push({ id: imageId });
-        // Drops the freshly used image out of the "not yet used" gallery and the tally.
-        await refreshImageCounts();
+        // Drops the freshly used image out of the "not yet used" galleries.
+        await refreshImagePool();
         addExistingImages(bookingId, selectImageDiv, fieldId, images); // Refresh gallery
         showExistingImage(images, fieldId); // Refresh existing images
     })
     .catch(error => console.log(error))
 }
 
-function deleteImageFromField(thumb, imageId, fieldId){
-    fetch(`http://localhost:8080/api/fields/${fieldId}/${imageId}`,
-            { method: "DELETE" }
-        )
-        .then(() => {
-            thumb.remove();
-            clearCanvas();
-            refreshImageCounts(); // The image is back in the pool.
-        })
-        .catch(error => console.log(error)
-    );
+async function deleteImageFromField(image, fieldId, images){
+    try {
+        const response = await fetch(`http://localhost:8080/api/fields/${fieldId}/${image.id}`,
+            { method: "DELETE" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    } catch (error){
+        console.error("Error removing image from field:", error);
+        notify("Could not remove that image from the item.", { error: true });
+        return;
+    }
+
+    const index = images.indexOf(image);
+    if (index !== -1) images.splice(index, 1);
+
+    await refreshImagePool(); // The image is back in the pool.
+    addExistingImages(bookingId, selectImageDiv, fieldId, images);
+    showExistingImage(images, fieldId);
 }
 
 function updateInSummary() {
@@ -659,6 +665,8 @@ includeInSummaryBox.addEventListener("click", () => updateInSummary());
 
 
 document.addEventListener("click", async (e) => {
+    if (isOverlayClick(e.target)) return;
+
     const clickedInsideSelect = selectImageDiv.contains(e.target);
     const clickedInsideRecommendations = recommendationsPanel.contains(e.target)
         || recommendationsButton.contains(e.target)

@@ -96,6 +96,7 @@ saveImagesButton.addEventListener("click", async (e) => {
     if (failed > 0) {
         showUploadFailure(failed, total);
     } else {
+        resetProgress();
         input.value = "";
     }
 });
@@ -138,9 +139,10 @@ function renderImageCounts(images){
     remainingEl.classList.toggle("none-left", remaining === 0);
 }
 
-export async function refreshImageCounts(){
+// The used/unused split moved, so both the pool slider and its tally are stale.
+export async function refreshImagePool(){
     invalidateImageCache();
-    renderImageCounts(await getImages());
+    await initialize();
 }
 
 const sliderControllers = new WeakMap();
@@ -209,7 +211,6 @@ export async function initImagesSlider(bookingId, container, getUsedForReport = 
     // No preloading, fetches along the way
     loopImages(images);
     renderImageCounts(images);
-    resetProgress();
 
     return imagesTrack;
 }
