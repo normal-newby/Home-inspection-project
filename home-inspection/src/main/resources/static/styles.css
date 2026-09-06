@@ -8,8 +8,8 @@
     /* Color palette */
     --ink: #1a1a18;
     --paper: #f5f2eb;
-    --accent: #b5470b;
-    --dark-accent: #943b08;
+    --accent: #eb6001;
+    --dark-accent: #eb6001;
     --muted: #7a7567;
     --border: #ddd9d0;
     --card: #ffffff;
@@ -108,7 +108,6 @@ body {
 .header-left::after {
     content: string(current-section, first);
     display: block;
-    font-family: 'DM Serif Display', serif;
     font-size: 1.4rem;
     font-weight: 600;
     color: var(--ink);
@@ -198,20 +197,19 @@ body {
     text-align: center;
     padding: 5mm;
     margin: 5mm;
-    font-family: 'DM Serif Display', serif;
     font-size: 26pt;
-    font-weight: 700;
-    letter-spacing: 3px;
+    font-weight: 800;
+    letter-spacing: 2px;
     color: var(--card);
     text-transform: uppercase;
     background: var(--accent);
-    border: 2px solid var(--ink);
+    border: 1px solid var(--ink);
 }
 
 .cover-photo {
     margin: 0 20mm 5mm 20mm;
     overflow: hidden;
-    border: 2px solid var(--ink);
+    border: 1px solid var(--ink);
 }
 
 .cover-photo img {
@@ -334,12 +332,12 @@ body {
 
 #cover-footer {
     background-color: var(--accent);
-    border: 2px solid var(--ink);
+    border: 1px solid var(--ink);
     color: var(--card);
     padding: 3mm 20mm;
     text-align: center;
-    font-size: 10pt;
-    font-weight: 500;
+    font-size: 11pt;
+    font-weight: 600;
     letter-spacing: 1px;
     text-transform: uppercase;
     margin: 5mm;
