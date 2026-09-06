@@ -103,6 +103,17 @@
   	display: none; 
 }
 
+.file-input-count {
+	font-size: var(--fs-hint);
+	color: var(--accent);
+	letter-spacing: 0.02em;
+	margin-left: -0.25rem;
+}
+
+.file-input-count[hidden] {
+	display: none;
+}
+
 .upload-progress {
 	background: var(--card);
 	border: 1px solid var(--border);

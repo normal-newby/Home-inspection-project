@@ -1,5 +1,5 @@
 import { bookingId } from "./getReport.js";
-import { initImagesSlider, refreshImagePool } from "./loadImages.js";
+import { initImagesGrid, refreshImagePool } from "./loadImages.js";
 import { addAnnotationCanvas } from "./imageAnnotation.js";
 import { setUpRecommendationsPanel, setUpDiagramsButton } from "./recommendations.js";
 import { fetchExisting, saveFunction } from "../fetchExisting.js";
@@ -337,8 +337,8 @@ saveConditionNameButton.addEventListener("click", async () => {
 });
 
 async function addExistingImages(bookingId, selectImageDiv, fieldId, images){
-    const track = await initImagesSlider(bookingId, selectImageDiv, true, 4); // Initialize slider with only images not used for report
-    track.querySelectorAll("img").forEach(img => {
+    const grid = await initImagesGrid(bookingId, selectImageDiv); // Only images not yet used for the report
+    grid.querySelectorAll("img").forEach(img => {
         img.addEventListener("dblclick", (e) => {
             e.preventDefault();
             selectImageFunction(bookingId, selectImageDiv, img.dataset.imageId, fieldId, images); // If image is double clicked, link it to the field

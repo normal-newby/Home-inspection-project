@@ -2,6 +2,8 @@ import { bookingId } from "./getReport.js";
 import { confirmDialog, notify } from "../ui/dialog.js";
 
 const saveImagesButton = document.getElementById("save-images-button");
+const imageInput = document.getElementById("image-input");
+const fileCount = document.querySelector(".file-input-count");
 const bodyDiv = document.querySelector(".body_content");
 
 const progressBox = document.querySelector(".upload-progress");
@@ -60,14 +62,23 @@ function showUploadFailure(failed, total) {
     }
 }
 
+// So it is clear how many photos the next Save Images will send.
+function renderFileCount(){
+    const count = imageInput.files.length;
+    fileCount.hidden = count === 0;
+    fileCount.textContent = `${count} ${count === 1 ? "image" : "images"} selected`;
+}
+
+imageInput.addEventListener("change", renderFileCount);
+renderFileCount();
+
 const UPLOAD_CONCURRENCY = 4;
 
 saveImagesButton.addEventListener("click", async (e) => {
     e.preventDefault();
     resetProgress();
 
-    const input = document.getElementById("image-input");
-    const files = Array.from(input.files);
+    const files = Array.from(imageInput.files);
     if (files.length === 0){
         notify("Pick at least one image first.", { error: true });
         return;
@@ -97,7 +108,8 @@ saveImagesButton.addEventListener("click", async (e) => {
         showUploadFailure(failed, total);
     } else {
         resetProgress();
-        input.value = "";
+        imageInput.value = "";
+        renderFileCount();
     }
 });
 
@@ -145,9 +157,36 @@ export async function refreshImagePool(){
     await initialize();
 }
 
+export async function initImagesGrid(bookingId, container){
+    const grid = container.querySelector(".image-picker");
+    const hint = container.querySelector(".image-picker-hint");
+    const empty = container.querySelector(".image-picker-empty");
+
+    const images = await getImages(bookingId);
+    const unused = images.filter(image => !image.used);
+
+    grid.innerHTML = "";
+    unused.forEach(image => {
+        const img = document.createElement("img");
+        img.src = thumbUrl(image.id);
+        img.dataset.imageId = image.id;
+        img.loading = "lazy";
+        img.decoding = "async";
+        grid.appendChild(img);
+    });
+
+    grid.hidden = unused.length === 0;
+    hint.hidden = unused.length === 0;
+    empty.hidden = unused.length > 0;
+
+    renderImageCounts(images);
+    return grid;
+}
+
 const sliderControllers = new WeakMap();
 
-export async function initImagesSlider(bookingId, container, getUsedForReport = false, rows = 1){
+// Only the main page pages through its images now; the field popup scrolls instead.
+async function initImagesSlider(bookingId, container, getUsedForReport = false, rows = 1){
     const imagesTrack = container.querySelector(".images-track");
     const nextButton = container.querySelector(".next");
     const prevButton = container.querySelector(".prev");

@@ -46,6 +46,7 @@
             <div class="action-bar">
                 <label class="file-input-label" for="image-input">＋ Add Images</label>
                 <input type="file" id="image-input" accept="image/*" multiple>
+                <span class="file-input-count" hidden></span>
                 <button id="save-images-button" class="btn btn-secondary" type="button">Save Images</button>
                 <button id="edit-report-data" class="btn btn-secondary">Edit Report Data</button>
                 <button id="view-report-button" class="btn btn-primary">View Report</button>
@@ -160,13 +161,9 @@
                     </div>
                 </div>
 
-                <div class="images-section">
-                    <button class="nav-btn prev">←</button>
-                    <div class="images-viewport">
-                        <div class="images-track"></div>
-                    </div>
-                    <button class="nav-btn next">→</button>
-                </div>
+                <p class="image-picker-hint">Double-click a photo to add it to this item.</p>
+                <div class="image-picker"></div>
+                <p class="image-picker-empty" hidden>Every photo is already on an item.</p>
             
                 <div class="add-note-section">
                     <label for="note-text">Annotation Note</label>

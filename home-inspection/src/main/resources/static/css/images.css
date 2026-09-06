@@ -158,6 +158,70 @@
     pointer-events: auto;
 }
 
+/* ── Image picker ── */
+
+.image-picker-hint {
+    font-size: var(--fs-hint);
+    color: var(--label);
+    margin: 0 0 0.4rem;
+}
+
+/* Scrolls in place, so a report with hundreds of photos cannot push the popup out of reach. */
+.image-picker {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.4rem;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+}
+
+.image-picker::-webkit-scrollbar {
+    width: 8px;
+}
+
+.image-picker::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+}
+
+.image-picker::-webkit-scrollbar-thumb:hover {
+    background: var(--muted);
+}
+
+.image-picker img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: border-color 0.15s, opacity 0.15s;
+}
+
+.image-picker img:hover {
+    border-color: var(--accent);
+    opacity: 0.85;
+}
+
+.image-picker-empty {
+    font-size: var(--fs-hint);
+    color: var(--muted);
+    margin: 0 0 1rem;
+}
+
+.image-picker[hidden],
+.image-picker-hint[hidden],
+.image-picker-empty[hidden] {
+    display: none;
+}
+
 .image-gallery {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
