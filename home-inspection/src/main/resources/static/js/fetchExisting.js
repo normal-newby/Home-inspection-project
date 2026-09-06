@@ -1,3 +1,5 @@
+import { notify } from "./ui/dialog.js";
+
 export function fetchExisting(URI, textArea){
     fetch(URI)
     .then(response => {
@@ -18,12 +20,11 @@ export function saveFunction(e, textArea){
     e.preventDefault();
     const content = textArea.value;
     const activeFieldButton = document.querySelector(".value-button.selected-button.current-button");
-    if (activeFieldButton) {
-        const fieldId = activeFieldButton.dataset.id;
-        save(`http://localhost:8080/api/fields/${fieldId}/note`, content);
-    } else {
-        console.log("No active field selected for note.");
+    if (!activeFieldButton) {
+        notify("Select an item before saving a note.", { error: true });
+        return;
     }
+    save(`http://localhost:8080/api/fields/${activeFieldButton.dataset.id}/note`, content);
 }
 
 function save(URI, content){
@@ -33,5 +34,13 @@ function save(URI, content){
             headers: { "Content-Type": "text/plain" },
             body: content
         }
-    );
+    )
+    .then(response => {
+        if (!response.ok) throw new Error(response.status);
+        notify("Note saved");
+    })
+    .catch(error => {
+        console.error(error);
+        notify("Could not save the note.", { error: true });
+    });
 }

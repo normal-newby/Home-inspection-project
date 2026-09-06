@@ -1,4 +1,4 @@
-import { notify } from "../ui/dialog.js";
+import { confirmDialog, notify } from "../ui/dialog.js";
 const definitionTypes = ["direction", "floorLevel", "room", "task", "time", "cost", "implication"];
 let sectionValues; /* = {Structure
     type : list({id, value})
@@ -24,7 +24,16 @@ function createOptionButton(definition, type) {
     btn.addEventListener("click", () => {
         btn.classList.toggle("selected");
     });
-    btn.addEventListener("contextmenu", () => {
+    btn.addEventListener("contextmenu", async (e) => {
+        // Without this the browser menu opens over the dialog.
+        e.preventDefault();
+
+        const confirmed = await confirmDialog(
+            "The value is removed from this list for every report, not just this one.",
+            { title: `Delete "${definition.value}"?`, confirmLabel: "Delete value", danger: true }
+        );
+        if (!confirmed) return;
+
         deleteDefinition(btn);
     })
     return btn;
@@ -60,6 +69,28 @@ function createCostInputs() {
     return container;
 }
 
+function createDefaultImplicationToggle() {
+    const wrapper = document.createElement("div");
+    wrapper.classList.add("default-implication-checkbox");
+
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    box.id = "default-implication-checkbox";
+
+    const label = document.createElement("label");
+    label.htmlFor = "default-implication-checkbox";
+    label.textContent = "Save as default implication";
+
+    wrapper.appendChild(box);
+    wrapper.appendChild(label);
+    return wrapper;
+}
+
+// Rendered with the panel, so read it at click time rather than holding a reference.
+function saveAsDefaultImplication() {
+    return document.getElementById("default-implication-checkbox")?.checked === true;
+}
+
 function createImplicationInput() {
     const textarea = document.createElement("textarea");
     textarea.placeholder = "Describe the implication...";
@@ -84,7 +115,17 @@ function renderSections() {
         const label = document.createElement("div");
         label.classList.add("recommendations-section-label");
         label.textContent = type.charAt(0).toUpperCase() + type.slice(1);
-        recommendationSection.appendChild(label);
+
+        if (type === "implication") {
+            // Sits top-right of the box it applies to.
+            const header = document.createElement("div");
+            header.classList.add("recommendations-section-header");
+            header.appendChild(label);
+            header.appendChild(createDefaultImplicationToggle());
+            recommendationSection.appendChild(header);
+        } else {
+            recommendationSection.appendChild(label);
+        }
 
         //Create container for options
         const optionsContainer = document.createElement("div");
@@ -229,11 +270,7 @@ function submitRecommendations(fieldId, saveAsDefault = false) {
         return response.json();
     })
     .then(saved => {
-        const messageSpan = document.querySelector(".recommendations-display-message");
-        messageSpan.textContent = "Recommendations saved successfully!";
-        setTimeout(() => {
-            messageSpan.textContent = "";
-        }, 5000);
+        notify("Recommendations saved");
         highlightExistingValues(saved);
     })
     .catch(error => {
@@ -252,8 +289,7 @@ export async function setUpRecommendationsPanel(fieldId) {
         listenersBound = true;
 
         submitButton.addEventListener("click", () => {
-            const saveAsDefault = document.getElementById("default-implication-checkbox").checked;
-            submitRecommendations(openFieldId, saveAsDefault);
+            submitRecommendations(openFieldId, saveAsDefaultImplication());
         });
     }
 
@@ -327,12 +363,13 @@ function deleteDefinition(button){
         headers: { "Content-Type": "application/json" },
     })
     .then(res => {
-        if (res.ok) {
-            button.remove();
-        }
-        else console.log("failed to delete")
+        if (!res.ok) throw new Error(res.status);
+        button.remove();
     })
-    .catch(error => console.log(error));
+    .catch(error => {
+        console.error(error);
+        notify("Could not delete that value.", { error: true });
+    });
 }
 // --- Supporting diagrams ---
 
@@ -367,8 +404,7 @@ async function openDiagramPicker() {
     // Picking happens on another page, so anything typed into the panel is saved on the way
     // out rather than lost to the navigation.
     if (!recommendationsPanel.hidden) {
-        const saveAsDefault = document.getElementById("default-implication-checkbox").checked;
-        await submitRecommendations(openFieldId, saveAsDefault);
+        await submitRecommendations(openFieldId, saveAsDefaultImplication());
     }
 
     const returnTo = window.location.pathname + window.location.search;
