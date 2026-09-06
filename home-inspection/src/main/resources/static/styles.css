@@ -293,13 +293,13 @@ body {
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    gap: 6mm;
 }
 
 .company-image {
     display: flex;
     align-items: center;
     justify-content: center;
+    margin: 0 3mm;
 }
 
 .company-image img {

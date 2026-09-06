@@ -121,6 +121,7 @@ function createInvoice(invoice){
     calculateTotals();
 
     const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
     removeBtn.textContent = "✕";
     removeBtn.classList.add("remove-btn");
     removeBtn.addEventListener("click", () => removeInvoice(invoice.id));

@@ -21,6 +21,7 @@ function createAssetItem(asset) {
     label.textContent = asset.key;
 
     const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
     removeBtn.textContent = "✕";
     removeBtn.classList.add("remove-btn");
     removeBtn.addEventListener("click", () => deleteAsset(asset.key));
