@@ -605,6 +605,7 @@ async function closeFieldPanel(){
     selectImageDiv.hidden = true;
     recommendationsPanel.hidden = true;
     diagramsButton.hidden = true;
+    recommendationsButton.hidden = true;
     clearCanvas();
     curField = null;
     return true;

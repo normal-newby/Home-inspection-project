@@ -103,13 +103,26 @@
     overflow-x: hidden;
 }
 
+.select-image-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.6rem;
+}
+
+.select-image-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+}
+
 .existing-image-text {
     font-size: var(--fs-eyebrow);
     font-weight: 500;
     letter-spacing: 0.05em;
     text-transform: uppercase;
     color: var(--label);
-    margin-bottom: 0.6rem;
 }
 
 .existing-image-div {

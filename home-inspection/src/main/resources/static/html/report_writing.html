@@ -93,7 +93,13 @@
 
             <!-- Select image / annotation box -->
             <div class="select-image-box" hidden>
-                <p class="existing-image-text">Selected Image</p>
+                <div class="select-image-actions">
+                    <button type="button" id="attach-diagrams-button" hidden>Diagrams</button>
+                    <button type="button" id="show-recommendation-button" hidden>Recommendations</button>
+                </div>
+                <div class="select-image-header">
+                    <p class="existing-image-text">Selected Image</p>
+                </div>
                 <div class="existing-image-div" hidden>
                     <div class="image-canvas-wrapper">
                         <img class="existing-image-image" alt="">
@@ -173,8 +179,6 @@
                     <label for="include-in-summary">Include in summary</label>
                 </div>
             
-                <button type="button" id="attach-diagrams-button" hidden>Diagrams</button>
-                <button id="show-recommendation-button" hidden>Recommendations</button>
             </div>
 
             <!-- Recommendations panel -->
