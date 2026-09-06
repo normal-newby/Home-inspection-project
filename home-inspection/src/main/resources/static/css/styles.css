@@ -9,16 +9,24 @@
     --paper: #f5f2eb;
     --accent: #b5470b;
     --dark-accent: #943b08;
-    --muted: #7a7567;
+    --label: #4a453b;
+    --muted: #6b6559;
     --border: #ddd9d0;
     --card: #ffffff;
+
+    --fs-header: 0.95rem;
+    --fs-eyebrow: 0.78rem;
+    --fs-label: 0.82rem; 
+    --fs-hint: 0.88rem; 
+    --fs-body: 0.95rem;
+    --ls-caps: 0.08em;
 }
 
 body {
     background-color: var(--paper);
     color: var(--ink);
     font-family: 'DM Sans', sans-serif;
-    font-weight: 300;
+    font-weight: 400;
     min-height: 100vh;
 }
 
@@ -35,24 +43,32 @@ body {
     gap: 0;
     border-bottom: 1px solid var(--border);
     background: var(--card);
+    box-shadow: 0 1px 5px rgba(26, 26, 24, 0.07);
+    position: relative;
+    z-index: 10;
 }
 
 .navbarBox a {
     display: block;
-    padding: 1.1rem 1.6rem;
+    padding: 1.15rem 1.7rem;
     text-decoration: none;
-    font-size: 0.85rem;
-    font-weight: 500;
-    letter-spacing: 0.04em;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--muted);
-    transition: color 0.2s, border-bottom 0.2s;
-    border-bottom: 2px solid transparent;
+    color: var(--label);
+    transition: color 0.2s, background 0.2s, border-bottom-color 0.2s;
+    border-bottom: 3px solid transparent;
 }
 
-.navbarBox a:hover,
-.navbarBox a.active {
+.navbarBox a:hover {
     color: var(--accent);
+    background: #faf7f2;
+    border-bottom-color: #e4b79c;
+}
+
+.navbarBox a.active {
+    color: var(--dark-accent);
     border-bottom-color: var(--accent);
 }
 
@@ -78,6 +94,7 @@ body {
 
 .page-header p {
     margin-top: 0.4rem;
-    color: var(--muted);
-    font-size: 0.9rem;
+    color: var(--label);
+    font-size: var(--fs-hint);
+    line-height: 1.5;
 }

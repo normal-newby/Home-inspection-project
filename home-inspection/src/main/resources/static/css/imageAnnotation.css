@@ -18,13 +18,13 @@
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 3px;
-    padding: 0.35rem 0.8rem;
+    padding: 0.4rem 0.85rem;
     font-family: 'DM Sans', sans-serif;
-    font-size: 0.75rem;
+    font-size: 0.78rem;
     font-weight: 500;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--label);
     cursor: pointer;
     transition: border-color 0.15s, color 0.15s;
 }
@@ -64,8 +64,8 @@
 }
 
 #edit-hint {
-    font-size: 0.68rem;
-    color: var(--muted);
+    font-size: 0.78rem;
+    color: var(--label);
     text-transform: none;
     letter-spacing: 0.02em;
 }
@@ -99,11 +99,11 @@
 
 .annotation-tools label,
 .annotation-tools span{
-    font-size: 0.72rem;
+    font-size: var(--fs-label);
     font-weight: 500;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--label);
 }
 
 #text-tool {
@@ -112,8 +112,8 @@
     border-radius: 3px;
     padding: 0.35rem 0.65rem;
     font-family: 'DM Sans', sans-serif;
-    font-size: 0.85rem;
-    font-weight: 300;
+    font-size: var(--fs-body);
+    font-weight: 400;
     color: var(--ink);
     transition: border-color 0.15s;
     width: 130px;
@@ -172,11 +172,11 @@
 }
  
 .add-note-section label {
-    font-size: 0.75rem;
+    font-size: var(--fs-eyebrow);
     font-weight: 500;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--label);
 }
  
 #note-text {
@@ -185,8 +185,8 @@
     border-radius: 3px;
     padding: 0.65rem 0.85rem;
     font-family: 'DM Sans', sans-serif;
-    font-size: 0.92rem;
-    font-weight: 300;
+    font-size: var(--fs-body);
+    font-weight: 400;
     color: var(--ink);
     resize: vertical;
     line-height: 1.6;
@@ -206,7 +206,7 @@
     border-radius: 3px;
     padding: 0.5rem 1.2rem;
     font-family: 'DM Sans', sans-serif;
-    font-size: 0.78rem;
+    font-size: var(--fs-label);
     font-weight: 500;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -231,11 +231,11 @@
 }
  
 .include-summary-row label {
-    font-size: 0.8rem;
+    font-size: var(--fs-label);
     font-weight: 500;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--label);
     cursor: pointer;
 }
  
@@ -272,13 +272,13 @@
     background: transparent;
     border: 1px solid var(--border);
     border-radius: 3px;
-    padding: 0.45rem 1rem;
+    padding: 0.5rem 1.05rem;
     font-family: 'DM Sans', sans-serif;
-    font-size: 0.78rem;
+    font-size: var(--fs-label);
     font-weight: 500;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--label);
     cursor: pointer;
     transition: border-color 0.15s, color 0.15s;
 }
@@ -312,11 +312,11 @@
 }
 
 .condition-name-header > label {
-    font-size: 0.75rem;
+    font-size: var(--fs-eyebrow);
     font-weight: 500;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--label);
 }
 
 .permanent-value-row {
@@ -326,11 +326,11 @@
 }
 
 .permanent-value-row label {
-    font-size: 0.75rem;
+    font-size: var(--fs-label);
     font-weight: 500;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--label);
     cursor: pointer;
 }
 
@@ -347,8 +347,8 @@
     border-radius: 3px;
     padding: 0.65rem 0.85rem;
     font-family: 'DM Sans', sans-serif;
-    font-size: 0.92rem;
-    font-weight: 300;
+    font-size: var(--fs-body);
+    font-weight: 400;
     color: var(--ink);
     resize: vertical;
     line-height: 1.6;
@@ -374,7 +374,7 @@
     border-radius: 3px;
     padding: 0.5rem 1.2rem;
     font-family: 'DM Sans', sans-serif;
-    font-size: 0.78rem;
+    font-size: var(--fs-label);
     font-weight: 500;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -388,8 +388,8 @@
 }
 
 .condition-name-message {
-    font-size: 0.8rem;
-    color: var(--muted);
+    font-size: var(--fs-hint);
+    color: var(--label);
 }
 
 .condition-name-message.error {

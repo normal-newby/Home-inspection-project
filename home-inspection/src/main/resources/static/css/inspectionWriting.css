@@ -13,11 +13,11 @@
 }
 
 .nav-label {
-	font-size: 0.7rem;
+	font-size: var(--fs-eyebrow);
 	font-weight: 500;
-	letter-spacing: 0.1em;
+	letter-spacing: var(--ls-caps);
 	text-transform: uppercase;
-	color: var(--muted);
+	color: var(--label);
 	margin-bottom: 0.85rem;
 }
 
@@ -38,13 +38,13 @@
 	background: var(--paper);
 	border: 1px solid var(--border);
 	border-radius: 3px;
-	padding: 0.45rem 0.95rem;
+	padding: 0.45rem 0.8rem;
 	font-family: 'DM Sans', sans-serif;
-	font-size: 0.78rem;
+	font-size: var(--fs-label);
 	font-weight: 500;
-	letter-spacing: 0.04em;
+	letter-spacing: 0.02em;
 	text-transform: uppercase;
-	color: var(--muted);
+	color: var(--label);
 	cursor: pointer;
 	transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
@@ -81,11 +81,11 @@
 }
 
 .file-input-label {
-	font-size: 0.78rem;
+	font-size: var(--fs-label);
 	font-weight: 500;
 	letter-spacing: 0.04em;
 	text-transform: uppercase;
-	color: var(--muted);
+	color: var(--label);
 	cursor: pointer;
 	background: var(--paper);
 	border: 1px solid var(--border);
@@ -135,11 +135,11 @@
 }
 
 .upload-progress-label {
-    font-size: 0.75rem;
+    font-size: var(--fs-label);
     font-weight: 500;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--label);
     white-space: nowrap;
 }
 
@@ -161,9 +161,9 @@
 }
 
 .btn {
-	padding: 0.55rem 1.2rem;
+	padding: 0.55rem 1.25rem;
 	font-family: 'DM Sans', sans-serif;
-	font-size: 0.78rem;
+	font-size: var(--fs-label);
 	font-weight: 500;
 	letter-spacing: 0.04em;
 	text-transform: uppercase;
@@ -184,7 +184,7 @@
 
 .btn-secondary {
 	background: transparent;
-	color: var(--muted);
+	color: var(--label);
 	border: 1px solid var(--border);
 }
 .btn-secondary:hover { 
@@ -194,8 +194,9 @@
 
 /* Info text */
 .helper-text {
-    font-size: 0.78rem;
-    color: var(--muted);
+    font-size: var(--fs-hint);
+    line-height: 1.5;
+    color: var(--label);
     margin-bottom: 0.75rem;
     padding-left: 0.1rem;
 }
@@ -210,7 +211,7 @@
     border: 1px solid var(--border);
     border-radius: 4px;
     font-family: inherit;
-    font-size: 0.9rem;
+    font-size: var(--fs-body);
     color: var(--ink);
     background: var(--card);
 }
@@ -238,13 +239,12 @@
 }
 
 .field-header {
-	font-size: 0.7rem;
+	font-size: var(--fs-header);
 	font-weight: 500;
-	letter-spacing: 0.1em;
+	letter-spacing: 0.05em;
 	text-transform: uppercase;
-	color: var(--muted);
-	padding-bottom: 0.5rem;
-	border-bottom: 1px solid var(--border);
+	color: var(--ink);
+	line-height: 1.3;
 }
 
 .values {
@@ -261,7 +261,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-bottom: 0.5rem;
+    gap: 1rem;
+    padding-bottom: 0.7rem;
     border-bottom: 1px solid var(--border);
 }
 
@@ -275,14 +276,21 @@
     background: var(--paper);
     border: 1px solid var(--border);
     border-radius: 3px;
-    padding: 0.25rem 0.65rem;
+    padding: 0.3rem 0.7rem;
     font-family: 'DM Sans', sans-serif;
-    font-size: 0.72rem;
+    font-size: 0.76rem;
     font-weight: 500;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--label);
     cursor: pointer;
+    white-space: nowrap;
+}
+
+.show-button:hover,
+.keep-show-button:hover {
+    border-color: var(--muted);
+    color: var(--ink);
 }
 
 .keep-show-button.active {
@@ -296,11 +304,11 @@
 	background: var(--paper);
 	border: 1px solid var(--border);
 	border-radius: 3px;
-	padding: 0.4rem 0.9rem;
+	padding: 0.45rem 0.95rem;
 	font-family: 'DM Sans', sans-serif;
-	font-size: 0.8rem;
+	font-size: 0.85rem;
 	font-weight: 400;
-	color: var(--muted);
+	color: var(--label);
 	cursor: pointer;
 	transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
@@ -314,7 +322,7 @@
 .value-button.selected-button {
 	background: #fdf0ea;
 	border-color: var(--accent);
-	color: var(--accent);
+	color: var(--dark-accent);
 }
 
 .value-button.selected-button:hover {

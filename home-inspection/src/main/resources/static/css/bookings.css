@@ -31,7 +31,7 @@
     align-items: center;
     gap: 6px;
     font-size: 14px;
-    color: var(--muted);
+    color: var(--label);
 }
 
 .booking-dot {
@@ -40,7 +40,7 @@
 
 .booking-date {
     font-size: 13px;
-    color: #999;
+    color: var(--muted);
     margin-top: 2px;
 }
 
@@ -110,9 +110,9 @@
     border-radius: 999px;
     padding: 0.35rem 0.9rem;
     font-family: 'DM Sans', sans-serif;
-    font-size: 0.78rem;
+    font-size: var(--fs-label);
     font-weight: 500;
-    color: var(--muted);
+    color: var(--label);
     cursor: pointer;
     transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
@@ -129,7 +129,7 @@
 }
 
 .booking-filter-count {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-variant-numeric: tabular-nums;
     opacity: 0.7;
 }
@@ -141,8 +141,8 @@
 .bookings-empty {
     padding: 2rem 0;
     text-align: center;
-    font-size: 0.85rem;
-    color: var(--muted);
+    font-size: var(--fs-hint);
+    color: var(--label);
 }
 
 .bookings-empty[hidden] {
@@ -158,11 +158,11 @@
 }
 
 .booking-status-label {
-    font-size: 11px;
+    font-size: 0.75rem;
     font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--label);
 }
 
 .booking-status {
@@ -171,7 +171,7 @@
     border: 1px solid transparent;
     padding: 0.2rem 1.6rem 0.2rem 0.7rem;
     font-family: 'DM Sans', sans-serif;
-    font-size: 12px;
+    font-size: 0.8rem;
     font-weight: 500;
     cursor: pointer;
     background-repeat: no-repeat;
