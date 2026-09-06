@@ -70,7 +70,7 @@
 
     <!-- Address -->
     <div id="cover-property-address">
-        For the Property at:
+        <div class="intro">For the Property at:</div>
         <div class="street" th:text="${booking.inspectionAddress}"></div>
         <div class="city-province" th:text="|${booking.city}, ${booking.province} ${booking.postalCode}|"></div>
     </div>
@@ -79,20 +79,15 @@
 
     <!-- Client info -->
     <div id="cover-meta">
-        <table>
-            <tr>
-                <td class="label">Prepared For</td>
-                <td class="value" th:text="|${booking.clientFirstName} ${booking.clientLastName}|"></td>
-            </tr>
-            <tr>
-                <td class="label">Inspection Date</td>
-                <td class="value" th:text="|${booking.month} ${booking.day}, ${booking.year}|"></td>
-            </tr>
-            <tr>
-                <td class="label">Prepared By</td>
-                <td class="value" th:text="${profile.name}"></td>
-            </tr>
-        </table>         
+        <div class="meta-row">
+            <span class="label">Prepared For</span><span class="value" th:text="|${booking.clientFirstName} ${booking.clientLastName}|"></span>
+        </div>
+        <div class="meta-row">
+            <span class="label">Inspection Date</span><span class="value" th:text="|${booking.month} ${booking.day}, ${booking.year}|"></span>
+        </div>
+        <div class="meta-row">
+            <span class="label">Prepared By</span><span class="value" th:text="${profile.name}"></span>
+        </div>
     </div>
 
     <!-- Company Images -->
