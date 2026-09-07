@@ -18,7 +18,7 @@
             <div class="navbarBox"><a href="report_layout.html">Report Layout</a></div>
         </div>
     </div>
-        
+
     <div class = "page">
         <div class = "page-header">
             <h1>Report Data</h1>
@@ -26,48 +26,84 @@
         </div>
 
         <form id="reportForm">
-            <div class="card">
-                <div class="card-title">Report Summary</div>
-                <div class="form-grid full">
-                    <div class="field">
-                        <label for="summary">Summary</label>
-                        <textarea id="summary" rows="20" placeholder="This is the report summary..."></textarea>
-                        <button type="button" id="generateSummaryBtn" class="btn btn-secondary">Generate with AI</button>
+
+            <div class="card collapsible" data-card="summary">
+                <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-summary">
+                    <span class="card-title">Report Summary</span>
+                    <span class="card-chevron" aria-hidden="true"></span>
+                </button>
+                <div class="card-body" id="card-summary" hidden>
+                    <div class="form-grid full">
+                        <div class="field">
+                            <label for="summary">Summary</label>
+                            <textarea id="summary" rows="20" placeholder="This is the report summary..."></textarea>
+                            <button type="button" id="generateSummaryBtn" class="btn btn-secondary">Generate with AI</button>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-title">Appendix PDF</div>
-                <div class="form-grid full">
-                    <div class="field">
-                        <span class="appendixPdfLabel">Current: none</span>
-                        <input type="file" id="appendixPdf" name="appendixPdf" accept=".pdf" />
+            <div class="card collapsible" data-card="email">
+                <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-email">
+                    <span class="card-title">Report Email</span>
+                    <span class="card-chevron" aria-hidden="true"></span>
+                </button>
+                <div class="card-body" id="card-email" hidden>
+                    <div class="form-grid full">
+                        <div class="field">
+                            <label for="emailBody">Email Body</label>
+                            <textarea id="emailBody" rows="20" placeholder="Dear Client, Please find attached your inspection report..."></textarea>
+                            <p class="field-hint">
+                                Sent with the report PDF. Use <code>{{clientName}}</code> and
+                                <code>{{address}}</code> to fill in this booking's details.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-title">Cover Page Image</div>
-                <div class="form-grid full">
-                    <div class="field">
-                        <span class="coverPageImageLabel">Current: none</span>
-                        <input type="file" id="coverPageImage" name="coverPageImage" accept=".jpg,.jpeg,.png" />
+            <div class="card collapsible" data-card="appendix">
+                <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-appendix">
+                    <span class="card-title">Appendix PDF</span>
+                    <span class="card-chevron" aria-hidden="true"></span>
+                </button>
+                <div class="card-body" id="card-appendix" hidden>
+                    <div class="form-grid full">
+                        <div class="field">
+                            <span class="appendixPdfLabel">Current: none</span>
+                            <input type="file" id="appendixPdf" name="appendixPdf" accept=".pdf" />
+                        </div>
                     </div>
                 </div>
             </div>
-            
+
+            <div class="card collapsible" data-card="cover-page">
+                <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-cover-page">
+                    <span class="card-title">Cover Page Image</span>
+                    <span class="card-chevron" aria-hidden="true"></span>
+                </button>
+                <div class="card-body" id="card-cover-page" hidden>
+                    <div class="form-grid full">
+                        <div class="field">
+                            <span class="coverPageImageLabel">Current: none</span>
+                            <input type="file" id="coverPageImage" name="coverPageImage" accept=".jpg,.jpeg,.png" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="actions">
                 <button type="button" id="resetBtn" class="btn btn-secondary">Reset</button>
                 <button type="button" id="saveBtn" class="btn btn-primary">Save</button>
             </div>
 
             <div class="resultBanner"></div>
-            
+
         </form>
     </div>
 </body>
 
+<script type = "module" src = "../js/ui/cards.js"></script>
 <script type = "module" src = "../js/reportWriting/reportData.js"></script>
 <script type = "module" src = "../js/formFactory.js"></script>
 

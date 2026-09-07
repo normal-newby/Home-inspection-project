@@ -45,7 +45,7 @@ public class GoogleEmailService {
         return googleService.isConfigured();
     }
 
-    public void sendReportEmail(String toEmail, byte[] pdfBytes, InspectionBookings booking){
+    public void sendReportEmail(String toEmail, byte[] pdfBytes, InspectionBookings booking, String template){
         InspectorProfile profile = inspectorProfileService.getProfile();
 
         if (!isConfigured()){
@@ -53,10 +53,9 @@ public class GoogleEmailService {
         }
 
         String fromAddress = inspectorProfileService.getProfile().getGoogleAccountEmail();
-        String clientName = fullName(booking);
         UUID bookingId = booking.getId();
 
-        String raw = buildMimeMessage(fromAddress, toEmail, clientName, pdfBytes, bookingId);
+        String raw = buildMimeMessage(fromAddress, toEmail, fillTemplate(template, booking), pdfBytes, bookingId, booking);
         String encoded = Base64.getUrlEncoder().withoutPadding().encodeToString(raw.getBytes(StandardCharsets.UTF_8));
 
         String token = googleService.accessToken();
@@ -82,21 +81,37 @@ public class GoogleEmailService {
         }
     }
 
-    private String buildMimeMessage(String from, String to, String clientName, byte[] pdfBytes, UUID bookingId) {
+    // Placeholders match the hint under the template field on the report layout page.
+    private String fillTemplate(String template, InspectionBookings booking){
+        String clientName = fullName(booking);
+
+        if (!notBlank(template)) {
+            return "Dear " + (clientName == null ? "there" : clientName)
+                    + ",\r\n\r\nPlease find your inspection report attached.";
+        }
+
+        return template
+                .replace("{{clientName}}", clientName == null ? "" : clientName)
+                .replace("{{address}}", HelperFunctions.formatAddress(booking))
+                .replace("\r\n", "\n")
+                .replace("\n", "\r\n"); // The textarea sends bare newlines; MIME wants CRLF.
+    }
+
+    private String buildMimeMessage(String from, String to, String body, byte[] pdfBytes, UUID bookingId, InspectionBookings bookings) {
         String boundary = "boundary_" + UUID.randomUUID();
         String base64Pdf = Base64.getMimeEncoder().encodeToString(pdfBytes);
 
         StringBuilder mime = new StringBuilder();
         mime.append("From: ").append(from).append("\r\n");
         mime.append("To: ").append(to).append("\r\n");
-        mime.append("Subject: Your Home Inspection Report\r\n");
+        mime.append("Subject: ").append(HelperFunctions.formatAddress(bookings))
+                .append(" - ").append(HelperFunctions.formatDateTime(bookings)).append("\r\n");
         mime.append("MIME-Version: 1.0\r\n");
         mime.append("Content-Type: multipart/mixed; boundary=\"").append(boundary).append("\"\r\n\r\n");
 
         mime.append("--").append(boundary).append("\r\n");
         mime.append("Content-Type: text/plain; charset=\"UTF-8\"\r\n\r\n");
-        mime.append("Hi ").append(clientName).append(",\r\n\r\n");
-        mime.append("Please find your inspection report attached.\r\n\r\n");
+        mime.append(body).append("\r\n\r\n");
 
         mime.append("--").append(boundary).append("\r\n");
         mime.append("Content-Type: application/pdf; name=\"inspection-report-").append(bookingId).append(".pdf\"\r\n");

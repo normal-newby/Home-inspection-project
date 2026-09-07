@@ -55,7 +55,8 @@ public class InspectionReportsService {
             InspectionReport report = inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId);
 
             Map<String, Consumer<String>> setters = Map.of(
-                    "summary", report::setSummary
+                    "summary", report::setSummary,
+                    "emailBody", report::setEmailBody
             );
 
             setters.forEach((key, setter) ->{

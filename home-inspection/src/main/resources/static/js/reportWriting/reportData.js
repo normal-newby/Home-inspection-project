@@ -4,14 +4,14 @@ import { bookingId } from "./getReport.js";
 
 const URI = `http://localhost:8080/api/reports/${bookingId}`;
 const URI_IMAGES = `http://localhost:8080/api/images/${bookingId}`;
-const fields = ['summary'];
+const fields = ['summary', 'emailBody'];
 
 const saveBtn = document.getElementById("saveBtn");
 const resetBtn = document.getElementById("resetBtn");
 const generateSummaryBtn = document.getElementById("generateSummaryBtn");
 
 saveBtn.addEventListener("click", () => saveWithOthers());
-resetBtn.addEventListener("click", () => loadForm(URI));
+resetBtn.addEventListener("click", () => loadForm(URI, fields));
 generateSummaryBtn?.addEventListener("click", () => generateSummary());
 
 async function generateSummary() {

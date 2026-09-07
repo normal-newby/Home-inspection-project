@@ -80,7 +80,7 @@ public class ReportViewController {
 
             byte[] pdf = reportViewService.generatePdf("report", context, bookingId, report);
 
-            googleEmailService.sendReportEmail(email, pdf, booking);
+            googleEmailService.sendReportEmail(email, pdf, booking, report.getEmailBody());
 
             return ResponseEntity.ok().body(Map.of("sent", true, "to", email));
         } catch (Exception e){

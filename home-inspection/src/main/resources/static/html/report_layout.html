@@ -77,6 +77,26 @@
             </div>
         </div>
 
+        <div class="card collapsible" data-card="email">
+            <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-email">
+                <span class="card-title">Report Email</span>
+                <span class="card-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="card-body" id="card-email" hidden>
+                <div class="form-grid full">
+                    <div class="field">
+                        <label for="emailTemplate">Email Body</label>
+                        <textarea id="emailTemplate" rows="20" placeholder="Dear Client, Please find attached your inspection report..."></textarea>
+                        <p class="field-hint">
+                            Sent with the report PDF. Copied onto each new booking, where it can be
+                            edited on the Report Data page. Use <code>{{clientName}}</code> and
+                            <code>{{address}}</code> to fill in the booking's details.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="card collapsible" data-card="appendix">
             <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-appendix">
                 <span class="card-title">Default Appendix PDF</span>

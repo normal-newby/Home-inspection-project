@@ -31,6 +31,9 @@ public class InspectionReport {
     @Column(columnDefinition = "TEXT")
     private String summary;
 
+    @Column(columnDefinition = "TEXT")
+    private String emailBody;
+
     @OneToOne
     @JoinColumn(name = "cover_page_image_id")
     private InspectionImage coverPageImage;

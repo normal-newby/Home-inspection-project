@@ -508,6 +508,21 @@
 
 .btn-secondary:hover { border-color: var(--muted); color: var(--ink); }
 
+/* Explanatory line under a field's input */
+.field-hint {
+    font-size: var(--fs-hint);
+    color: var(--label);
+    line-height: 1.6;
+    margin: 0.5rem 0 0;
+}
+
+.field-hint code {
+    font-size: var(--fs-label);
+    background: var(--paper);
+    padding: 0.1rem 0.3rem;
+    border-radius: 2px;
+}
+
 /* Required asterisk hint */
 .note {
     font-size: var(--fs-hint);

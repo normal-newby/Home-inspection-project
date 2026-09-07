@@ -8,8 +8,11 @@ import org.springframework.stereotype.Component;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Component
 public class HelperFunctions {
@@ -92,5 +95,29 @@ public class HelperFunctions {
             parts.add(postal.trim());
         }
         return String.join(", ", parts);
+    }
+
+    private static final DateTimeFormatter TIME_OF_DAY = DateTimeFormatter.ofPattern("h:mm a", Locale.US);
+
+    public static String formatDateTime(InspectionBookings booking){
+        String month = booking.getMonth();
+        Integer day = booking.getDay();
+        Integer year = booking.getYear();
+        if (!notBlank(month) || day == null || year == null) return "";
+
+        String date = month.trim() + " " + day + ", " + year;
+        String time = formatTime(booking.getStartTime());
+        return time.isEmpty() ? date : date + " " + time;
+    }
+
+    public static String formatTime(String startTime){
+        if (!notBlank(startTime)) return "";
+        try {
+            // The form sends "HH:mm", and "HH:mm:ss" when seconds are enabled.
+            String raw = startTime.trim();
+            return LocalTime.parse(raw.length() == 5 ? raw : raw.substring(0, 5)).format(TIME_OF_DAY);
+        } catch (RuntimeException e) {
+            return "";
+        }
     }
 }

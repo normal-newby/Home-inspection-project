@@ -62,6 +62,7 @@ public class InspectionBookingsService {
 
         InspectorProfile profile = inspectorProfileService.getProfile();
         report.setSummary(profile.getSummaryLetterBody());
+        report.setEmailBody(profile.getEmailTemplate());
 
         report = inspectionReportsRepository.save(report);
         saved.setInspectionReport(report);

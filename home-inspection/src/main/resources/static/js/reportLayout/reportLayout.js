@@ -2,7 +2,7 @@ import { saveForm, loadForm } from "../formFactory.js";
 
 const URI = `http://localhost:8080/api/profile`;
 
-const fields = ['coverLetterBody', 'summaryLetterBody', 'agreementBody'];
+const fields = ['coverLetterBody', 'summaryLetterBody', 'agreementBody', 'emailTemplate'];
 
 const saveBtn = document.getElementById("saveBtn");
 const resetBtn = document.getElementById("resetBtn");
