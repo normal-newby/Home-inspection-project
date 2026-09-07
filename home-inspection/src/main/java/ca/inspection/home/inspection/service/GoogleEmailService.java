@@ -104,7 +104,7 @@ public class GoogleEmailService {
         StringBuilder mime = new StringBuilder();
         mime.append("From: ").append(from).append("\r\n");
         mime.append("To: ").append(to).append("\r\n");
-        mime.append("Subject: ").append(HelperFunctions.formatAddress(bookings))
+        mime.append("Subject: Inspection Report to: ").append(HelperFunctions.formatAddress(bookings))
                 .append(" - ").append(HelperFunctions.formatDateTime(bookings)).append("\r\n");
         mime.append("MIME-Version: 1.0\r\n");
         mime.append("Content-Type: multipart/mixed; boundary=\"").append(boundary).append("\"\r\n\r\n");
