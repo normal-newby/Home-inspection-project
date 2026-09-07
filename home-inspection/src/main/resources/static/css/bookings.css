@@ -1,58 +1,76 @@
-.booking-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.page.bookings-page { max-width: 1100px; }
+
+.bookings-table-wrap {
     background: var(--card);
-    border: 0.5px solid #e0e0e0;
+    border: 1px solid var(--border);
     border-radius: 10px;
-    padding: 16px 20px;
-    margin-bottom: 12px;
-    transition: box-shadow 0.2s ease;
+    overflow: auto;
 }
 
-.booking-card:hover {
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+.bookings-table-wrap[hidden] { display: none; }
+
+.bookings-table {
+    width: 100%;
+    min-width: 780px;
+    border-collapse: collapse;
+    font-size: var(--fs-hint);
 }
 
-.booking-left {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.booking-name {
-    font-size: 16px;
+.bookings-table th {
+    padding: 0.7rem 0.7rem;
+    text-align: left;
+    background: #faf7f2;
+    border-bottom: 1px solid var(--border);
+    font-size: var(--fs-eyebrow);
     font-weight: 600;
+    letter-spacing: var(--ls-caps);
+    text-transform: uppercase;
+    color: var(--label);
+    white-space: nowrap;
+}
+
+.bookings-table td {
+    padding: 0.7rem 0.7rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
     color: var(--ink);
 }
 
-.booking-meta {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 14px;
-    color: var(--label);
+.bookings-table tbody tr:last-child td { border-bottom: none; }
+.bookings-table tbody tr:hover { background: #faf9f6; }
+
+.cell-number {
+    font-variant-numeric: tabular-nums;
+    color: var(--muted);
+    white-space: nowrap;
 }
 
-.booking-dot {
-    color: var(--muted);
-}
+.cell-strong { font-weight: 600; }
 
-.booking-date {
-    font-size: 13px;
-    color: var(--muted);
+.cell-sub {
     margin-top: 2px;
+    font-size: var(--fs-label);
+    color: var(--muted);
 }
 
-.booking-right {
-    display: grid;
-    grid-template-areas: "view write" ". remove";
-    gap: 4px;
-    justify-items: end;
+.cell-when {
+    color: var(--label);
+    white-space: nowrap;
+}
+
+.cell-action {
+    width: 1%;
+    white-space: nowrap;
+}
+
+.cell-remove {
+    width: 1%;
+    text-align: center;
 }
 
 .booking-link {
-    font-size: 14px;
+    display: inline-block;
+    font-size: var(--fs-label);
     font-weight: 500;
     text-decoration: none;
     padding: 6px 14px;
@@ -80,18 +98,47 @@
     background: var(--paper);
 }
 
-.booking-link.view-details {
-    justify-self: start;
-}
-
-.booking-link.remove-btn {
-    background: transparent;
+.remove-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
     border: none;
-    cursor: pointer;
+    border-radius: 6px;
+    background: transparent;
     color: var(--muted);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
 }
 
-.booking-link.remove-btn:hover { color: #c0392b; }
+.remove-btn svg {
+    width: 11px;
+    height: 11px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.remove-btn:hover {
+    background: #fbeceb;
+    color: #c0392b;
+}
+
+.remove-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
 
 /* ── Status filters ── */
 .booking-filters {
@@ -149,22 +196,7 @@
     display: none;
 }
 
-/* ── Status control on a card ── */
-.booking-status-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 6px;
-}
-
-.booking-status-label {
-    font-size: 0.75rem;
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--label);
-}
-
+/* ── Status control ── */
 .booking-status {
     appearance: none;
     border-radius: 999px;

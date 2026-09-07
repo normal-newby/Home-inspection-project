@@ -19,7 +19,7 @@
         </div>
     </div>
         
-    <div class = "page">
+    <div class = "page bookings-page">
         <div class = "page-header">
             <h1>Bookings</h1>
             <p>Bookings information</p>
@@ -31,7 +31,23 @@
             <button type="button" class="booking-filter" data-status="COMPLETED">Completed <span class="booking-filter-count">0</span></button>
         </div>
 
-        <div class = "bookings-container"></div>
+        <div class="bookings-table-wrap">
+            <table class="bookings-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Report #</th>
+                        <th scope="col">Address</th>
+                        <th scope="col">Client</th>
+                        <th scope="col">Date &amp; Time</th>
+                        <th scope="col">Status</th>
+                        <th scope="col" class="cell-action">View Details</th>
+                        <th scope="col" class="cell-action">Write Report</th>
+                        <th scope="col" class="cell-remove"><span class="sr-only">Remove booking</span></th>
+                    </tr>
+                </thead>
+                <tbody class="bookings-container"></tbody>
+            </table>
+        </div>
         <p class="bookings-empty" hidden>No bookings with this status.</p>
     </div>
     <script type="module" src="../js/index/getBookings.js"></script>

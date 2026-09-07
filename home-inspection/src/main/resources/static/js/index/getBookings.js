@@ -1,6 +1,7 @@
 import { confirmDialog, notify } from "../ui/dialog.js";
 
 const bookingsContainer = document.querySelector(".bookings-container");
+const bookingsTable = document.querySelector(".bookings-table-wrap");
 const emptyMessage = document.querySelector(".bookings-empty");
 const filterButtons = [...document.querySelectorAll(".booking-filter")];
 
@@ -49,95 +50,73 @@ function formatWhen(booking) {
 }
 
 function createBooking(booking) {
-    // Main element (contains everything)
-    const bookingElement = document.createElement("div");
-    bookingElement.classList.add("booking");
-    bookingElement.id = booking.id;
+    const row = document.createElement("tr");
+    row.className = "booking";
+    row.id = booking.id;
+    row.dataset.status = statusOf(booking);
 
-    // Card for flex box
-    const bookingCard = document.createElement("div");
-    bookingCard.className = "booking-card";
+    const number = document.createElement("td");
+    number.className = "cell-number";
+    number.textContent = booking.inspectionNumber != null ? `#${booking.inspectionNumber}` : "—";
+    row.appendChild(number);
 
-    // Left side for meta info
-    const bookingLeft = document.createElement("div");
-    bookingLeft.className = "booking-left";
+    const address = document.createElement("td");
+    const street = document.createElement("div");
+    street.className = "cell-strong";
+    street.textContent = booking.inspectionAddress;
+    const area = document.createElement("div");
+    area.className = "cell-sub";
+    area.textContent = [booking.city, booking.postalCode].filter(Boolean).join(", ");
+    address.append(street, area);
+    row.appendChild(address);
 
-    const bookingName = document.createElement("div");
-    bookingName.className = "booking-name";
-    bookingName.textContent = `${booking.clientFirstName} ${booking.clientLastName}`;
-    bookingLeft.appendChild(bookingName);
+    const client = document.createElement("td");
+    client.textContent = `${booking.clientFirstName} ${booking.clientLastName}`;
+    row.appendChild(client);
 
-    const bookingMeta = document.createElement("div");
-    bookingMeta.className = "booking-meta";
+    const when = document.createElement("td");
+    when.className = "cell-when";
+    when.textContent = formatWhen(booking);
+    row.appendChild(when);
 
-    const bookingAddress = document.createElement("span");
-    bookingAddress.className = "booking-address";
-    bookingAddress.textContent = booking.inspectionAddress;
-    bookingMeta.appendChild(bookingAddress);
+    const status = document.createElement("td");
+    status.appendChild(createStatusControl(booking, row));
+    row.appendChild(status);
 
-    const bookingDot = document.createElement("span");
-    bookingDot.className = "booking-dot";
-    bookingDot.textContent = "·";
-    bookingMeta.appendChild(bookingDot);
-
-    const bookingPostal = document.createElement("span");
-    bookingPostal.className = "booking-postal";
-    bookingPostal.textContent = booking.postalCode;
-    bookingMeta.appendChild(bookingPostal);
-
-    bookingLeft.appendChild(bookingMeta);
-
-    const bookingDate = document.createElement("div");
-    bookingDate.className = "booking-date";
-    bookingDate.textContent = formatWhen(booking);
-    bookingLeft.appendChild(bookingDate);
-
-    bookingLeft.appendChild(createStatusControl(booking, bookingElement));
-
-    bookingCard.appendChild(bookingLeft);
-
-    // Right side for actions
-    const bookingRight = document.createElement("div");
-    bookingRight.className = "booking-right";
-
+    const details = document.createElement("td");
+    details.className = "cell-action";
     const viewDetailsLink = document.createElement("a");
     viewDetailsLink.href = `booking.html?id=${booking.id}`;
-    viewDetailsLink.className = "booking-link secondary view-details";
-    viewDetailsLink.textContent = "View Details →";
-    viewDetailsLink.style.gridArea = "view";
-    bookingRight.appendChild(viewDetailsLink);
+    viewDetailsLink.className = "booking-link secondary";
+    viewDetailsLink.textContent = "View Details";
+    details.appendChild(viewDetailsLink);
+    row.appendChild(details);
 
+    const write = document.createElement("td");
+    write.className = "cell-action";
     const writeReportLink = document.createElement("a");
     writeReportLink.href = `report_writing.html?id=${booking.id}&place=roofing&type=description`;
     writeReportLink.className = "booking-link primary";
-    writeReportLink.textContent = "Write Report →";
-    writeReportLink.style.gridArea = "write";
-    bookingRight.appendChild(writeReportLink);
+    writeReportLink.textContent = "Write Report";
+    write.appendChild(writeReportLink);
+    row.appendChild(write);
 
+    const remove = document.createElement("td");
+    remove.className = "cell-remove";
     const removeButton = document.createElement("button");
-    removeButton.className = "booking-link remove-btn";
-    removeButton.textContent = "Remove Booking";
+    removeButton.type = "button";
+    removeButton.className = "remove-btn";
+    removeButton.title = "Remove booking";
+    removeButton.setAttribute("aria-label", `Remove booking for ${booking.clientFirstName} ${booking.clientLastName}`);
+    removeButton.innerHTML = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1l10 10M11 1L1 11"/></svg>';
     removeButton.addEventListener("click", () => deleteBooking(booking));
-    removeButton.style.gridArea = "remove";
-    bookingRight.appendChild(removeButton);
+    remove.appendChild(removeButton);
+    row.appendChild(remove);
 
-    bookingCard.appendChild(bookingRight);
-
-    bookingElement.appendChild(bookingCard);
-    bookingElement.dataset.status = statusOf(booking);
-
-    bookingsContainer.appendChild(bookingElement);
+    bookingsContainer.appendChild(row);
 }
 
 function createStatusControl(booking, bookingElement){
-    const row = document.createElement("div");
-    row.className = "booking-status-row";
-
-    const label = document.createElement("label");
-    label.className = "booking-status-label";
-    label.htmlFor = `status-${booking.id}`;
-    label.textContent = "Status";
-
     const select = document.createElement("select");
     select.id = `status-${booking.id}`;
     select.className = "booking-status";
@@ -163,7 +142,7 @@ function createStatusControl(booking, bookingElement){
             bookingElement.dataset.status = chosen;
             applyStatusClass(select, chosen);
             renderCounts();
-            applyFilter(); // the card may no longer belong in the current view
+            applyFilter(); // the row may no longer belong in the current view
         } else {
             // Put the control back where it was rather than showing a status that was not saved.
             select.value = current;
@@ -173,8 +152,8 @@ function createStatusControl(booking, bookingElement){
         select.disabled = false;
     });
 
-    row.append(label, select);
-    return row;
+    select.setAttribute("aria-label", "Booking status");
+    return select;
 }
 
 function applyStatusClass(select, status){
@@ -217,6 +196,7 @@ function applyFilter(){
     });
 
     filterButtons.forEach(button => button.classList.toggle("active", button.dataset.status === activeFilter));
+    if (bookingsTable) bookingsTable.hidden = shown === 0;
     if (emptyMessage) emptyMessage.hidden = shown > 0 || loadedBookings.length === 0;
 }
 
