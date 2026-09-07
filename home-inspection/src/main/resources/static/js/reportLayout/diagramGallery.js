@@ -18,14 +18,12 @@ const backLink = document.getElementById("backLink");
 const grid = document.getElementById("diagramGrid");
 const emptyMessage = document.getElementById("galleryEmpty");
 const noMatches = document.getElementById("noMatches");
-const errorBox = document.getElementById("diagramError");
 const countLabel = document.getElementById("diagramCount");
 const search = document.getElementById("diagramSearch");
 const pickHint = document.getElementById("pickHint");
 const pickActions = document.getElementById("pickActions");
 const saveButton = document.getElementById("saveDiagramsBtn");
 const cancelButton = document.getElementById("cancelDiagramsBtn");
-const resultBanner = document.querySelector(".resultBanner");
 
 const titleInput = document.getElementById("diagramTitle");
 const fileInput = document.getElementById("diagramFile");
@@ -46,17 +44,6 @@ function safeReturn(value){
     } catch (error) {
         return "report_layout.html";
     }
-}
-
-function showError(message){
-    errorBox.textContent = message ?? "";
-    errorBox.classList.toggle("show", Boolean(message));
-}
-
-function banner(message){
-    if (!resultBanner) return;
-    resultBanner.textContent = message;
-    setTimeout(() => { resultBanner.textContent = ""; }, 3000);
 }
 
 function hasUnsavedChanges(){
@@ -168,7 +155,7 @@ async function loadLibrary(){
         renderGrid();
     } catch (error) {
         console.error("Error loading diagrams:", error);
-        showError("Could not load the diagram library.");
+        notify("Could not load the diagram library.", { error: true });
     }
 }
 
@@ -178,7 +165,8 @@ async function loadAttachment(){
         const attached = res.ok ? await res.json().catch(() => null) : null;
 
         if (!attached) {
-            showError("That item has no recommendation value to attach diagrams to.");
+            // Left up: the save button stays disabled, so the reason has to stay with it.
+            notify("That item has no recommendation value to attach diagrams to.", { error: true, timeout: 0 });
             saveButton.disabled = true;
             return;
         }
@@ -192,7 +180,7 @@ async function loadAttachment(){
 
     } catch (error) {
         console.error("Error loading attached diagrams:", error);
-        showError("Could not read what is already attached.");
+        notify("Could not read what is already attached.", { error: true });
     }
 }
 
@@ -234,7 +222,7 @@ async function uploadDiagram(){
         fileInput.value = "";
         search.value = "";
         await loadLibrary();
-        banner("Diagram uploaded.");
+        notify("Diagram uploaded.");
     } catch (error) {
         console.error("Error uploading recommendation diagram:", error);
         notify("Could not upload that diagram. Please try again.", { error: true });
@@ -263,7 +251,6 @@ async function deleteDiagram(diagram){
 // --- Saving an attachment ---
 
 async function save(){
-    showError(null);
     saveButton.disabled = true;
 
     try {
@@ -279,7 +266,7 @@ async function save(){
 
     } catch (error) {
         console.error("Error saving diagrams:", error);
-        showError("Could not save those diagrams.");
+        notify("Could not save those diagrams.", { error: true });
         saveButton.disabled = false;
     }
 }

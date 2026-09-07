@@ -1,30 +1,17 @@
-import { confirmDialog } from "../ui/dialog.js";
+import { confirmDialog, notify } from "../ui/dialog.js";
 
 const URI = "http://localhost:8080/api/fields/definition/layout";
 
 const placeTabs = document.getElementById("placeTabs");
 const orderSections = document.getElementById("orderSections");
 const emptyMessage = document.getElementById("orderEmpty");
-const errorBox = document.getElementById("orderError");
 const saveButton = document.getElementById("saveOrderBtn");
 const resetButton = document.getElementById("resetOrderBtn");
-const resultBanner = document.querySelector(".resultBanner");
 
 let loadedLayout = [];
 let openPlace = null;
 
 let draggedRow = null;
-
-function showError(message){
-    errorBox.textContent = message ?? "";
-    errorBox.classList.toggle("show", Boolean(message));
-}
-
-function banner(message){
-    if (!resultBanner) return;
-    resultBanner.textContent = message;
-    setTimeout(() => { resultBanner.textContent = ""; }, 3000);
-}
 
 function capitalise(word){
     return word ? word.charAt(0).toUpperCase() + word.slice(1) : word;
@@ -188,7 +175,6 @@ function rowAfter(list, pointerY){
 // --- Loading and saving ---
 
 async function loadLayout(){
-    showError(null);
     try {
         const res = await fetch(URI);
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
@@ -204,7 +190,7 @@ async function loadLayout(){
         renderSections();
     } catch (error) {
         console.error("Error loading field order:", error);
-        showError("Could not load the field order.");
+        notify("Could not load the field order.", { error: true });
     }
 }
 
@@ -229,11 +215,9 @@ function changedSections(){
 }
 
 async function saveOrder(){
-    showError(null);
-
     const sections = changedSections();
     if (sections.length === 0){
-        banner("Nothing to save - the order has not changed.");
+        notify("Nothing to save - the order has not changed.");
         return;
     }
 
@@ -254,11 +238,11 @@ async function saveOrder(){
         // an order the report will not print.
         await loadLayout();
 
-        if (failed.length > 0) showError(`Could not save ${failed.join(", ")}. What is on screen is what is saved.`);
-        else banner("Field order saved.");
+        if (failed.length > 0) notify(`Could not save ${failed.join(", ")}. What is on screen is what is saved.`, { error: true });
+        else notify("Field order saved.");
     } catch (error) {
         console.error("Error saving field order:", error);
-        showError("Could not save the field order.");
+        notify("Could not save the field order.", { error: true });
         await loadLayout();
     } finally {
         saveButton.disabled = false;

@@ -581,22 +581,6 @@
     border-radius: 2px;
 }
 
-/* ── Success banner ── */
-.banner {
-    display: none;
-    align-items: center;
-    gap: 0.6rem;
-    background: #edf7f0;
-    border: 1px solid #b2ddc0;
-    border-radius: 3px;
-    padding: 0.75rem 1rem;
-    font-size: var(--fs-hint);
-    color: #276740;
-    margin-bottom: 1.5rem;
-}
-
-.banner.show { display: flex; }
-
 @media (max-width: 600px) {
     .form-grid { grid-template-columns: 1fr; }
     .page { margin: 2rem auto; }

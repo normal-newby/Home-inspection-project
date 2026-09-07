@@ -1,10 +1,9 @@
-import { confirmDialog } from "../ui/dialog.js";
+import { confirmDialog, notify } from "../ui/dialog.js";
 const BASE = "http://localhost:8080/api/google/calendar";
 
 const dot = document.getElementById("calendarDot");
 const statusText = document.getElementById("calendarStatusText");
 const accountText = document.getElementById("calendarAccount");
-const errorBox = document.getElementById("calendarError");
 const connectedSection = document.getElementById("calendarConnected");
 const setupHint = document.getElementById("calendarSetupHint");
 const calendarSelect = document.getElementById("googleCalendarId");
@@ -12,9 +11,13 @@ const enabledCheckbox = document.getElementById("googleCalendarEnabled");
 const connectBtn = document.getElementById("calendarConnectBtn");
 const disconnectBtn = document.getElementById("calendarDisconnectBtn");
 
-function showError(message) {
-    errorBox.textContent = message ?? "";
-    errorBox.classList.toggle("show", Boolean(message));
+// Every status load re-reports the same warning, so it is only raised when it changes.
+let shownWarning = null;
+
+function warn(message) {
+    if (message === shownWarning) return;
+    shownWarning = message;
+    if (message) notify(message, { error: true });
 }
 
 function render(status) {
@@ -56,7 +59,7 @@ function render(status) {
     calendarSelect.value = calendarId ?? "primary";
     enabledCheckbox.checked = Boolean(enabled);
 
-    if (warning) showError(warning);
+    warn(warning ?? null);
 }
 
 async function loadStatus() {
@@ -67,12 +70,11 @@ async function loadStatus() {
     } catch (err) {
         console.error("Could not load Google Calendar status:", err);
         statusText.textContent = "Unavailable";
-        showError("Could not read the Google Calendar settings.");
+        notify("Could not read the Google Calendar settings.", { error: true });
     }
 }
 
 async function saveSettings() {
-    showError(null);
     try {
         const res = await fetch(`${BASE}/settings`, {
             method: "POST",
@@ -86,7 +88,7 @@ async function saveSettings() {
         render(await res.json());
     } catch (err) {
         console.error("Could not save Google Calendar settings:", err);
-        showError("Could not save the calendar settings.");
+        notify("Could not save the calendar settings.", { error: true });
     }
 }
 
@@ -100,13 +102,12 @@ disconnectBtn.addEventListener("click", async () => {
         { title: "Disconnect Google Calendar?", confirmLabel: "Disconnect", danger: true }
     );
     if (!confirmed) return;
-    showError(null);
     try {
         const res = await fetch(`${BASE}/disconnect`, { method: "POST" });
         if (!res.ok) throw new Error("disconnect request failed");
     } catch (err) {
         console.error("Could not disconnect Google Calendar:", err);
-        showError("Could not disconnect from Google.");
+        notify("Could not disconnect from Google.", { error: true });
     }
     await loadStatus();
 });
@@ -117,7 +118,7 @@ enabledCheckbox.addEventListener("change", saveSettings);
 // The OAuth callback bounces back here with the outcome in the query string.
 const params = new URLSearchParams(window.location.search);
 if (params.get("calendar") === "error") {
-    showError(params.get("message") ?? "Could not connect to Google Calendar.");
+    notify(params.get("message") ?? "Could not connect to Google Calendar.", { error: true });
 }
 if (params.has("calendar")) {
     window.history.replaceState({}, "", window.location.pathname);
