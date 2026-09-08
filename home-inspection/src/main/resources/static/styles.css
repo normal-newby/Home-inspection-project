@@ -210,7 +210,6 @@ body {
 .cover-photo {
     margin: 0 20mm 5mm 20mm;
     overflow: hidden;
-    border: 1px solid var(--ink);
 }
 
 .cover-photo img {
@@ -245,7 +244,7 @@ body {
 
 .cover-divider {
     width: 100mm;
-    height: 4px;
+    height: 2px;
     border-radius: 2px;
     background: var(--accent);
     margin: 5mm auto 5mm auto;
@@ -333,7 +332,6 @@ body {
 #cover-footer {
     background-color: var(--accent);
     text-indent: 1px;
-    border: 1px solid var(--ink);
     color: var(--card);
     padding: 3mm 20mm;
     text-align: center;
