@@ -582,9 +582,19 @@ body {
 
 .agreement-parties-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 1rem;
+    grid-template-columns: auto auto;
+    justify-content: start;
+    column-gap: 3rem;
     margin-bottom: 1.25rem;
+}
+
+.agreement-party-block {
+    white-space: nowrap;
+}
+
+.agreement-party-block + .agreement-party-block {
+    padding-left: 3rem;
+    border-left: 1px solid var(--border);
 }
 
 .agreement-party-label {
