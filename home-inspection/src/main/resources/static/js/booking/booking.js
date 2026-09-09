@@ -25,12 +25,13 @@ bookingFormEl.addEventListener("submit", async (e) => {
         showDateError(result.message);
         return;
     }
-    // New inspection lands on its own booking page
+    // New inspection lands on its own booking page, so a second save edits it
     if (!id && result.booking && result.booking.id) {
         window.location.href = `booking.html?id=${result.booking.id}`;
-    } else {
-        window.location.href = "index.html";
+        return;
     }
+    // An edit stays on the form; a toast is enough to confirm the save.
+    notify("Booking saved");
 });
 
 async function saveWithInvoices() {
