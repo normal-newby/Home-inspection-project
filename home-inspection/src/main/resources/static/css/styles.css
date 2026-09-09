@@ -79,6 +79,19 @@ body {
     padding: 0 2rem 4rem;
 }
 
+.back-link {
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    font-size: var(--fs-label);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--label);
+}
+
+.back-link:hover { color: var(--accent); }
+
 .page-header {
     margin-bottom: 2.5rem;
     border-left: 3px solid var(--accent);

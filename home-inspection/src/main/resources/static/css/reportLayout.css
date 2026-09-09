@@ -48,19 +48,6 @@
 /* Long lists of field names read better with more room than a form needs. */
 .page.page-wide { max-width: 1000px; }
 
-.back-link {
-    display: inline-block;
-    margin-bottom: 1.5rem;
-    font-size: var(--fs-label);
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    text-decoration: none;
-    color: var(--label);
-}
-
-.back-link:hover { color: var(--accent); }
-
 .place-tabs {
     display: flex;
     flex-wrap: wrap;

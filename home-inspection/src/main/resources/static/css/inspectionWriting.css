@@ -4,6 +4,10 @@
 	margin: 0 auto;
 }
 
+.body_content .back-link {
+	margin-top: 1.5rem;
+}
+
 .component-nav {
 	background: var(--card);
 	border: 1px solid var(--border);

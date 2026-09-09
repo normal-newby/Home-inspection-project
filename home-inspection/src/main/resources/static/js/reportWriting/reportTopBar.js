@@ -10,7 +10,8 @@ viewReportButton.addEventListener("click", () => {
 const editReportDataButton = document.getElementById("edit-report-data");
 
 editReportDataButton.addEventListener("click", () => {
-    window.location.href = `report_data.html?id=${bookingId}`;
+\    const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
+    window.location.href = `report_data.html?id=${bookingId}&returnTo=${returnTo}`;
 });
 
 const emailReportButton = document.getElementById("email-report-button");

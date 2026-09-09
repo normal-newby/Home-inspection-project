@@ -6,6 +6,23 @@ const URI = `http://localhost:8080/api/reports/${bookingId}`;
 const URI_IMAGES = `http://localhost:8080/api/images/${bookingId}`;
 const fields = ['summary', 'emailBody'];
 
+const backLink = document.getElementById("backLink");
+if (backLink) backLink.href = writingScreen();
+
+function writingScreen(){
+    if (!bookingId) return "index.html";
+    const fallback = `report_writing.html?id=${bookingId}&place=roofing&type=description`;
+    const value = new URLSearchParams(window.location.search).get("returnTo");
+    if (!value) return fallback;
+    try {
+        const url = new URL(value, window.location.href);
+        if (url.origin !== window.location.origin) return fallback;
+        return url.pathname + url.search;
+    } catch (error) {
+        return fallback;
+    }
+}
+
 const saveBtn = document.getElementById("saveBtn");
 const resetBtn = document.getElementById("resetBtn");
 const generateSummaryBtn = document.getElementById("generateSummaryBtn");
