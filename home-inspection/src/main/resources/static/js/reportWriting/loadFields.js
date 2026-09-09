@@ -197,8 +197,8 @@ function createExistingField(parent, field, definition){ // Creates buttons for 
     const button = document.createElement("button");
     button.classList.add("value-button");
     button.classList.add("selected-button");
-    button.textContent = fieldLabel(field);
     button.dataset.id = field.id;
+    renderFieldButton(button, field);
 
     button.addEventListener("contextmenu", async (e) => { // Right click to delete
         e.preventDefault();
@@ -262,6 +262,26 @@ function fieldLabel(field){
     return name && name.trim() ? name.trim() : field.selectedValue.value;
 }
 
+function renderFieldButton(button, field){
+    button.textContent = fieldLabel(field);
+    renderImageCount(button, field.inspectionImages?.length ?? 0);
+}
+
+function renderImageCount(button, count){
+    button.querySelector(".image-count-badge")?.remove();
+    if (!count) return;
+
+    const badge = document.createElement("span");
+    badge.classList.add("image-count-badge");
+    badge.textContent = `(${count})`;
+    button.appendChild(badge);
+}
+
+function updateImageCount(fieldId, count){
+    const button = contentFields.querySelector(`.value-button[data-id="${fieldId}"]`);
+    if (button) renderImageCount(button, count);
+}
+
 function isBlankItem(field){
     return field.selectedValue?.value?.toLowerCase() === BLANK_ITEM;
 }
@@ -319,7 +339,7 @@ saveConditionNameButton.addEventListener("click", async () => {
 
         // Keep the in-memory field in step so reopening the panel shows the saved name.
         field.conditionName = name || null;
-        button.textContent = fieldLabel(field);
+        renderFieldButton(button, field);
 
         if (result.savedPermanently){
             // Show the new option immediately instead of waiting for the next page load.
@@ -541,6 +561,7 @@ function selectImageFunction(bookingId, selectImageDiv, imageId, fieldId, images
     .then(async () => {
         if (!await flushAnnotations()) return;
         images.push({ id: imageId });
+        updateImageCount(fieldId, images.length);
         // Drops the freshly used image out of the "not yet used" galleries.
         await refreshImagePool();
         addExistingImages(bookingId, selectImageDiv, fieldId, images); // Refresh gallery
@@ -562,6 +583,7 @@ async function deleteImageFromField(image, fieldId, images){
 
     const index = images.indexOf(image);
     if (index !== -1) images.splice(index, 1);
+    updateImageCount(fieldId, images.length);
 
     await refreshImagePool(); // The image is back in the pool.
     addExistingImages(bookingId, selectImageDiv, fieldId, images);
