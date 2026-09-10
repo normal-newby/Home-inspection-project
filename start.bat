@@ -2,7 +2,7 @@
 title Home Inspection App
 
 echo Starting Docker service...
-wsl sudo service docker start
+wsl sudo snap start docker
 
 echo Starting containers...
 start "Docker" cmd /k "wsl docker compose up --build"
