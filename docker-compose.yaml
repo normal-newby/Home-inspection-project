@@ -9,6 +9,7 @@ services:
       - PDF_SERVICE_URL=http://pdf-service:3001
       - DATASOURCE_URL=jdbc:sqlite:/app/data/database.db
       - UPLOAD_DIR=/app/uploads
+      - 'SPRING_APPLICATION_JSON={"spring":{"datasource":{"hikari":{"data-source-properties":{"journal_mode":"DELETE"}}}}}'
     volumes:
       - ./data:/app/data
       - ./uploads:/app/uploads

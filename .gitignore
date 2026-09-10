@@ -17,3 +17,7 @@ database.db-shm
 .continue
 
 .claude
+# local backup snapshots
+backups/
+database.backup-*/
+database.snapshot-*/
