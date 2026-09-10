@@ -4,6 +4,7 @@ web_scraper/
 
 database
 database.db
+data/
 
 .env
 
