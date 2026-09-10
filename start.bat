@@ -8,7 +8,7 @@ if not errorlevel 1 (
 )
 
 echo Starting Docker service...
-wsl sudo snap start docker
+wsl sudo service docker start
 
 echo Waiting for Docker daemon...
 set dattempts=0
