@@ -1,4 +1,5 @@
 # for local backups of the SQLite database and uploaded photos, to a second physical disk
+# script made by claude code
 
 $ErrorActionPreference = 'Stop'
 
