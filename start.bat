@@ -1,9 +1,30 @@
 @echo off
 title Home Inspection App
 
-echo Starting Docker service...
-wsl sudo snap start docker
+wsl docker info >nul 2>&1
+if not errorlevel 1 (
+    echo Docker daemon already running.
+    goto dockerready
+)
 
+echo Starting Docker service...
+wsl sudo service docker start
+
+echo Waiting for Docker daemon...
+set dattempts=0
+:dockerwait
+set /a dattempts+=1
+if %dattempts% gtr 30 (
+    echo ERROR: Docker daemon did not start after 60 seconds.
+    pause
+    exit /b 1
+)
+wsl docker info >nul 2>&1
+if errorlevel 1 (
+    timeout /t 2 >nul
+    goto dockerwait
+)
+:dockerready
 echo Starting containers...
 start "Docker" cmd /k "wsl docker compose up --build"
 
@@ -26,3 +47,4 @@ echo.
 echo App is running at http://localhost:8080
 echo Close the Docker window to stop the app.
 pause
+
