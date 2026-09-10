@@ -10,18 +10,18 @@ viewReportButton.addEventListener("click", () => {
 const editReportDataButton = document.getElementById("edit-report-data");
 
 editReportDataButton.addEventListener("click", () => {
-\    const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
+    const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
     window.location.href = `report_data.html?id=${bookingId}&returnTo=${returnTo}`;
 });
 
 const emailReportButton = document.getElementById("email-report-button");
 
 emailReportButton.addEventListener("click", async () => {
-    confirm = await confirmDialog("This will send the email with the pdf attatched",
+    const confirmed = await confirmDialog("This will send the email with the pdf attatched",
         {title : "Send email", confirmLabel : "Send", danger: true }
     );
 
-    if (!confirm) return;
+    if (!confirmed) return;
 
     emailReportButton.disabled = true;
     const originalButtonText = emailReportButton.textContent;
