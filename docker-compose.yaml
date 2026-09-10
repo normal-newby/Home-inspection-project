@@ -8,10 +8,10 @@ services:
     environment:
       - PDF_SERVICE_URL=http://pdf-service:3001
       - DATASOURCE_URL=jdbc:sqlite:/app/data/database.db
-      - UPLOAD_DIR=/app/data/uploads
+      - UPLOAD_DIR=/app/uploads
     volumes:
-      - ./database.db:/app/data/database.db
-      - ./uploads:/app/data/uploads
+      - ./data:/app/data
+      - ./uploads:/app/uploads
     depends_on:
       - pdf-service
 

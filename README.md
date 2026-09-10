@@ -23,7 +23,7 @@ The "how to use it" part is designed to be minimal, as hopefully the UI explains
 Clone this repo onto your computer.
 This repo only contains necessary database information for the boilerplate of the web application,
 there is no user data.
-Thus, you have to run the command: sqlite3 database.db < seed/field_definitions.sql to copy the necessary
+Thus, you have to run the command: sqlite3 data/database.db < seed/field_definitions.sql to copy the necessary
 information into the database.
 Make sure you have sqlite3 installed.
 
