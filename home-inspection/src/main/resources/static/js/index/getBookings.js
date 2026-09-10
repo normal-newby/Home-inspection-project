@@ -215,6 +215,8 @@ async function loadBookings(){
 
         // The server returns them in inspection-date order: upcoming first, then past.
         loadedBookings = await response.json();
+
+        console.log(loadedBookings);
         bookingsContainer.innerHTML = "";
         loadedBookings.forEach(createBooking);
 
