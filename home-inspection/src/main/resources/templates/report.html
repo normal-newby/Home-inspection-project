@@ -253,8 +253,7 @@
                 <th>Implication</th>
                 <th>Condition</th>
                 <th>Location</th>
-                <th>Room</th>
-                <th>Task</th>
+                <th>Recommendation</th>
                 <th>Time</th>
                 <th>Est. Cost</th>
             </tr>
@@ -265,7 +264,6 @@
                 <td th:text="${field.inspectionRecommendationField?.implication}"></td>
                 <td th:text="${field.displayValue}"></td>
                 <td th:text="${field.inspectionRecommendationField.getLocationDisplay()}"></td>
-                <td th:text="${field.inspectionRecommendationField.room}"></td>
                 <td th:text="${field.inspectionRecommendationField.task}"></td>
                 <td th:text="${field.inspectionRecommendationField.time}"></td>
                 <td th:if="${field.inspectionRecommendationField != null 
@@ -323,50 +321,50 @@
                 <div th:each="field : ${group.fields}"
                      th:class="${group.grouped} ? 'report-field-instance' : null">
 
-                    <div class="report-field-condition"
+                    <!-- Line 1: Condition + Location -->
+                    <div class="report-field-meta"
                          th:if="${field.inspectionFieldDefinition.fieldType == 'recommendations'}">
-                        <span class="report-meta-label">Condition</span>
-                        <span class="report-field-value-text" th:text="${field.displayValue}"></span>
-                    </div>
-
-                    <!-- Meta Row: Floor Level + Location -->
-                    <div class="report-field-meta" th:if="${field.inspectionRecommendationField != null}">
+                        <div class="report-meta-item">
+                            <span class="report-meta-label">Condition</span>
+                            <span class="report-meta-value" th:text="${field.displayValue}"></span>
+                        </div>
                         <div class="report-meta-item"
-                             th:if="${field.inspectionRecommendationField.getLocationDisplay() != null}">
+                             th:if="${field.inspectionRecommendationField != null
+                                     and field.inspectionRecommendationField.getLocationDisplay() != null}">
                             <span class="report-meta-label">Location</span>
                             <span class="report-meta-value" th:text="${field.inspectionRecommendationField.getLocationDisplay()}"></span>
                         </div>
-                        <div class="report-meta-item"
-                             th:if="${field.inspectionRecommendationField.room != null}">
-                            <span class="report-meta-label">Room</span>
-                            <span class="report-meta-value" th:text="${field.inspectionRecommendationField.room}"></span>
-                        </div>
-                        <div class="report-meta-item"
-                             th:if="${field.inspectionRecommendationField.task != null}">
-                            <span class="report-meta-label">Task</span>
-                            <span class="report-meta-value" th:text="${field.inspectionRecommendationField.task}"></span>
-                        </div>
-                        <div class="report-meta-item"
-                             th:if="${field.inspectionRecommendationField.time != null}">
-                            <span class="report-meta-label">Time</span>
-                            <span class="report-meta-value" th:text="${field.inspectionRecommendationField.time}"></span>
-                        </div>
-                        <div class="report-meta-item"
-                             th:if="${field.inspectionRecommendationField.lower_cost != null}">
-                            <span class="report-meta-label">Est. Cost</span>
-                            <span class="report-meta-value"
-                                  th:text="${field.inspectionRecommendationField.upper_cost != null}
-                                           ? '$' + ${field.inspectionRecommendationField.lower_cost} + ' – $' + ${field.inspectionRecommendationField.upper_cost}
-                                           : '$' + ${field.inspectionRecommendationField.lower_cost}">
-                            </span>
-                        </div>
                     </div>
 
-                    <!-- Implication -->
+                    <!-- Line 2: Implication -->
                     <div class="report-field-implication"
                          th:if="${field.inspectionRecommendationField != null and field.inspectionRecommendationField.implication != null}">
                         <span class="report-meta-label">Implication</span>
                         <span th:text="${field.inspectionRecommendationField.implication}"></span>
+                    </div>
+
+                    <!-- Line 3: Recommendation -->
+                    <div class="report-field-recommendation"
+                         th:if="${field.inspectionRecommendationField != null and field.inspectionRecommendationField.task != null}">
+                        <span class="report-meta-label">Recommendation</span>
+                        <span th:text="${field.inspectionRecommendationField.task}"></span>
+                    </div>
+
+                    <!-- Line 4: Time -->
+                    <div class="report-field-time"
+                         th:if="${field.inspectionRecommendationField != null and field.inspectionRecommendationField.time != null}">
+                        <span class="report-meta-label">Time</span>
+                        <span th:text="${field.inspectionRecommendationField.time}"></span>
+                    </div>
+
+                    <!-- Est. Cost -->
+                    <div class="report-field-cost"
+                         th:if="${field.inspectionRecommendationField != null and field.inspectionRecommendationField.lower_cost != null}">
+                        <span class="report-meta-label">Est. Cost</span>
+                        <span th:text="${field.inspectionRecommendationField.upper_cost != null}
+                                       ? '$' + ${field.inspectionRecommendationField.lower_cost} + ' – $' + ${field.inspectionRecommendationField.upper_cost}
+                                       : '$' + ${field.inspectionRecommendationField.lower_cost}">
+                        </span>
                     </div>
 
                     <!-- Note -->

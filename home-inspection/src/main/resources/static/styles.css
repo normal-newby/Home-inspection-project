@@ -828,15 +828,6 @@ body {
     text-align: right;
 }
 
-/* ── Condition block ── */
-.report-field-condition {
-    display: flex;
-    flex-direction: row;
-    align-items: baseline;
-    gap: var(--space-xs);
-    margin-bottom: var(--space-sm);
-}
-
 .report-field-value-text {
     font-size: var(--value-size);
     font-weight: 400;
@@ -856,7 +847,7 @@ body {
     content: ":";
 }
 
-/* ── Meta row (Floor / Room / Task / Time / Cost) ── */
+/* ── Meta row (Condition / Location) ── */
 .report-field-meta {
     display: flex;
     flex-wrap: wrap;
@@ -876,8 +867,11 @@ body {
     color: var(--ink);
 }
 
-/* ── Implication / Note ── */
+/* ── Implication / Recommendation / Time / Cost / Note ── */
 .report-field-implication,
+.report-field-recommendation,
+.report-field-time,
+.report-field-cost,
 .report-field-note {
     display: flex;
     flex-direction: row;
@@ -888,6 +882,13 @@ body {
     font-weight: 400;
     color: var(--ink);
     line-height: 1.5;
+}
+
+.report-field-implication,
+.report-field-recommendation,
+.report-field-time,
+.report-field-cost {
+    margin-bottom: var(--space-xs);
 }
 
 .report-field-note {
