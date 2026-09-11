@@ -1,10 +1,5 @@
 package ca.inspection.home.inspection.service;
 
-import ca.inspection.home.inspection.DTO.ImageLocation;
-import ca.inspection.home.inspection.entity.InspectionBookings;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -14,6 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import ca.inspection.home.inspection.DTO.ImageLocation;
+import ca.inspection.home.inspection.entity.InspectionBookings;
+
 @Component
 public class HelperFunctions {
 
@@ -21,7 +22,7 @@ public class HelperFunctions {
     private String uploadDir;
 
     public Path getDirectory(){
-        return Paths.get(uploadDir);
+        return Paths.get(uploadDir).toAbsolutePath().normalize();
     }
 
     public Path getDirectory(Integer inspectionNumber){
