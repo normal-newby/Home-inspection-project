@@ -1,11 +1,11 @@
 from flask import Flask, request, send_file
 from weasyprint import HTML
-import base64, io, fitz
+import base64, io, pymupdf
 
 app = Flask(__name__)
 
 def pdf_to_svg(pdf_bytes: bytes) -> str:
-    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+    doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
     html = ""
     for page in doc:
         svg = page.get_svg_image()
