@@ -10,6 +10,7 @@ import ca.inspection.home.inspection.entity.Invoice;
 import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
 import ca.inspection.home.inspection.repository.InspectionImagesRepository;
 import ca.inspection.home.inspection.repository.InspectionReportsRepository;
+import ca.inspection.home.inspection.repository.InvoiceRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +21,12 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.format.TextStyle;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -45,6 +48,9 @@ public class InspectionBookingsService {
 
     @Autowired
     private InspectionImagesService inspectionImagesService;
+
+    @Autowired
+    private InvoiceRepository invoiceRepository;
 
     public InspectionBookings createBooking(InspectionBookings booking){
         log.info("Creating booking for {} {}", booking.getClientFirstName(), booking.getClientLastName());
@@ -176,20 +182,24 @@ public class InspectionBookingsService {
     public ResponseEntity<?> updateBooking(UUID id, InspectionBookings booking){
         BookingSchedule.of(booking);
         try {
-            booking.setId(id);
-            inspectionBookingsRepository.findById(id).ifPresent(existing -> {
-                if (booking.getInspectionNumber() == null){
-                    booking.setInspectionNumber(existing.getInspectionNumber());
-                }
-                if (booking.getGoogleEventId() == null){
-                    booking.setGoogleEventId(existing.getGoogleEventId());
-                }
-                // The form has no status control, so its save would otherwise reset it.
-                booking.setStatus(existing.getStatus());
-            });
-            if (booking.getInvoices() != null){
-                booking.getInvoices().forEach(invoice -> invoice.setBookings(booking));
+            InspectionBookings existing = inspectionBookingsRepository.findById(id).orElse(null);
+            if (existing == null){
+                return ResponseEntity.notFound().build();
             }
+
+            booking.setId(id);
+            booking.setInspectionNumber(existing.getInspectionNumber());
+            if (booking.getGoogleEventId() == null){
+                booking.setGoogleEventId(existing.getGoogleEventId());
+            }
+            // The form has no status control, so its save would otherwise reset it.
+            booking.setStatus(existing.getStatus());
+
+            if (booking.getInvoices() == null){
+                booking.setInvoices(detachedCopies(invoiceRepository.findByBookings_Id(id)));
+            }
+            booking.getInvoices().forEach(invoice -> invoice.setBookings(booking));
+
             inspectionBookingsRepository.save(booking);
 
             pushToCalendar(booking);
@@ -198,6 +208,18 @@ public class InspectionBookingsService {
             log.error("Failed to update booking {}", id, e);
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    // Copies, so re-attaching them to the incoming booking doesn't mutate the managed rows.
+    private static List<Invoice> detachedCopies(List<Invoice> invoices){
+        if (invoices == null) return new ArrayList<>();
+        return invoices.stream().map(source -> {
+            Invoice copy = new Invoice();
+            copy.setId(source.getId());
+            copy.setType(source.getType());
+            copy.setFee(source.getFee());
+            return copy;
+        }).collect(Collectors.toList());
     }
 
     public ResponseEntity<?> deleteBooking(UUID id){

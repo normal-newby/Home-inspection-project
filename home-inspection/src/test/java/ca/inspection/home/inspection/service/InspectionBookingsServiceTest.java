@@ -52,6 +52,9 @@ public class InspectionBookingsServiceTest {
     @Mock
     private InspectionImagesService inspectionImagesService;
 
+    @Mock
+    private ca.inspection.home.inspection.repository.InvoiceRepository invoiceRepository;
+
     @InjectMocks
     private InspectionBookingsService inspectionBookingsService;
 
@@ -313,6 +316,7 @@ public class InspectionBookingsServiceTest {
         Invoice invoice2 = new Invoice();
         booking.setInvoices(List.of(invoice1, invoice2));
 
+        when(inspectionBookingsRepository.findById(id)).thenReturn(Optional.of(new InspectionBookings()));
         when(inspectionBookingsRepository.save(booking)).thenReturn(booking);
 
         ResponseEntity<?> result = inspectionBookingsService.updateBooking(id, booking);
@@ -330,6 +334,7 @@ public class InspectionBookingsServiceTest {
         InspectionBookings booking = new InspectionBookings();
         booking.setInvoices(null);
 
+        when(inspectionBookingsRepository.findById(id)).thenReturn(Optional.of(new InspectionBookings()));
         when(inspectionBookingsRepository.save(booking)).thenReturn(booking);
 
         ResponseEntity<?> result = inspectionBookingsService.updateBooking(id, booking);
@@ -380,6 +385,7 @@ public class InspectionBookingsServiceTest {
         UUID id = UUID.randomUUID();
         InspectionBookings booking = new InspectionBookings();
 
+        when(inspectionBookingsRepository.findById(id)).thenReturn(Optional.of(new InspectionBookings()));
         when(inspectionBookingsRepository.save(booking)).thenThrow(new RuntimeException("db failure"));
 
         ResponseEntity<?> result = inspectionBookingsService.updateBooking(id, booking);
