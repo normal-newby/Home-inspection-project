@@ -12,4 +12,5 @@ RUN pip install -r requirements.txt --break-system-packages
 COPY . .
 
 EXPOSE 3001
-CMD ["python", "server.py"]
+
+CMD ["gunicorn", "--bind", "0.0.0.0:3001", "--workers", "2", "--threads", "2", "--timeout", "600", "--graceful-timeout", "30", "--access-logfile", "-", "server:app"]
