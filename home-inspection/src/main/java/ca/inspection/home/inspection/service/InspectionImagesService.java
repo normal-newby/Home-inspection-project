@@ -51,6 +51,9 @@ public class InspectionImagesService {
     @Autowired
     private HelperFunctions helperFunctions;
 
+    @Autowired
+    private InspectionBookingsRepository inspectionBookingsRepository;
+
     public InspectionImage saveImages(MultipartFile file, UUID bookingId) {
         InspectionReport report = inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId);
         return saveImages(file, report);
@@ -109,13 +112,27 @@ public class InspectionImagesService {
     }
 
     public List<InspectionImage> getImages(UUID id){
+        // An empty list would otherwise read the same as a booking that simply has no photos.
+        if (!inspectionBookingsRepository.existsById(id)){
+            throw new NoSuchElementException("Booking not found: " + id);
+        }
         return inspectionImagesRepository.findByBookingIdOrdered(id);
     }
 
+    private Path locateOrThrow(UUID id){
+        ImageLocation location = inspectionImagesRepository.findLocationById(id)
+                .orElseThrow(() -> new NoSuchElementException("Image not found: " + id));
+
+        Path filePath = helperFunctions.resolveUpload(location);
+        if (!Files.exists(filePath)){
+            throw new NoSuchElementException("Image file is gone: " + location.getImageUrl());
+        }
+        return filePath;
+    }
+
     public ResponseEntity<Resource> getImageFile(UUID id){
+        Path filePath = locateOrThrow(id);
         try {
-            ImageLocation location = inspectionImagesRepository.findLocationById(id).orElseThrow();
-            Path filePath = helperFunctions.resolveUpload(location);
             Resource resource = new UrlResource(filePath.toUri());
 
             return ResponseEntity.ok()
@@ -124,6 +141,7 @@ public class InspectionImagesService {
                     .cacheControl(CacheControl.maxAge(Duration.ofDays(365)).cachePublic().immutable())
                     .body(resource);
         } catch (Exception e) {
+            log.error("Failed to serve image {}", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -132,8 +150,16 @@ public class InspectionImagesService {
 
     // Smaller file for preview
     public ResponseEntity<Resource> getThumbnailFile(UUID id){
+        ImageLocation location = inspectionImagesRepository.findLocationById(id)
+                .orElseThrow(() -> new NoSuchElementException("Image not found: " + id));
+
+        // An existing thumbnail still serves after the full-size file has gone.
+        if (!Files.exists(thumbnailPath(location))
+                && !Files.exists(helperFunctions.resolveUpload(location))){
+            throw new NoSuchElementException("Image file is gone: " + location.getImageUrl());
+        }
+
         try {
-            ImageLocation location = inspectionImagesRepository.findLocationById(id).orElseThrow();
             Path thumbPath = getOrCreateThumbnail(location);
             Resource resource = new UrlResource(thumbPath.toUri());
 
@@ -142,16 +168,20 @@ public class InspectionImagesService {
                     .cacheControl(CacheControl.maxAge(Duration.ofDays(365)).cachePublic().immutable())
                     .body(resource);
         } catch (Exception e) {
+            log.error("Failed to build thumbnail for {}", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    private Path getOrCreateThumbnail(ImageLocation location) throws IOException {
-        Path thumbPath = helperFunctions.getDirectory(location.getInspectionNumber())
+    private Path thumbnailPath(ImageLocation location){
+        return helperFunctions.getDirectory(location.getInspectionNumber())
                 .resolve("thumbs")
                 .resolve(location.getImageUrl());
+    }
 
-        return Thumbnails.getOrCreate(helperFunctions.resolveUpload(location), thumbPath, THUMB_MAX_WIDTH);
+    private Path getOrCreateThumbnail(ImageLocation location) throws IOException {
+        return Thumbnails.getOrCreate(
+                helperFunctions.resolveUpload(location), thumbnailPath(location), THUMB_MAX_WIDTH);
     }
 
     public ResponseEntity<?> updateCoverPageImage(UUID bookingId, MultipartFile file){

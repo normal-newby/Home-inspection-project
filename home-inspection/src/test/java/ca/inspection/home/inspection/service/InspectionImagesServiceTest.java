@@ -49,6 +49,9 @@ public class InspectionImagesServiceTest {
     @Mock
     private HelperFunctions helperFunctions;
 
+    @Mock
+    private ca.inspection.home.inspection.repository.InspectionBookingsRepository inspectionBookingsRepository;
+
     @InjectMocks
     private InspectionImagesService inspectionImagesService;
 
@@ -271,6 +274,7 @@ public class InspectionImagesServiceTest {
         imageC.setImageUrl("c.jpg");
 
         // Repository sorts by imageUrl ASC; simulate that here.
+        when(inspectionBookingsRepository.existsById(id)).thenReturn(true);
         when(inspectionImagesRepository.findByBookingIdOrdered(id))
                 .thenReturn(List.of(imageA, imageB, imageC));
 
@@ -298,13 +302,12 @@ public class InspectionImagesServiceTest {
     }
 
     @Test
-    void getImageFile_imageNotFound_returnsInternalServerError() {
+    void getImageFile_imageNotFound_throwsNotFound() {
         UUID id = UUID.randomUUID();
         when(inspectionImagesRepository.findLocationById(id)).thenReturn(Optional.empty());
 
-        ResponseEntity<Resource> result = inspectionImagesService.getImageFile(id);
-
-        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThatThrownBy(() -> inspectionImagesService.getImageFile(id))
+                .isInstanceOf(NoSuchElementException.class);
     }
 
     // GET THUMBNAIL FILE
@@ -350,24 +353,22 @@ public class InspectionImagesServiceTest {
     }
 
     @Test
-    void getThumbnailFile_imageIdNotFound_returnsInternalServerError() {
+    void getThumbnailFile_imageIdNotFound_throwsNotFound() {
         UUID id = UUID.randomUUID();
         when(inspectionImagesRepository.findLocationById(id)).thenReturn(Optional.empty());
 
-        ResponseEntity<Resource> result = inspectionImagesService.getThumbnailFile(id);
-
-        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThatThrownBy(() -> inspectionImagesService.getThumbnailFile(id))
+                .isInstanceOf(NoSuchElementException.class);
     }
 
     @Test
-    void getThumbnailFile_sourceImageMissingOnDisk_returnsInternalServerError() {
+    void getThumbnailFile_sourceImageMissingOnDisk_throwsNotFound() {
         UUID id = UUID.randomUUID();
         stubLocation(id, "missing.jpg");
         stubUploadDir();
 
-        ResponseEntity<Resource> result = inspectionImagesService.getThumbnailFile(id);
-
-        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThatThrownBy(() -> inspectionImagesService.getThumbnailFile(id))
+                .isInstanceOf(NoSuchElementException.class);
     }
 
     // UPDATE COVER PAGE IMAGE

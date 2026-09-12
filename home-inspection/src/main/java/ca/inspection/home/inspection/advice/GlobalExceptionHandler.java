@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.time.OffsetDateTime;
@@ -27,6 +28,15 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> badArgument(IllegalArgumentException e, HttpServletRequest req) {
         log.warn("400 {} {} — {}", req.getMethod(), req.getRequestURI(), e.getMessage());
         return build(HttpStatus.BAD_REQUEST, "Bad request", e.getMessage(), req);
+    }
+
+    // A path variable that won't parse -> handling
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Map<String, Object>> badPathValue(
+            MethodArgumentTypeMismatchException e, HttpServletRequest req) {
+        String message = "\"" + e.getValue() + "\" is not a valid " + e.getName() + ".";
+        log.warn("400 {} {} — {}", req.getMethod(), req.getRequestURI(), message);
+        return build(HttpStatus.BAD_REQUEST, "Bad request", message, req);
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
