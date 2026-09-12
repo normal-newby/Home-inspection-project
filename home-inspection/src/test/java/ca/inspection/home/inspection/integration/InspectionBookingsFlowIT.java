@@ -70,6 +70,21 @@ public class InspectionBookingsFlowIT {
     }
 
     @Test
+    void createBooking_onAFreshDatabase_worksWithoutVisitingTheProfilePage() throws Exception {
+        // Nothing has created the inspector profile row yet.
+        inspectorProfileRepository.deleteAll();
+
+        InspectionBookings payload = new InspectionBookings();
+        payload.setInspectionAddress("1 First Ever Rd");
+
+        mockMvc.perform(post("/api/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(payload)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.inspectionNumber").value(1));
+    }
+
+    @Test
     void createBooking_persistsBookingAndLinkedReport() throws Exception {
         InspectionBookings payload = new InspectionBookings();
         payload.setInspectionAddress("500 Test Ave");

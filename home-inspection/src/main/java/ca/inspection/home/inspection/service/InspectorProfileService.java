@@ -114,8 +114,7 @@ public class InspectorProfileService {
 
     @Transactional
     public Integer getAndUpdateNumber() {
-        InspectorProfile profile = inspectorProfileRepository.findById(1L)
-                .orElseThrow(() -> new RuntimeException("Inspector profile not found"));
+        InspectorProfile profile = getProfile();
 
         Integer current = profile.getInspectionNumber();
         int updated = (current == null ? 0 : current) + 1;
