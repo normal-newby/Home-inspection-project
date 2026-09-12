@@ -533,11 +533,13 @@ function saveNewInspectionField(value, fieldDefinitionId){
         }
         return response.json();
     })
-    .then(msg => {
-        console.log(msg);
+    .then(() => {
         loadInspectionFieldDefinitions(); // Reload fields to show new input
     })
-    .catch(error => console.error("Error saving inspection field:", error));
+    .catch(error => {
+        console.error("Error saving inspection field:", error);
+        notify("Could not save that item.", { error: true });
+    });
 }
 
 async function deleteInspectionField(id){
@@ -554,20 +556,23 @@ async function deleteInspectionField(id){
     }
 }
 
-function selectImageFunction(bookingId, selectImageDiv, imageId, fieldId, images){
-    fetch(`/api/fields/${fieldId}/${imageId}`,
-        { method: "PUT" }
-    )
-    .then(async () => {
-        if (!await flushAnnotations()) return;
-        images.push({ id: imageId });
-        updateImageCount(fieldId, images.length);
-        // Drops the freshly used image out of the "not yet used" galleries.
-        await refreshImagePool();
-        addExistingImages(bookingId, selectImageDiv, fieldId, images); // Refresh gallery
-        showExistingImage(images, fieldId); // Refresh existing images
-    })
-    .catch(error => console.log(error))
+async function selectImageFunction(bookingId, selectImageDiv, imageId, fieldId, images){
+    try {
+        const response = await fetch(`/api/fields/${fieldId}/${imageId}`, { method: "PUT" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    } catch (error){
+        console.error("Error adding image to item:", error);
+        notify("Could not add that photo to the item.", { error: true });
+        return;
+    }
+
+    if (!await flushAnnotations()) return;
+    images.push({ id: imageId });
+    updateImageCount(fieldId, images.length);
+    // Drops the freshly used image out of the "not yet used" galleries.
+    await refreshImagePool();
+    addExistingImages(bookingId, selectImageDiv, fieldId, images); // Refresh gallery
+    showExistingImage(images, fieldId); // Refresh existing images
 }
 
 async function deleteImageFromField(image, fieldId, images){
@@ -590,18 +595,26 @@ async function deleteImageFromField(image, fieldId, images){
     showExistingImage(images, fieldId);
 }
 
-function updateInSummary() {
+async function updateInSummary() {
     const includeBool = includeInSummaryBox.checked;
-    fetch(`/api/fields/${curField}/summary`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(includeBool),
-    });
+    try {
+        const response = await fetch(`/api/fields/${curField}/summary`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(includeBool),
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    } catch (error){
+        console.error("Error updating summary flag:", error);
+        // Put the tick back, so the box never disagrees with what the report will print.
+        includeInSummaryBox.checked = !includeBool;
+        notify("Could not change whether this item is in the summary.", { error: true });
+    }
 }
 
 function fetchInSummary(fieldId){
     fetch(`/api/fields/${fieldId}/summary`)
-    .then(response => response.json())
+    .then(response => response.ok ? response.json() : null)
     .then(inSummary => {
         if (inSummary) {
             includeInSummaryBox.checked = true;
