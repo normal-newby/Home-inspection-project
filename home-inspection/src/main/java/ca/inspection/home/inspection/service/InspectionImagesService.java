@@ -58,6 +58,7 @@ public class InspectionImagesService {
 
     public InspectionImage saveImages(MultipartFile file, InspectionReport report) {
         if (report == null) return null;
+        requireReadableImage(file);
 
         Path path = null;
         try {
@@ -88,6 +89,22 @@ public class InspectionImagesService {
                 }
             }
             return null;
+        }
+    }
+
+    // image must be readable by imageio
+    private static void requireReadableImage(MultipartFile file){
+        if (file == null || file.isEmpty()){
+            throw new IllegalArgumentException("That file is empty.");
+        }
+
+        String name = file.getOriginalFilename() == null ? "That file" : file.getOriginalFilename();
+        try (var stream = file.getInputStream()) {
+            if (ImageIO.read(stream) == null){
+                throw new IllegalArgumentException(name + " is not an image we can read.");
+            }
+        } catch (IOException e){
+            throw new IllegalArgumentException(name + " is not a complete image file.", e);
         }
     }
 
@@ -153,6 +170,9 @@ public class InspectionImagesService {
             }
 
             return ResponseEntity.ok("Cover Page Image saved!");
+        } catch (IllegalArgumentException e){
+            log.warn("Rejected cover page image for booking {}: {}", bookingId, e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e){
             log.error("Failed to save cover page image for booking {}", bookingId, e);
             return ResponseEntity.badRequest().body("Cover page cannot be saved");

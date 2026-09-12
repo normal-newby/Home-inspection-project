@@ -32,6 +32,9 @@ public class InspectionImagesController {
                 return ResponseEntity.status(500).body("Upload failed");
             }
             return ResponseEntity.ok("Saved");
+        } catch (IllegalArgumentException e) {
+            log.warn("Rejected upload for booking {}: {}", id, e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             log.error("Upload failed for booking {}", id, e);
             return ResponseEntity.status(500).body("Error: " + e.getMessage());

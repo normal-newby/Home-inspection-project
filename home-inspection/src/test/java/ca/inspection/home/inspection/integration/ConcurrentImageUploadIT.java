@@ -70,10 +70,13 @@ public class ConcurrentImageUploadIT {
         reportsRepository.save(report);
     }
 
-    private static MultipartFile photo(int index) {
+    private static MultipartFile photo(int index) throws Exception {
+        java.awt.image.BufferedImage img =
+                new java.awt.image.BufferedImage(40, 30, java.awt.image.BufferedImage.TYPE_INT_RGB);
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(img, "jpeg", out);
         return new MockMultipartFile(
-                "file", "photo-" + index + ".jpg", "image/jpeg",
-                ("not a real jpeg, only the bytes on disk matter here " + index).getBytes());
+                "file", "photo-" + index + ".jpg", "image/jpeg", out.toByteArray());
     }
 
     @Test

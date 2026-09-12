@@ -23,6 +23,7 @@ import javax.imageio.ImageIO;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -86,12 +87,21 @@ public class InspectionImagesServiceTest {
 
     private MultipartFile mockFileThatWrites(byte[] content) throws IOException {
         MultipartFile file = mock(MultipartFile.class);
+        // Uploads are decoded before they are written, so the stream has to be a real image.
+        when(file.getInputStream()).thenAnswer(invocation -> new ByteArrayInputStream(content));
         doAnswer(invocation -> {
             File dest = invocation.getArgument(0);
             Files.write(dest.toPath(), content);
             return null;
         }).when(file).transferTo(any(File.class));
         return file;
+    }
+
+    private static byte[] jpegBytes() throws IOException {
+        BufferedImage img = new BufferedImage(40, 30, BufferedImage.TYPE_INT_RGB);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ImageIO.write(img, "jpeg", out);
+        return out.toByteArray();
     }
 
     private BufferedImage decodeBase64Image(String dataUrl) throws IOException {
@@ -177,7 +187,7 @@ public class InspectionImagesServiceTest {
         InspectionReport report = new InspectionReport();
         report.setId(UUID.randomUUID());
 
-        MultipartFile file = mockFileThatWrites("content".getBytes());
+        MultipartFile file = mockFileThatWrites(jpegBytes());
 
         when(inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId)).thenReturn(report);
         stubUploadDir();
@@ -197,6 +207,8 @@ public class InspectionImagesServiceTest {
         InspectionReport report = new InspectionReport();
 
         MultipartFile file = mock(MultipartFile.class);
+        byte[] jpeg = jpegBytes();
+        when(file.getInputStream()).thenAnswer(invocation -> new ByteArrayInputStream(jpeg));
         doThrow(new IOException("disk full")).when(file).transferTo(any(File.class));
 
         when(inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId)).thenReturn(report);
@@ -214,7 +226,7 @@ public class InspectionImagesServiceTest {
         InspectionReport report = reportFor(INSPECTION_NUMBER);
         Path inspectionDir = tempDir.resolve("booking_" + INSPECTION_NUMBER);
 
-        MultipartFile file = mockFileThatWrites("content".getBytes());
+        MultipartFile file = mockFileThatWrites(jpegBytes());
 
         when(inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId)).thenReturn(report);
         when(helperFunctions.getDirectory(INSPECTION_NUMBER)).thenReturn(inspectionDir);
@@ -233,7 +245,7 @@ public class InspectionImagesServiceTest {
         UUID bookingId = UUID.randomUUID();
         InspectionReport report = new InspectionReport();
 
-        MultipartFile file = mockFileThatWrites("content".getBytes());
+        MultipartFile file = mockFileThatWrites(jpegBytes());
 
         when(inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId)).thenReturn(report);
         when(helperFunctions.getDirectory((Integer) null)).thenReturn(tempDir);
@@ -366,7 +378,7 @@ public class InspectionImagesServiceTest {
         InspectionReport report = new InspectionReport();
         report.setCoverPageImage(null);
 
-        MultipartFile file = mockFileThatWrites("content".getBytes());
+        MultipartFile file = mockFileThatWrites(jpegBytes());
 
         when(inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId)).thenReturn(report);
         stubUploadDir();
@@ -393,7 +405,7 @@ public class InspectionImagesServiceTest {
         createJpegFile("old.jpg", 3, 3);
         report.setCoverPageImage(oldCover);
 
-        MultipartFile file = mockFileThatWrites("content".getBytes());
+        MultipartFile file = mockFileThatWrites(jpegBytes());
 
         when(inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId)).thenReturn(report);
         stubUploadDir();

@@ -25,7 +25,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * One unreadable photo used to take the whole report down with it. A photo that cannot be
  * encoded is dropped from the render; a photo that is fine but carries a bad annotation
- * keeps the photo and drops only the annotation.
+ * keeps the photo and drops only the annotation. Uploads are screened now, so the bad files
+ * here are planted the way they still arise: rotted on disk, or stored before that check.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -90,6 +91,20 @@ public class ReportRenderFailureIT {
         return imagesRepository.save(image);
     }
 
+    private InspectionImage attachStoredFile(byte[] bytes) throws Exception {
+        Path dir = Path.of("target/integration-test-uploads", "booking_" + inspectionNumber);
+        Files.createDirectories(dir);
+        String fileName = System.currentTimeMillis() + "_" + UUID.randomUUID() + ".jpg";
+        Files.write(dir.resolve(fileName), bytes);
+
+        InspectionImage image = new InspectionImage();
+        image.setInspectionReport(report);
+        image.setInspectionField(persistField());
+        image.setImageUrl(fileName);
+        image.setUsed(true);
+        return imagesRepository.save(image);
+    }
+
     private ImageAnnotation annotate(InspectionImage image, String type) {
         ImageAnnotation annotation = new ImageAnnotation();
         annotation.setInspectionImage(image);
@@ -110,9 +125,8 @@ public class ReportRenderFailureIT {
     }
 
     @Test
-    void nonImageUpload_isDroppedAndTheReportStillRenders() throws Exception {
-        uploadAndAttach("MZ this is definitely not a JPEG".getBytes(), "evil.exe",
-                "application/octet-stream");
+    void storedFileThatIsNotAnImage_isDroppedAndTheReportStillRenders() throws Exception {
+        attachStoredFile("MZ this is definitely not a JPEG".getBytes());
 
         assertThat(photosIn(render())).isEmpty();
     }
@@ -127,9 +141,9 @@ public class ReportRenderFailureIT {
     }
 
     @Test
-    void truncatedJpeg_isDroppedAndTheReportStillRenders() throws Exception {
+    void storedFileTruncatedOnDisk_isDroppedAndTheReportStillRenders() throws Exception {
         byte[] full = tinyJpeg();
-        uploadAndAttach(java.util.Arrays.copyOf(full, full.length / 2), "half.jpg", "image/jpeg");
+        attachStoredFile(java.util.Arrays.copyOf(full, full.length / 2));
 
         assertThat(photosIn(render())).isEmpty();
     }
