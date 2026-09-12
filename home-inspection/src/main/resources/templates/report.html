@@ -319,6 +319,9 @@
                 </div>
 
                 <div th:each="field : ${group.fields}"
+                     th:if="${field.inspectionFieldDefinition.fieldType == 'recommendations'
+                             or field.detailed
+                             or (field.recommendationDiagrams != null and !#lists.isEmpty(field.recommendationDiagrams))}"
                      th:class="${group.grouped} ? 'report-field-instance' : null">
 
                     <!-- Line 1: Condition + Location -->
