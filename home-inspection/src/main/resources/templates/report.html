@@ -64,7 +64,7 @@
         Inspection Report
     </div>
 
-    <div class="cover-photo" th:if="${report.coverPageImage} != null">
+    <div class="cover-photo" th:if="${report.coverPageImage != null and report.coverPageImage.base64 != null}">
         <img th:src="${report.coverPageImage.base64}" alt="Cover Photo"/>
     </div>
 

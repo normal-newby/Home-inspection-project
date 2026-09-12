@@ -547,7 +547,7 @@ public class InspectionImagesServiceTest {
     }
 
     @Test
-    void toBase64_fileMissingOnDisk_throwsRuntimeException() {
+    void toBase64_fileMissingOnDisk_returnsNull() {
         UUID id = UUID.randomUUID();
         InspectionImage image = new InspectionImage();
         image.setId(id);
@@ -556,9 +556,8 @@ public class InspectionImagesServiceTest {
         stubLocation(id, image.getImageUrl());
         stubUploadDir();
 
-        assertThatThrownBy(() -> inspectionImagesService.toBase64(id, null))
-                .isInstanceOf(RuntimeException.class)
-                .hasCauseInstanceOf(IOException.class);
+        // The report drops the photo rather than failing to render at all.
+        assertThat(inspectionImagesService.toBase64(id, null)).isNull();
     }
 
     // DELETE IMAGE

@@ -164,18 +164,16 @@ public class InspectionImagesService {
         return toBase64(location, annotations);
     }
 
+    // Never returns an exception
     public String toBase64(ImageLocation location, Set<ImageAnnotation> annotations){
         try {
             Path filePath = helperFunctions.resolveUpload(location);
             BufferedImage img = ImageIO.read(filePath.toFile());
+            if (img == null) throw new IOException("Unreadable image: " + location.getImageUrl());
 
             // Down to print size before anything else: annotations are placed against the
             // dimensions read below, so scaling first keeps them proportional for free.
             img = scaleForReport(img);
-
-            //resize
-            double imgWidth = img.getWidth();
-            double imgHeight = img.getHeight();
 
             Graphics2D graphics2D = img.createGraphics();
             graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -184,42 +182,12 @@ public class InspectionImagesService {
 
             if (annotations != null) {
                 for (ImageAnnotation annotation : annotations){
-                    Color color = Color.decode(annotation.getColor() == null ? "#ff0000" : annotation.getColor());
-                    graphics2D.setColor(color);
-
-                    // Ensures proper scaling versus scaled down photo in annotation js
-                    double scaleX = scaleFor(annotation.getImageDisplayWidth(), imgWidth);
-                    double scaleY = scaleFor(annotation.getImageDisplayHeight(), imgHeight);
-                    double scale = (scaleX + scaleY) / 2;
-
-                    double sizeSteps = parseSize(annotation.getStrokeWidth());
-
-                    float stroke = (float) Math.max(1, sizeSteps * scale);
-                    graphics2D.setStroke(new BasicStroke(stroke));
-
-                    int x = (int)(annotation.getX() * scaleX);
-                    int y = (int)(annotation.getY() * scaleY);
-                    int width = (int)(annotation.getWidth() * scaleX);
-                    int height = (int)(annotation.getHeight() * scaleY);
-
-                    String type = annotation.getType();
-                    switch (type) {
-                        case "rectangle" -> graphics2D.drawRect(x, y, width, height);
-                        case "ellipse", "circle" ->
-                                graphics2D.drawOval(x - width, y - height, width * 2, height * 2);
-                        case "text" -> {
-                            int fontSize = (int) Math.round(sizeSteps * CANVAS_TEXT_PX_PER_STEP * scale);
-                            Font font = new Font("Arial Unicode MS", Font.PLAIN, fontSize);
-                            if (font.canDisplayUpTo(annotation.getContent()) != -1){
-                                font = new Font("SansSerif", Font.PLAIN, fontSize);
-                            }
-                            graphics2D.setFont(font);
-                            graphics2D.drawString(annotation.getContent(), x, y);
-                        }
-
-                        case "arrow" -> drawArrow(graphics2D, x, y, width, height,
-                                sizeSteps, (scaleX + scaleY) / 2,
-                                Boolean.TRUE.equals(annotation.getFixedLength()));
+                    try {
+                        drawAnnotation(graphics2D, annotation, img.getWidth(), img.getHeight());
+                    } catch (Exception e){
+                        log.warn("Skipped annotation {} on {}",
+                                annotation == null ? null : annotation.getId(),
+                                location.getImageUrl(), e);
                     }
                 }
             }
@@ -233,8 +201,65 @@ public class InspectionImagesService {
             // Always jpeg here, whatever the file on disk started out as.
             return "data:image/jpeg;base64,"
                     + Base64.getEncoder().encodeToString(baos.toByteArray());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            log.warn("Failed to encode image {}", location == null ? null : location.getImageUrl(), e);
+            return null;
+        }
+    }
+
+    private void drawAnnotation(Graphics2D graphics2D, ImageAnnotation annotation,
+                                double imgWidth, double imgHeight){
+        if (annotation == null || annotation.getType() == null) return;
+        if (annotation.getX() == null || annotation.getY() == null) return;
+
+        graphics2D.setColor(parseColour(annotation.getColor()));
+
+        // Ensures proper scaling versus scaled down photo in annotation js
+        double scaleX = scaleFor(annotation.getImageDisplayWidth(), imgWidth);
+        double scaleY = scaleFor(annotation.getImageDisplayHeight(), imgHeight);
+        double scale = (scaleX + scaleY) / 2;
+
+        double sizeSteps = parseSize(annotation.getStrokeWidth());
+        graphics2D.setStroke(new BasicStroke((float) Math.max(1, sizeSteps * scale)));
+
+        int x = (int)(annotation.getX() * scaleX);
+        int y = (int)(annotation.getY() * scaleY);
+        // Text carries no box, so these stay optional.
+        int width = (int)(orZero(annotation.getWidth()) * scaleX);
+        int height = (int)(orZero(annotation.getHeight()) * scaleY);
+
+        switch (annotation.getType()) {
+            case "rectangle" -> graphics2D.drawRect(x, y, width, height);
+            case "ellipse", "circle" ->
+                    graphics2D.drawOval(x - width, y - height, width * 2, height * 2);
+            case "text" -> {
+                String content = annotation.getContent();
+                if (content == null || content.isBlank()) return;
+
+                int fontSize = (int) Math.round(sizeSteps * CANVAS_TEXT_PX_PER_STEP * scale);
+                Font font = new Font("Arial Unicode MS", Font.PLAIN, fontSize);
+                if (font.canDisplayUpTo(content) != -1){
+                    font = new Font("SansSerif", Font.PLAIN, fontSize);
+                }
+                graphics2D.setFont(font);
+                graphics2D.drawString(content, x, y);
+            }
+            case "arrow" -> drawArrow(graphics2D, x, y, width, height,
+                    sizeSteps, scale,
+                    Boolean.TRUE.equals(annotation.getFixedLength()));
+        }
+    }
+
+    private static double orZero(Double value){
+        return value == null ? 0 : value;
+    }
+
+    // The colour picker can emit values Color.decode won't take, e.g. "rgba(255,0,0,0.5)".
+    private static Color parseColour(String colour){
+        try {
+            return colour == null || colour.isBlank() ? Color.RED : Color.decode(colour);
+        } catch (NumberFormatException e){
+            return Color.RED;
         }
     }
 

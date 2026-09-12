@@ -11,6 +11,7 @@ import ca.inspection.home.inspection.repository.InspectionRecommendationFieldRep
 import ca.inspection.home.inspection.repository.InspectionFieldDefinitionValueRepository;
 import ca.inspection.home.inspection.repository.InspectionReportsRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.ByteArrayOutputStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,6 +30,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class ReportViewService {
 
     private static final Map<String, String> navSectionColours = new LinkedHashMap<>() {{
@@ -197,6 +199,18 @@ public class ReportViewService {
                     String src = inspectionImagesService.toBase64(location, image.getAnnotations());
                     image.setBase64(src);
                 });
+
+                // A photo that would not encode is dropped
+                List<InspectionImage> usable = field.getInspectionImages().stream()
+                        .filter(image -> image.getBase64() != null)
+                        .collect(Collectors.toList());
+                if (usable.size() != field.getInspectionImages().size()){
+                    log.warn("Report {} is missing {} unreadable photo(s) on field {}",
+                            report.getId(),
+                            field.getInspectionImages().size() - usable.size(),
+                            field.getId());
+                }
+                field.setInspectionImages(usable);
             }
         });
 
