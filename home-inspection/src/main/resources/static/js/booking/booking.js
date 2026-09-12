@@ -4,7 +4,7 @@ import { notify, confirmDialog } from "../ui/dialog.js";
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
-const URI = id ? `http://localhost:8080/api/bookings/${id}` : `http://localhost:8080/api/bookings`
+const URI = id ? `/api/bookings/${id}` : `/api/bookings`
 const fields = ["inspectionAddress", "suite", "city", "postalCode", "province", // Address
     "clientFirstName", "clientLastName", "email", "phone", // Client
     "month", "day", "year", "startTime", "durationMinutes", // Date
@@ -153,7 +153,7 @@ function removeInvoice(invoiceId){
 }
 
 // Templates
-const templateURI = "http://localhost:8080/api/invoice-definition";
+const templateURI = "/api/invoice-definition";
 const templateFields = ["type", "fee"];
 
 const createTemplateBtn = document.getElementById("add-template-btn");

@@ -256,7 +256,7 @@ function submitRecommendations(fieldId, saveAsDefault = false) {
 
     console.log(payload);
 
-    return fetch(`http://localhost:8080/api/fields/${fieldId}/recommendations?saveAsDefaultImplication=${saveAsDefault}`, {
+    return fetch(`/api/fields/${fieldId}/recommendations?saveAsDefaultImplication=${saveAsDefault}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -293,7 +293,7 @@ export async function setUpRecommendationsPanel(fieldId) {
         });
     }
 
-    fetch(`http://localhost:8080/api/fields/${fieldId}/recommendations`)
+    fetch(`/api/fields/${fieldId}/recommendations`)
     .then(response => {
         if (!response.ok) {
             return response.text().then(text => {
@@ -311,7 +311,7 @@ export async function setUpRecommendationsPanel(fieldId) {
 }
 
 async function getSectionsConfig(){
-    await fetch(`http://localhost:8080/api/recommendation-definition`, {
+    await fetch(`/api/recommendation-definition`, {
         method: "GET",
         headers: { "Content-Type": "application/json" }
     })
@@ -343,7 +343,7 @@ async function addDefinition(type, value){
         value, value
     };
 
-    const res = await fetch(`http://localhost:8080/api/recommendation-definition`, {
+    const res = await fetch(`/api/recommendation-definition`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body)
@@ -358,7 +358,7 @@ async function addDefinition(type, value){
 }
 
 function deleteDefinition(button){
-    fetch(`http://localhost:8080/api/recommendation-definition/${button.dataset.id}`, {
+    fetch(`/api/recommendation-definition/${button.dataset.id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
     })
@@ -373,7 +373,7 @@ function deleteDefinition(button){
 }
 // --- Supporting diagrams ---
 
-const DIAGRAMS_URI = "http://localhost:8080/api/recommendation-diagrams";
+const DIAGRAMS_URI = "/api/recommendation-diagrams";
 
 export async function setUpDiagramsButton(fieldId) {
     if (!diagramsButton) return;

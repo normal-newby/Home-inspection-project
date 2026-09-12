@@ -24,7 +24,7 @@ export function saveFunction(e, textArea){
         notify("Select an item before saving a note.", { error: true });
         return;
     }
-    save(`http://localhost:8080/api/fields/${activeFieldButton.dataset.id}/note`, content);
+    save(`/api/fields/${activeFieldButton.dataset.id}/note`, content);
 }
 
 function save(URI, content){

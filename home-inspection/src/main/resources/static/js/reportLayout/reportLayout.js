@@ -1,6 +1,6 @@
 import { saveForm, loadForm } from "../formFactory.js";
 
-const URI = `http://localhost:8080/api/profile`;
+const URI = `/api/profile`;
 
 const fields = ['coverLetterBody', 'summaryLetterBody', 'agreementBody', 'emailTemplate'];
 
@@ -29,7 +29,7 @@ async function showDiagramCount() {
     if (!label) return;
 
     try {
-        const res = await fetch("http://localhost:8080/api/recommendation-diagrams");
+        const res = await fetch("/api/recommendation-diagrams");
         if (!res.ok) return;
 
         const diagrams = await res.json();

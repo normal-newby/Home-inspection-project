@@ -2,8 +2,8 @@ import { saveForm, loadForm } from "../formFactory.js";
 import { notify } from "../ui/dialog.js";
 import { bookingId } from "./getReport.js";
 
-const URI = `http://localhost:8080/api/reports/${bookingId}`;
-const URI_IMAGES = `http://localhost:8080/api/images/${bookingId}`;
+const URI = `/api/reports/${bookingId}`;
+const URI_IMAGES = `/api/images/${bookingId}`;
 const fields = ['summary', 'emailBody'];
 
 const backLink = document.getElementById("backLink");

@@ -1,5 +1,5 @@
 import { confirmDialog, notify } from "../ui/dialog.js";
-const URI = "http://localhost:8080/api/company-assets";
+const URI = "/api/company-assets";
 
 const assetKeySelect = document.getElementById("assetKey");
 const assetFileInput = document.getElementById("assetFile");

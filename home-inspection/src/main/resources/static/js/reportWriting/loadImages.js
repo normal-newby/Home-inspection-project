@@ -17,7 +17,7 @@ async function saveImage(image) {
     formData.append("file", image);
 
     try {
-        const response = await fetch(`http://localhost:8080/api/images/${bookingId}/upload`, {
+        const response = await fetch(`/api/images/${bookingId}/upload`, {
             method: "POST",
             body: formData
         });
@@ -117,11 +117,11 @@ saveImagesButton.addEventListener("click", async (e) => {
 const imageCache = new Map();
 
 function thumbUrl(imageId){
-    return `http://localhost:8080/api/images/file/${imageId}/thumb`;
+    return `/api/images/file/${imageId}/thumb`;
 }
 
 function fullUrl(imageId){
-    return `http://localhost:8080/api/images/file/${imageId}`;
+    return `/api/images/file/${imageId}`;
 }
 
 function invalidateImageCache(id = bookingId){
@@ -130,7 +130,7 @@ function invalidateImageCache(id = bookingId){
 
 async function getImages(id = bookingId){
     if (!imageCache.has(id)){
-        const response = await fetch(`http://localhost:8080/api/images/${id}`);
+        const response = await fetch(`/api/images/${id}`);
         imageCache.set(id, await response.json());
     }
     return imageCache.get(id);
@@ -273,7 +273,7 @@ async function deleteImage(e, imageId){
     );
     if (!confirmed) return;
 
-    fetch(`http://localhost:8080/api/images/${imageId}`, {
+    fetch(`/api/images/${imageId}`, {
         method: "DELETE"
     })
     .then(res => {

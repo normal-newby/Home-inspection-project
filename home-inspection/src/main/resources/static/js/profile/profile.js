@@ -1,6 +1,6 @@
 import { saveForm, loadForm } from "../formFactory.js";
 
-const URI = `http://localhost:8080/api/profile`;
+const URI = `/api/profile`;
 
 const fields = ['name', 'company', 'phone', 'email', 'website', 'logoPath', 'inspectionNumber',
      'address', 'city', 'province', 'postalCode'

@@ -1,6 +1,6 @@
 import { confirmDialog, notify } from "../ui/dialog.js";
 
-const URI = "http://localhost:8080/api/fields/definition/layout";
+const URI = "/api/fields/definition/layout";
 
 const placeTabs = document.getElementById("placeTabs");
 const orderSections = document.getElementById("orderSections");

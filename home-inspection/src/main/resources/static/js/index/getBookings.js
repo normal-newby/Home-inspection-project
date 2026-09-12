@@ -163,7 +163,7 @@ function applyStatusClass(select, status){
 
 async function saveStatus(id, status){
     try {
-        const response = await fetch(`http://localhost:8080/api/bookings/${id}/status`, {
+        const response = await fetch(`/api/bookings/${id}/status`, {
             method: "PUT",
             headers: { "Content-Type": "text/plain" },
             body: status
@@ -210,7 +210,7 @@ filterButtons.forEach(button => {
 
 async function loadBookings(){
     try {
-        const response = await fetch("http://localhost:8080/api/get/bookings");
+        const response = await fetch("/api/get/bookings");
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         // The server returns them in inspection-date order: upcoming first, then past.
@@ -237,7 +237,7 @@ async function deleteBooking(booking) {
     if (!confirmed) return;
 
     try {
-        const response = await fetch(`http://localhost:8080/api/bookings/${booking.id}`, { method: "DELETE" });
+        const response = await fetch(`/api/bookings/${booking.id}`, { method: "DELETE" });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         await loadBookings();
     } catch (error) {

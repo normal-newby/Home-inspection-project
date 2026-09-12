@@ -1,5 +1,5 @@
 import { confirmDialog, notify } from "../ui/dialog.js";
-const BASE = "http://localhost:8080/api/google/calendar";
+const BASE = "/api/google/calendar";
 
 const dot = document.getElementById("calendarDot");
 const statusText = document.getElementById("calendarStatusText");

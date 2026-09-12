@@ -45,7 +45,7 @@ let curField = null;
 
 async function loadInspectionFieldDefinitions(){
     console.log(`Loading fields for place: ${place}, type: ${type}`);
-    const response = await fetch(`http://localhost:8080/api/fields/definition/${encodeURIComponent(place)}/${encodeURIComponent(type)}`);
+    const response = await fetch(`/api/fields/definition/${encodeURIComponent(place)}/${encodeURIComponent(type)}`);
     const fields = await response.json();
 
     const existingFieldsCombined = await fetchExistingFieldsCombined();
@@ -146,7 +146,7 @@ function createField(field, existingFields = []){
         keepShowButton.textContent = newState ? "Unpin" : "Pin";
         keepShowButton.classList.toggle("active", newState);
         
-        await fetch(`http://localhost:8080/api/fields/definition/${field.id}/expanded`, {
+        await fetch(`/api/fields/definition/${field.id}/expanded`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(newState),
@@ -175,7 +175,7 @@ async function renderFields(valuesDiv, field, existingFields = null){
 
 async function fetchExistingFieldsCombined(){
     try {
-        const url = `http://localhost:8080/api/fields/${bookingId}/${encodeURIComponent(place)}/${encodeURIComponent(type)}/combined`;
+        const url = `/api/fields/${bookingId}/${encodeURIComponent(place)}/${encodeURIComponent(type)}/combined`;
         const result = await fetch(url);
         if (!result.ok) return {};
         return await result.json();
@@ -241,7 +241,7 @@ function createExistingField(parent, field, definition){ // Creates buttons for 
 
         addExistingImages(bookingId, selectImageDiv, button.dataset.id, field.inspectionImages); // Add images to select from
 
-        fetchExisting(`http://localhost:8080/api/fields/${button.dataset.id}/note`, noteTextArea); // Fetch existing note for the field
+        fetchExisting(`/api/fields/${button.dataset.id}/note`, noteTextArea); // Fetch existing note for the field
 
         if (type === "recommendations"){ // If field = recommendation, show button
             recommendationsButton.hidden = false;
@@ -327,7 +327,7 @@ saveConditionNameButton.addEventListener("click", async () => {
 
     try {
         const response = await fetch(
-            `http://localhost:8080/api/fields/${field.id}/condition-name?saveAsPermanentValue=${permanent}`,
+            `/api/fields/${field.id}/condition-name?saveAsPermanentValue=${permanent}`,
             {
                 method: "PUT",
                 headers: { "Content-Type": "text/plain" },
@@ -474,7 +474,7 @@ function showExistingImage(images, fieldId){
 
     images.forEach(image => {
         const thumb = document.createElement("img");
-        thumb.src = `http://localhost:8080/api/images/file/${image.id}`;
+        thumb.src = `/api/images/file/${image.id}`;
         thumb.className = "gallery-thumb";
         thumb.addEventListener("click", async () => {
             if (!await flushAnnotations()) return; // keep the current image open with its work intact
@@ -521,7 +521,7 @@ function showExistingImage(images, fieldId){
 // Endpoints for fields and images
 
 function saveNewInspectionField(value, fieldDefinitionId){
-    const url = `http://localhost:8080/api/fields/${bookingId}/${fieldDefinitionId}`;
+    const url = `/api/fields/${bookingId}/${fieldDefinitionId}`;
     fetch(url, {
         method: "POST",
         headers: { "Content-Type": "text/plain" },
@@ -542,7 +542,7 @@ function saveNewInspectionField(value, fieldDefinitionId){
 
 async function deleteInspectionField(id){
     try {
-        const response = await fetch(`http://localhost:8080/api/fields/${id}`, { method: "DELETE" });
+        const response = await fetch(`/api/fields/${id}`, { method: "DELETE" });
         if (!response.ok) return false;
 
         // Deleting a field hands its images back to the pool.
@@ -555,7 +555,7 @@ async function deleteInspectionField(id){
 }
 
 function selectImageFunction(bookingId, selectImageDiv, imageId, fieldId, images){
-    fetch(`http://localhost:8080/api/fields/${fieldId}/${imageId}`,
+    fetch(`/api/fields/${fieldId}/${imageId}`,
         { method: "PUT" }
     )
     .then(async () => {
@@ -572,7 +572,7 @@ function selectImageFunction(bookingId, selectImageDiv, imageId, fieldId, images
 
 async function deleteImageFromField(image, fieldId, images){
     try {
-        const response = await fetch(`http://localhost:8080/api/fields/${fieldId}/${image.id}`,
+        const response = await fetch(`/api/fields/${fieldId}/${image.id}`,
             { method: "DELETE" });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
     } catch (error){
@@ -592,7 +592,7 @@ async function deleteImageFromField(image, fieldId, images){
 
 function updateInSummary() {
     const includeBool = includeInSummaryBox.checked;
-    fetch(`http://localhost:8080/api/fields/${curField}/summary`, {
+    fetch(`/api/fields/${curField}/summary`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(includeBool),
@@ -600,7 +600,7 @@ function updateInSummary() {
 }
 
 function fetchInSummary(fieldId){
-    fetch(`http://localhost:8080/api/fields/${fieldId}/summary`)
+    fetch(`/api/fields/${fieldId}/summary`)
     .then(response => response.json())
     .then(inSummary => {
         if (inSummary) {

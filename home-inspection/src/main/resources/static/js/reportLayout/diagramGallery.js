@@ -1,6 +1,6 @@
 import { confirmDialog, notify } from "../ui/dialog.js";
 
-const DIAGRAMS = "http://localhost:8080/api/recommendation-diagrams";
+const DIAGRAMS = "/api/recommendation-diagrams";
 
 const params = new URLSearchParams(window.location.search);
 

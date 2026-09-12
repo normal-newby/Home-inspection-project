@@ -166,7 +166,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
     });
 
     // Load existing annotations
-    fetch(`http://localhost:8080/api/fields/images/${imageId}/annotations`)
+    fetch(`/api/fields/images/${imageId}/annotations`)
         .then(response => {
             if (response.status === 404 || response.status === 204) {
                 annotations = [];
@@ -441,7 +441,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
         edited.delete(ann);
 
         if (ann.id) {
-            fetch(`http://localhost:8080/api/fields/annotations/${ann.id}`, { method: "DELETE" })
+            fetch(`/api/fields/annotations/${ann.id}`, { method: "DELETE" })
             .then(response => response.text())
             .then(data => {
                 console.log(data);
@@ -793,7 +793,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
         try {
             await Promise.all([
                 ...created.map(async ann => {
-                    const response = await fetch(`http://localhost:8080/api/fields/images/${imageId}/annotations`, {
+                    const response = await fetch(`/api/fields/images/${imageId}/annotations`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(ann)
@@ -805,7 +805,7 @@ export function addAnnotationCanvas(existingImageDiv, existingImageImage, imageI
                     if (saved?.id) ann.id = saved.id;
                 }),
                 ...updated.map(async ann => {
-                    const response = await fetch(`http://localhost:8080/api/fields/annotations/${ann.id}`, {
+                    const response = await fetch(`/api/fields/annotations/${ann.id}`, {
                         method: "PUT",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(ann)

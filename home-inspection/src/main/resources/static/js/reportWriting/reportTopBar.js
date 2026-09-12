@@ -4,7 +4,7 @@ import { notify, confirmDialog } from "../ui/dialog.js";
 const viewReportButton = document.getElementById("view-report-button");
 
 viewReportButton.addEventListener("click", () => {
-    window.open(`http://localhost:8080/report/${bookingId}`, "_blank");
+    window.open(`/report/${bookingId}`, "_blank");
 });
 
 const editReportDataButton = document.getElementById("edit-report-data");
@@ -28,7 +28,7 @@ emailReportButton.addEventListener("click", async () => {
     emailReportButton.textContent = "Sending...";
 
     try {
-        const res = await fetch(`http://localhost:8080/report/${bookingId}/email`,
+        const res = await fetch(`/report/${bookingId}/email`,
             {method: "POST"}
         );
         const data = await res.json();
