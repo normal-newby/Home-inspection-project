@@ -1,12 +1,5 @@
 package ca.inspection.home.inspection.service;
 
-import ca.inspection.home.inspection.entity.InspectionField;
-import ca.inspection.home.inspection.entity.InspectionRecommendationField;
-import ca.inspection.home.inspection.entity.InspectionReport;
-import tools.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -21,7 +14,14 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import ca.inspection.home.inspection.entity.InspectionField;
+import ca.inspection.home.inspection.entity.InspectionRecommendationField;
+import ca.inspection.home.inspection.entity.InspectionReport;
 import static ca.inspection.home.inspection.service.HelperFunctions.notBlank;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Sends the flagged summary items of an inspection report to Google Gemini and
