@@ -130,7 +130,6 @@
 
     <!-- RE line -->
     <div class="letter-re">
-        <span class="re-label">RE:</span>
         <span th:text="|Report No. ${booking.inspectionNumber}|"></span><br/>
         <span th:text="${booking.inspectionAddress}"></span><br>
         <span th:text="|${booking.city}, ${booking.province}|"></span><br>
@@ -146,7 +145,7 @@
 </div>
 
 <!-- ===================== INVOICE PAGE ===================== -->
-<div id="invoice-page" class="page-break-after">
+<div id="invoice-page" class="page-break-after" th:if="${report.showInvoice == null or report.showInvoice}">
     <h2 class="invoice-header">INVOICE</h2>
 
     <div class="invoice-date" th:text="|${booking.month} ${booking.day}, ${booking.year}|"></div>

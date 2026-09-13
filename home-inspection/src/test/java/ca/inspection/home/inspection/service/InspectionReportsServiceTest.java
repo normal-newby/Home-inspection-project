@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -125,6 +126,35 @@ public class InspectionReportsServiceTest {
 
         assertThat(inspectionReportsService.readAppendixPdfBytes(report))
                 .isEqualTo("legacy".getBytes());
+    }
+
+    @Test
+    void updateReportData_showInvoiceFalse_isPersisted() {
+        UUID bookingId = UUID.randomUUID();
+        InspectionReport report = reportFor(INSPECTION_NUMBER);
+        when(inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId)).thenReturn(report);
+
+        inspectionReportsService.updateReportData(bookingId, Map.of("showInvoice", "false"));
+
+        assertThat(report.getShowInvoice()).isFalse();
+    }
+
+    @Test
+    void updateReportData_bodyWithoutShowInvoice_leavesItAlone() {
+        UUID bookingId = UUID.randomUUID();
+        InspectionReport report = reportFor(INSPECTION_NUMBER);
+        report.setShowInvoice(false);
+        when(inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId)).thenReturn(report);
+
+        inspectionReportsService.updateReportData(bookingId, Map.of("summary", "text"));
+
+        assertThat(report.getShowInvoice()).isFalse();
+        assertThat(report.getSummary()).isEqualTo("text");
+    }
+
+    @Test
+    void newReport_defaultsToShowingTheInvoice() {
+        assertThat(new InspectionReport().getShowInvoice()).isTrue();
     }
 
     @Test

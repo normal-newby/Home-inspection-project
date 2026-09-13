@@ -65,6 +65,10 @@ public class InspectionReportsService {
                 }
             });
 
+            if (body.containsKey("showInvoice")) {
+                report.setShowInvoice(Boolean.parseBoolean(body.get("showInvoice")));
+            }
+
             inspectionReportsRepository.save(report);
             return ResponseEntity.ok(report);
         } catch (Exception e){

@@ -4,7 +4,7 @@ import { bookingId } from "./getReport.js";
 
 const URI = `/api/reports/${bookingId}`;
 const URI_IMAGES = `/api/images/${bookingId}`;
-const fields = ['summary', 'emailBody'];
+const fields = ['summary', 'emailBody', 'showInvoice'];
 
 const backLink = document.getElementById("backLink");
 if (backLink) backLink.href = writingScreen();
