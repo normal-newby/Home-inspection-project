@@ -1,7 +1,7 @@
 import { bookingId } from "./getReport.js";
 import { initImagesGrid, refreshImagePool } from "./loadImages.js";
 import { addAnnotationCanvas } from "./imageAnnotation.js";
-import { setUpRecommendationsPanel, setUpDiagramsButton } from "./recommendations.js";
+import { setUpRecommendationsPanel, setUpDiagramsButton, saveRecommendationsIfOpen } from "./recommendations.js";
 import { fetchExisting, saveFunction } from "../fetchExisting.js";
 import { confirmDialog, notify, isOverlayClick } from "../ui/dialog.js";
 
@@ -643,6 +643,7 @@ function markActiveTabs(){
 
 async function closeFieldPanel(){
     if (!await flushAnnotations()) return false;
+    await saveRecommendationsIfOpen();
     selectImageDiv.hidden = true;
     recommendationsPanel.hidden = true;
     diagramsButton.hidden = true;
@@ -709,6 +710,7 @@ document.addEventListener("click", async (e) => {
 
     if (!clickedInsideSelect && !clickedInsideRecommendations) {
         if (selectImageDiv.hidden === false && !await flushAnnotations()) return; // stay open, work kept
+        await saveRecommendationsIfOpen();
 
         document.querySelectorAll(".value-button").forEach(btn => btn.classList.remove("current-button"));
         selectImageDiv.hidden = true;
