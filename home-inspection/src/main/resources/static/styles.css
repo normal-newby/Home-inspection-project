@@ -133,17 +133,18 @@ body {
 }
 
 .report-nav {
-    display: flex;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
+    /* flex will remove anchors */
+    font-size: 0;
+    line-height: 0;
     margin-bottom: 2mm;
-    font-size: 7.5pt;
 }
 
 .report-nav a {
-    /* A flex-basis cap rather than max-width: weasyprint lays the row out on the basis and
-       leaves a gap under the cap, so the tabs would not meet. */
-    flex: 0 1 100px;
+    display: inline-block;
+    width: 100px;
+    vertical-align: top;
+    font-size: 7.5pt;
+    line-height: normal;
     text-align: center;
     text-decoration: none;
     color: var(--muted);
@@ -649,11 +650,6 @@ body {
 
 /* ── Summary page ── */
 
-#summary-page {
-    display: block;
-    min-height: 100px;
-}
-
 .summary-title {
     font-size: 20pt;
     font-weight: 700;
@@ -670,6 +666,7 @@ body {
 }
 
 .summary-section-header {
+    text-transform: capitalize;
     font-size: 11pt;
     font-weight: 700;
     color: var(--card);

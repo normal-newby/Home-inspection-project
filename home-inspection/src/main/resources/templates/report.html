@@ -259,13 +259,20 @@
             </tr>
             </thead>
             <tbody>
+            <!-- Every cell falls back to N/A -->
             <tr th:each="field : ${section.value}">
-                <td th:text="${field.inspectionFieldDefinition.fieldName}"></td>
-                <td th:text="${field.inspectionRecommendationField?.implication}"></td>
-                <td th:text="${field.displayValue}"></td>
-                <td th:text="${field.inspectionRecommendationField.getLocationDisplay()}"></td>
-                <td th:text="${field.inspectionRecommendationField.task}"></td>
-                <td th:text="${field.inspectionRecommendationField.time}"></td>
+                <td th:text="${#strings.isEmpty(field.inspectionFieldDefinition.fieldName)
+                               ? 'N/A' : field.inspectionFieldDefinition.fieldName}"></td>
+                <td th:text="${#strings.isEmpty(field.inspectionRecommendationField?.implication)
+                               ? 'N/A' : field.inspectionRecommendationField.implication}"></td>
+                <td th:text="${#strings.isEmpty(field.displayValue)
+                               ? 'N/A' : field.displayValue}"></td>
+                <td th:text="${#strings.isEmpty(field.inspectionRecommendationField?.getLocationDisplay())
+                               ? 'N/A' : field.inspectionRecommendationField.getLocationDisplay()}"></td>
+                <td th:text="${#strings.isEmpty(field.inspectionRecommendationField?.task)
+                               ? 'N/A' : field.inspectionRecommendationField.task}"></td>
+                <td th:text="${#strings.isEmpty(field.inspectionRecommendationField?.time)
+                               ? 'N/A' : field.inspectionRecommendationField.time}"></td>
                 <td th:if="${field.inspectionRecommendationField != null 
                             and field.inspectionRecommendationField.lower_cost != null 
                             and field.inspectionRecommendationField.upper_cost != null}"
