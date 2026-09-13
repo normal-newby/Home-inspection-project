@@ -907,13 +907,17 @@ body {
 .report-field-image-wrap {
     position: relative;
     display: inline-block;
+    box-sizing: border-box;
+    width: calc(50% - var(--space-md) / 2);
     margin-bottom: var(--space-sm);
 }
 
 .report-field-image {
     display: block;
+    width: 100%;
     max-width: 300px;
     max-height: 300px;
+    margin: 0 auto;
     border-radius: 3px;
     border: 1px solid var(--border);
 }
@@ -931,6 +935,8 @@ body {
     color: var(--muted);
     text-align: center;
     margin-top: var(--space-xs);
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 .report-field-canvas {
