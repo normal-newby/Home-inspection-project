@@ -36,6 +36,7 @@
     grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 0.75rem;
     align-content: start;
+    align-items: start;
     flex: 1;
     min-height: 0;
     overflow-y: auto;
@@ -85,12 +86,9 @@
     color: var(--label);
 }
 
-/* Fills the section so the add row below it can sit at the bottom of every column. */
 .recommendations-options {
     display: flex;
     flex-direction: column;
-    flex: 1;
-    min-height: 0;
 }
 
 .recommendations-definitions {
@@ -131,20 +129,41 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin-top: auto;
-    padding-top: 0.5rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 3px;
 }
 
+/* Sits on its own line above the controls. */
+.recommendations-add-label {
+    flex: 1 0 100%;
+}
+
+.recommendations-add select,
 .recommendations-add input {
     flex: 1 1 5rem;
     min-width: 0;
     background: var(--card);
-    border: 1px solid var (--border);
+    border: 1px solid var(--border);
     border-radius: 3px;
     padding: 0.3rem 0.5rem;
     font-family: "DM SANS", sans-serif;
     font-size: 0.72rem;
     color: var(--ink);
+}
+
+.recommendations-add select {
+    flex: 0 1 7rem;
+    cursor: pointer;
+}
+
+.recommendations-add select:focus,
+.recommendations-add input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: #fff;
 }
 
 .recommendations-add button {

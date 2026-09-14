@@ -9,8 +9,6 @@ const submitButton = document.getElementById("submit-recommendations-button");
 const diagramsButton = document.getElementById("attach-diagrams-button");
 const recommendationsPanel = document.querySelector(".recommendations-panel");
 
-// The panel is set up again every time it opens, so its listeners must not be added again
-// with it.
 let listenersBound = false;
 
 // The field the buttons act on, read at click time so they follow the selected item.
@@ -103,6 +101,45 @@ function createImplicationInput() {
     return textarea;
 }
 
+function createAddSectionInput() {
+    const addContainer = document.createElement("div");
+    addContainer.classList.add("recommendations-add");
+
+    const label = document.createElement("div");
+    label.classList.add("recommendations-section-label", "recommendations-add-label");
+    label.textContent = "Add Definition";
+
+    const definitionInput = document.createElement("input");
+    definitionInput.id = "definition-input";
+    definitionInput.placeholder = "New value...";
+
+    const selectType = document.createElement("select");
+    definitionTypes.forEach(type => {
+        if (type === "cost" || type === "implication") return; // Skip these types for adding new definitions
+        const option = document.createElement("option");
+        option.value = type;
+        option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+        selectType.appendChild(option);
+    });
+
+    const btn = document.createElement("button");
+    btn.textContent = "Add";
+    btn.addEventListener("click", () => {
+        const value = definitionInput.value.trim();
+        if (!value) return;
+
+        const type = selectType.value;
+        addDefinition(type, value);
+        definitionInput.value = "";
+    });
+
+    addContainer.appendChild(label);
+    addContainer.appendChild(selectType);
+    addContainer.appendChild(definitionInput);
+    addContainer.appendChild(btn);
+    return addContainer;
+}
+
 function renderSections() {
     recommendationsWrapper.innerHTML = "";
     for (let i = 0; i < definitionTypes.length; i++) {
@@ -137,6 +174,7 @@ function renderSections() {
 
         if (type === "cost") {
             optionsContainer.appendChild(createCostInputs());
+            optionsContainer.appendChild(createAddSectionInput());
         } else if (type === "implication"){
             optionsContainer.appendChild(createImplicationInput());
         } else {
@@ -152,24 +190,6 @@ function renderSections() {
                 });
             }
             optionsContainer.appendChild(definitionsContainer);
-
-            // Create container for adding
-            const addContainer = document.createElement("div");
-            addContainer.classList.add("recommendations-add");
-
-            // Create "add definition" button
-            const definitionInput = document.createElement("input");
-            definitionInput.id = "definition-input";
-            const btn = document.createElement("button");
-            btn.textContent = "Add a value for: " + type;
-            btn.addEventListener("click", () => {
-                const value = definitionInput.value;
-                addDefinition(type, value);
-            });
-
-            addContainer.appendChild(definitionInput);
-            addContainer.appendChild(btn);
-            optionsContainer.appendChild(addContainer);
         }
 
         recommendationSection.appendChild(optionsContainer);
