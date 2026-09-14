@@ -106,9 +106,8 @@ public class ReportViewService {
         //Put into report
         report.getFields().forEach(field -> {
             List<InspectionImage> images = imagesMap.getOrDefault(field.getId(), new ArrayList<>());
-            images.forEach(img -> {
-                img.setAnnotations(annotationMap.getOrDefault(img.getId(), new HashSet<>()));
-            });
+            images.forEach(img ->
+                    img.replaceAnnotations(annotationMap.getOrDefault(img.getId(), Set.of())));
             field.setInspectionImages(images);
         });
 
