@@ -50,4 +50,15 @@ public class InspectionImage {
     private Set<ImageAnnotation> annotations = new HashSet<>();
 
     private Boolean used = false;
+
+    // replace instead of set annotations
+    public void replaceAnnotations(Collection<ImageAnnotation> replacements){
+        if (annotations == null){
+            annotations = new HashSet<>(replacements);
+            return;
+        }
+        if (annotations.size() == replacements.size() && annotations.containsAll(replacements)) return;
+        annotations.clear();
+        annotations.addAll(replacements);
+    }
 }

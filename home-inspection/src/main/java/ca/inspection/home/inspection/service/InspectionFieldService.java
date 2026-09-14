@@ -101,8 +101,8 @@ public class InspectionFieldService {
                 .collect(Collectors.groupingBy(ann -> ann.getInspectionImage().getId(),
                         Collectors.toSet()));
 
-        images.forEach(img -> img.setAnnotations(
-                annotationMap.getOrDefault(img.getId(), new HashSet<>())));
+        images.forEach(img -> img.replaceAnnotations(
+                annotationMap.getOrDefault(img.getId(), Set.of())));
     }
 
     @Transactional
