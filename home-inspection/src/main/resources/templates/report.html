@@ -383,8 +383,9 @@
                         <span th:text="${field.note}"></span>
                     </div>
 
-                    <!-- Supporting diagrams -->
-                    <div th:if="${field.recommendationDiagrams != null and !#lists.isEmpty(field.recommendationDiagrams)}"
+                    <!-- Supporting diagrams + Image/Annotations in one row -->
+                    <div th:if="${(field.recommendationDiagrams != null and !#lists.isEmpty(field.recommendationDiagrams))
+                                  or (field.inspectionImages != null and !#lists.isEmpty(field.inspectionImages))}"
                          class="images-wrapper">
                         <div th:each="diagram : ${field.recommendationDiagrams}" class="report-field-image-wrap">
                             <img class="report-field-image report-field-diagram"
@@ -394,10 +395,6 @@
                                  th:text="|${diagram.figureNumber}. ${diagram.title}|">
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Image + Annotations. figureNumber is assigned across the whole report. -->
-                    <div th:if="${field.inspectionImages != null and !#lists.isEmpty(field.inspectionImages)}" class="images-wrapper">
                         <div th:each="img : ${field.inspectionImages}" class="report-field-image-wrap">
                             <img class="report-field-image"
                                  th:src="${img.base64}"

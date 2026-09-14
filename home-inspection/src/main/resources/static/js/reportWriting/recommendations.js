@@ -16,6 +16,10 @@ let listenersBound = false;
 // The field the buttons act on, read at click time so they follow the selected item.
 let openFieldId = null;
 
+function sortByValue(definitions) {
+    return [...definitions].sort((a, b) => a.value.localeCompare(b.value));
+}
+
 function createOptionButton(definition, type) {
     const btn = document.createElement("button");
     btn.textContent = definition.value;
@@ -140,9 +144,9 @@ function renderSections() {
             const definitionsContainer = document.createElement("div");
             definitionsContainer.classList.add("recommendations-definitions");
 
-            // Create buttons
+            // Create buttons, lexicographically ordered by value.
             if (sectionValues[type] !== null && sectionValues[type] !== undefined) {
-                sectionValues[type].forEach(definition => {
+                sortByValue(sectionValues[type]).forEach(definition => {
                     const btn = createOptionButton(definition, type);
                     definitionsContainer.appendChild(btn);
                 });
@@ -334,7 +338,15 @@ function appendDefinitionToList(type, definition){
     if (!definitionsContainer) return;
 
     const btn = createOptionButton(definition, type);
-    definitionsContainer.appendChild(btn);
+
+    // Keep the lexicographical order when new items created
+    const existing = Array.from(definitionsContainer.querySelectorAll("button"));
+    const nextSibling = existing.find(other => definition.value.localeCompare(other.dataset.value) < 0);
+    if (nextSibling) {
+        definitionsContainer.insertBefore(btn, nextSibling);
+    } else {
+        definitionsContainer.appendChild(btn);
+    }
 }
 
 async function addDefinition(type, value){
@@ -398,14 +410,16 @@ export async function setUpDiagramsButton(fieldId) {
     }
 }
 
+// Autosave
+export async function saveRecommendationsIfOpen() {
+    if (!openFieldId || recommendationsPanel.hidden) return;
+    await submitRecommendations(openFieldId, saveAsDefaultImplication());
+}
+
 async function openDiagramPicker() {
     if (!openFieldId) return;
 
-    // Picking happens on another page, so anything typed into the panel is saved on the way
-    // out rather than lost to the navigation.
-    if (!recommendationsPanel.hidden) {
-        await submitRecommendations(openFieldId, saveAsDefaultImplication());
-    }
+    await saveRecommendationsIfOpen();
 
     const returnTo = window.location.pathname + window.location.search;
     window.location.href = `recommendation_diagrams.html?fieldId=${encodeURIComponent(openFieldId)}`
