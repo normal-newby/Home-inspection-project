@@ -4,6 +4,7 @@ import { addAnnotationCanvas } from "./imageAnnotation.js";
 import { setUpRecommendationsPanel, setUpDiagramsButton, saveRecommendationsIfOpen } from "./recommendations.js";
 import { fetchExisting, saveFunction } from "../fetchExisting.js";
 import { confirmDialog, notify, isOverlayClick } from "../ui/dialog.js";
+import { makeResizable } from "../ui/resizablePanel.js";
 
 const params = new URLSearchParams(window.location.search);
 let place = params.get("place");
@@ -515,7 +516,7 @@ function showExistingImage(images, fieldId){
         gallery.appendChild(thumb);
     });
 
-    selectImageDiv.insertBefore(gallery, existingImageDiv);
+    existingImageDiv.parentNode.insertBefore(gallery, existingImageDiv);
 }
 
 // Endpoints for fields and images
@@ -662,6 +663,9 @@ async function goTo(newPlace, newType){
     history.pushState({ place, type }, "", `report_writing.html?id=${bookingId}&place=${place}&type=${type}`);
     loadInspectionFieldDefinitions();
 }
+
+makeResizable(selectImageDiv, "panelSize.selectImage");
+makeResizable(recommendationsPanel, "panelSize.recommendations");
 
 markActiveTabs();
 // So the first entry in the history stack carries a place/type too, rather than null state.

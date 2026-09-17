@@ -47,6 +47,28 @@
     grid-column: 1 / -1;
 }
 
+/* resized panel stuff */
+
+.recommendations-panel.is-sized .recommendations-section-wrapper {
+    grid-template-rows: 1fr;
+    align-items: stretch;
+}
+
+.recommendations-panel.is-sized .recommendations-section {
+    min-height: 0;
+}
+
+.recommendations-panel.is-sized .recommendations-options {
+    flex: 1;
+    min-height: 0;
+}
+
+.recommendations-panel.is-sized .recommendations-definitions {
+    flex: 1 1 0;
+    max-height: none;
+    min-height: 5rem;
+}
+
 .recommendations-section {
     display: flex;
     flex-direction: column;
