@@ -248,6 +248,8 @@ public class InspectionImagesService {
                 throw new IOException("No jpeg writer took " + location.getImageUrl());
             }
 
+            System.out.println(baos.size());
+
             // Always jpeg here, whatever the file on disk started out as.
             return "data:image/jpeg;base64,"
                     + Base64.getEncoder().encodeToString(baos.toByteArray());
@@ -315,16 +317,16 @@ public class InspectionImagesService {
 
     private static final double CANVAS_TEXT_PX_PER_STEP = 10;
 
-    private static final int DEFAULT_REPORT_IMAGE_MAX_WIDTH = 1600;
+    private static final int DEFAULT_REPORT_IMAGE_MAX_WIDTH = 800;
 
-    @Value("${report.image.max-width:1600}")
+    @Value("${report.image.max-width:800}")
     private int reportImageMaxWidth = DEFAULT_REPORT_IMAGE_MAX_WIDTH;
 
     private int maxReportWidth(){
         return reportImageMaxWidth > 0 ? reportImageMaxWidth : DEFAULT_REPORT_IMAGE_MAX_WIDTH;
     }
 
-    // Scale to 1600 (no big difference in quality)
+    // Scale to 800 (no big difference in quality)
     private BufferedImage scaleForReport(BufferedImage source){
         return Thumbnails.scaleToWidth(source, maxReportWidth());
     }

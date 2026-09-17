@@ -676,7 +676,16 @@ body {
     border-collapse: collapse;
     font-size: 8.5pt;
     margin-bottom: 2mm;
+    table-layout: fixed;
 }
+
+/* Finding / Condition / Location / Implication / Recommendation / Time */
+.summary-table th:nth-child(1), .summary-table td:nth-child(1) { width: 20%; }
+.summary-table th:nth-child(2), .summary-table td:nth-child(2) { width: 14%; }
+.summary-table th:nth-child(3), .summary-table td:nth-child(3) { width: 12%; }
+.summary-table th:nth-child(4), .summary-table td:nth-child(4) { width: 20%; }
+.summary-table th:nth-child(5), .summary-table td:nth-child(5) { width: 17%; }
+.summary-table th:nth-child(6), .summary-table td:nth-child(6) { width: 17%; }
 
 .summary-table thead tr {
     background-color: var(--bg-subtle);
@@ -700,6 +709,9 @@ body {
     border-bottom: 1px solid var(--border);
     vertical-align: top;
     color: var(--ink);
+    /* Fixed layout can't widen for long text, so wrap it instead of overflowing */
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
 .summary-table tbody tr:nth-child(even) {

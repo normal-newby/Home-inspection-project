@@ -249,12 +249,11 @@
             <thead>
             <tr>
                 <th>Finding</th>
-                <th>Implication</th>
                 <th>Condition</th>
                 <th>Location</th>
+                <th>Implication</th>
                 <th>Recommendation</th>
                 <th>Time</th>
-                <th>Est. Cost</th>
             </tr>
             </thead>
             <tbody>
@@ -262,24 +261,17 @@
             <tr th:each="field : ${section.value}">
                 <td th:text="${#strings.isEmpty(field.inspectionFieldDefinition.fieldName)
                                ? 'N/A' : field.inspectionFieldDefinition.fieldName}"></td>
-                <td th:text="${#strings.isEmpty(field.inspectionRecommendationField?.implication)
-                               ? 'N/A' : field.inspectionRecommendationField.implication}"></td>
                 <td th:text="${#strings.isEmpty(field.displayValue)
                                ? 'N/A' : field.displayValue}"></td>
                 <td th:text="${#strings.isEmpty(field.inspectionRecommendationField?.getLocationDisplay())
                                ? 'N/A' : field.inspectionRecommendationField.getLocationDisplay()}"></td>
+                <td th:text="${#strings.isEmpty(field.inspectionRecommendationField?.implication)
+                               ? 'N/A' : field.inspectionRecommendationField.implication}"></td>
                 <td th:text="${#strings.isEmpty(field.inspectionRecommendationField?.task)
                                ? 'N/A' : field.inspectionRecommendationField.task}"></td>
                 <td th:text="${#strings.isEmpty(field.inspectionRecommendationField?.time)
                                ? 'N/A' : field.inspectionRecommendationField.time}"></td>
-                <td th:if="${field.inspectionRecommendationField != null 
-                            and field.inspectionRecommendationField.lower_cost != null 
-                            and field.inspectionRecommendationField.upper_cost != null}"
-                    th:text="|$${field.inspectionRecommendationField.lower_cost} – $${field.inspectionRecommendationField.upper_cost}|"></td>
-                <td th:unless="${field.inspectionRecommendationField != null 
-                                and field.inspectionRecommendationField.lower_cost != null 
-                                and field.inspectionRecommendationField.upper_cost != null}"
-                    th:text="'N/A'"></td>
+                <!-- Deliberately leave out cost for now -->
             </tr>
             </tbody>
         </table>
