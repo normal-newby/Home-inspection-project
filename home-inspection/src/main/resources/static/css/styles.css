@@ -111,3 +111,29 @@ body {
     font-size: var(--fs-hint);
     line-height: 1.5;
 }
+
+/* ── Resizable popup panels ── */
+.panel-resize-handle {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 20px;
+    height: 20px;
+    cursor: nwse-resize;
+    background:
+        linear-gradient(135deg, transparent 42%, var(--muted) 42%, var(--muted) 56%, transparent 56%) no-repeat 0 0 / 100% 100%,
+        linear-gradient(135deg, transparent 64%, var(--muted) 64%, var(--muted) 78%, transparent 78%) no-repeat 0 0 / 100% 100%;
+    z-index: 2;
+    touch-action: none;
+}
+
+.panel-resize-handle:hover {
+    background-image:
+        linear-gradient(135deg, transparent 42%, var(--accent) 42%, var(--accent) 56%, transparent 56%),
+        linear-gradient(135deg, transparent 64%, var(--accent) 64%, var(--accent) 78%, transparent 78%);
+}
+
+/* No text selection or hover flicker while a resize drag is in flight. */
+.resizing {
+    user-select: none;
+}

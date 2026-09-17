@@ -99,8 +99,37 @@
     max-width: 120vh;
     max-height: 90vh;
     z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.select-image-box[hidden] {
+    display: none;
+}
+
+.select-image-body {
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
+}
+
+/* resized panel for the images */
+.select-image-box.is-sized .select-image-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.select-image-box.is-sized .select-image-body > * {
+    flex: 0 0 auto;
+}
+
+.select-image-box.is-sized .image-picker {
+    flex: 1 1 0;
+    max-height: none;
+    min-height: 180px;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
 }
 
 .select-image-header {

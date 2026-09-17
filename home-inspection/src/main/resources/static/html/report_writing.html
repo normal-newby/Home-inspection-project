@@ -97,86 +97,88 @@
 
             <!-- Select image / annotation box -->
             <div class="select-image-box" hidden>
-                <div class="select-image-actions">
-                    <button type="button" id="attach-diagrams-button" hidden>Diagrams</button>
-                    <button type="button" id="show-recommendation-button" hidden>Recommendations</button>
-                </div>
-                <div class="select-image-header">
-                    <p class="existing-image-text">Selected Image</p>
-                </div>
-                <div class="existing-image-div" hidden>
-                    <div class="image-canvas-wrapper">
-                        <img class="existing-image-image" alt="">
+                <div class="select-image-body">
+                    <div class="select-image-actions">
+                        <button type="button" id="attach-diagrams-button" hidden>Diagrams</button>
+                        <button type="button" id="show-recommendation-button" hidden>Recommendations</button>
                     </div>
-                    <div class="annotation-tools" hidden>
-                        <!-- Base shapes -->
-                        <button id="rect-tool">Rectangle</button>
-                        <button id="circle-tool">Circle</button>
-                        <button id="ellipse-tool">Ellipse</button>
-                        <button id="arrow-tool">Arrow</button>
-
-                        <!-- Text -->
-                        <label for="text-tool">Text:</label>
-                        <input type="text" id="text-tool" placeholder="Enter text…">
-                        <button id="add-text">Add Text</button>
-
-                        <!-- Commands -->
-                        <button id="edit-mode">Edit Mode</button>
-                        <button id="delete-mode">Delete Mode</button>
-                        <button id="save-annotations">Save</button>
-
-                        <!-- Other -->
-                        <input type="color" id="color-picker" value="#ff0000">
-                        <label for="stroke-size" class="stroke-label">Size: <span id="stroke-size-value">3</span></label>
-                        <input type="range" id="stroke-size" min="1" max="10" value="3">
-
-                        <!-- Arrows only: snap the direction to 45° steps -->
-                        <span class="clip-angle-field">
-                            <input type="checkbox" id="clip-arrow-angle">
-                            <label for="clip-arrow-angle" class="stroke-label">Clip 45°</label>
-                        </span>
-
-                        <!-- Arrows only: lock the length to the head, so the drag only aims it -->
-                        <span class="clip-angle-field">
-                            <input type="checkbox" id="fix-arrow-length">
-                            <label for="fix-arrow-length" class="stroke-label">Fix length</label>
-                        </span>
-
-                        <span id="edit-hint" hidden></span>
-                        <span id="success-message"></span>
+                    <div class="select-image-header">
+                        <p class="existing-image-text">Selected Image</p>
                     </div>
-                </div>
-            
-                <!-- Blank items only: the inspector names the condition themselves -->
-                <div class="condition-name-section" hidden>
-                    <div class="condition-name-header">
-                        <label for="condition-name">Condition Name</label>
-                        <div class="permanent-value-row">
-                            <input type="checkbox" id="save-permanent-value">
-                            <label for="save-permanent-value">Save as permanent value</label>
+                    <div class="existing-image-div" hidden>
+                        <div class="image-canvas-wrapper">
+                            <img class="existing-image-image" alt="">
+                        </div>
+                        <div class="annotation-tools" hidden>
+                            <!-- Base shapes -->
+                            <button id="rect-tool">Rectangle</button>
+                            <button id="circle-tool">Circle</button>
+                            <button id="ellipse-tool">Ellipse</button>
+                            <button id="arrow-tool">Arrow</button>
+
+                            <!-- Text -->
+                            <label for="text-tool">Text:</label>
+                            <input type="text" id="text-tool" placeholder="Enter text…">
+                            <button id="add-text">Add Text</button>
+
+                            <!-- Commands -->
+                            <button id="edit-mode">Edit Mode</button>
+                            <button id="delete-mode">Delete Mode</button>
+                            <button id="save-annotations">Save</button>
+
+                            <!-- Other -->
+                            <input type="color" id="color-picker" value="#ff0000">
+                            <label for="stroke-size" class="stroke-label">Size: <span id="stroke-size-value">3</span></label>
+                            <input type="range" id="stroke-size" min="1" max="10" value="3">
+
+                            <!-- Arrows only: snap the direction to 45° steps -->
+                            <span class="clip-angle-field">
+                                <input type="checkbox" id="clip-arrow-angle">
+                                <label for="clip-arrow-angle" class="stroke-label">Clip 45°</label>
+                            </span>
+
+                            <!-- Arrows only: lock the length to the head, so the drag only aims it -->
+                            <span class="clip-angle-field">
+                                <input type="checkbox" id="fix-arrow-length">
+                                <label for="fix-arrow-length" class="stroke-label">Fix length</label>
+                            </span>
+
+                            <span id="edit-hint" hidden></span>
+                            <span id="success-message"></span>
                         </div>
                     </div>
-                    <textarea id="condition-name" rows="2"
-                              placeholder="Name this condition, e.g. Cracked parging at front wall"></textarea>
-                    <div class="condition-name-actions">
-                        <button id="save-condition-name">Save Condition Name</button>
-                        <span class="condition-name-message"></span>
-                    </div>
-                </div>
-
-                <p class="image-picker-hint">Double-click a photo to add it to this item.</p>
-                <div class="image-picker"></div>
-                <p class="image-picker-empty" hidden>Every photo is already on an item.</p>
             
-                <div class="add-note-section">
-                    <label for="note-text">Annotation Note</label>
-                    <textarea id="note-text" rows="4"></textarea>
-                    <button id="save-note">Save Note</button>
-                </div>
+                    <!-- Blank items only: the inspector names the condition themselves -->
+                    <div class="condition-name-section" hidden>
+                        <div class="condition-name-header">
+                            <label for="condition-name">Condition Name</label>
+                            <div class="permanent-value-row">
+                                <input type="checkbox" id="save-permanent-value">
+                                <label for="save-permanent-value">Save as permanent value</label>
+                            </div>
+                        </div>
+                        <textarea id="condition-name" rows="2"
+                                  placeholder="Name this condition, e.g. Cracked parging at front wall"></textarea>
+                        <div class="condition-name-actions">
+                            <button id="save-condition-name">Save Condition Name</button>
+                            <span class="condition-name-message"></span>
+                        </div>
+                    </div>
 
-                <div class="include-summary-row" hidden>
-                    <input id="include-in-summary" type="checkbox">
-                    <label for="include-in-summary">Include in summary</label>
+                    <p class="image-picker-hint">Double-click a photo to add it to this item.</p>
+                    <div class="image-picker"></div>
+                    <p class="image-picker-empty" hidden>Every photo is already on an item.</p>
+            
+                    <div class="add-note-section">
+                        <label for="note-text">Annotation Note</label>
+                        <textarea id="note-text" rows="4"></textarea>
+                        <button id="save-note">Save Note</button>
+                    </div>
+
+                    <div class="include-summary-row" hidden>
+                        <input id="include-in-summary" type="checkbox">
+                        <label for="include-in-summary">Include in summary</label>
+                    </div>
                 </div>
             
             </div>
