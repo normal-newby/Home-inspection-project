@@ -10,6 +10,7 @@ import ca.inspection.home.inspection.repository.InspectionReportsRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -29,6 +30,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionException;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -51,6 +54,10 @@ public class InspectionImagesServiceTest {
 
     @Mock
     private ca.inspection.home.inspection.repository.InspectionBookingsRepository inspectionBookingsRepository;
+
+    // Background work is captured here instead of racing the @TempDir cleanup.
+    @Mock
+    private Executor renditionBuilder;
 
     @InjectMocks
     private InspectionImagesService inspectionImagesService;
@@ -101,7 +108,11 @@ public class InspectionImagesServiceTest {
     }
 
     private static byte[] jpegBytes() throws IOException {
-        BufferedImage img = new BufferedImage(40, 30, BufferedImage.TYPE_INT_RGB);
+        return jpegBytes(40, 30);
+    }
+
+    private static byte[] jpegBytes(int width, int height) throws IOException {
+        BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ImageIO.write(img, "jpeg", out);
         return out.toByteArray();
@@ -256,6 +267,69 @@ public class InspectionImagesServiceTest {
 
         InspectionImage result = inspectionImagesService.saveImages(file, bookingId);
 
+        assertThat(result).isNotNull();
+        assertThat(tempDir.resolve(result.getImageUrl())).exists();
+    }
+
+    @Test
+    void saveImages_validFile_queuesTheReportSizedCopy() throws IOException {
+        UUID bookingId = UUID.randomUUID();
+        InspectionReport report = new InspectionReport();
+
+        MultipartFile file = mockFileThatWrites(jpegBytes(4000, 3000));
+
+        when(inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId)).thenReturn(report);
+        stubUploadDir();
+        when(inspectionImagesRepository.save(any(InspectionImage.class))).thenAnswer(res -> res.getArgument(0));
+
+        InspectionImage result = inspectionImagesService.saveImages(file, bookingId);
+
+        Path rendition = tempDir.resolve("report_800").resolve(result.getImageUrl());
+        assertThat(rendition).doesNotExist(); // not on the upload's own thread
+
+        ArgumentCaptor<Runnable> task = ArgumentCaptor.forClass(Runnable.class);
+        verify(renditionBuilder).execute(task.capture());
+        task.getValue().run();
+
+        assertThat(ImageIO.read(rendition.toFile()).getWidth()).isEqualTo(800);
+    }
+
+    @Test
+    void saveImages_photoDeletedBeforeItsCopyIsBuilt_leavesNoCopyBehind() throws IOException {
+        UUID bookingId = UUID.randomUUID();
+        InspectionReport report = new InspectionReport();
+
+        MultipartFile file = mockFileThatWrites(jpegBytes());
+
+        when(inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId)).thenReturn(report);
+        stubUploadDir();
+        when(inspectionImagesRepository.save(any(InspectionImage.class))).thenAnswer(res -> res.getArgument(0));
+
+        InspectionImage result = inspectionImagesService.saveImages(file, bookingId);
+        Files.delete(tempDir.resolve(result.getImageUrl()));
+
+        ArgumentCaptor<Runnable> task = ArgumentCaptor.forClass(Runnable.class);
+        verify(renditionBuilder).execute(task.capture());
+        task.getValue().run();
+
+        assertThat(tempDir.resolve("report_800").resolve(result.getImageUrl())).doesNotExist();
+    }
+
+    @Test
+    void saveImages_backgroundQueueRejects_stillKeepsTheUpload() throws IOException {
+        UUID bookingId = UUID.randomUUID();
+        InspectionReport report = new InspectionReport();
+
+        MultipartFile file = mockFileThatWrites(jpegBytes());
+
+        when(inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId)).thenReturn(report);
+        stubUploadDir();
+        when(inspectionImagesRepository.save(any(InspectionImage.class))).thenAnswer(res -> res.getArgument(0));
+        doThrow(new RejectedExecutionException("shut down")).when(renditionBuilder).execute(any());
+
+        InspectionImage result = inspectionImagesService.saveImages(file, bookingId);
+
+        // The report builds the copy on demand, so a missed prebuild is no reason to drop the photo.
         assertThat(result).isNotNull();
         assertThat(tempDir.resolve(result.getImageUrl())).exists();
     }
@@ -739,8 +813,8 @@ public class InspectionImagesServiceTest {
         // them costs memory through decode, annotate, re-encode and base64.
         BufferedImage rendered = render(newAnnotation("rectangle", "#ff0000", "1"), 4000, 3000);
 
-        assertThat(rendered.getWidth()).isEqualTo(1600);
-        assertThat(rendered.getHeight()).isEqualTo(1200); // aspect ratio kept
+        assertThat(rendered.getWidth()).isEqualTo(800);
+        assertThat(rendered.getHeight()).isEqualTo(600); // aspect ratio kept
     }
 
     @Test
@@ -766,8 +840,69 @@ public class InspectionImagesServiceTest {
         int[] bounds = paintedBounds(render(rectangle, 4000, 4000));
 
         assertThat(bounds).isNotNull();
-        assertThat(bounds[0]).isCloseTo(400, within(10));   // a quarter of 1600
-        assertThat(bounds[2]).isCloseTo(1200, within(10));  // three quarters of 1600
+        assertThat(bounds[0]).isCloseTo(200, within(10));   // a quarter of 800
+        assertThat(bounds[2]).isCloseTo(600, within(10));   // three quarters of 800
+    }
+
+    // REPORT RENDITION CACHE
+
+    @Test
+    void toBase64_firstCall_cachesThePrintSizedPhotoOnDisk() throws IOException {
+        UUID id = UUID.randomUUID();
+        createJpegFile("photo.jpg", 4000, 3000);
+        stubLocation(id, "photo.jpg");
+        stubUploadDir();
+
+        inspectionImagesService.toBase64(id, null);
+
+        Path cached = tempDir.resolve("report_800").resolve("photo.jpg");
+        assertThat(cached).exists();
+        assertThat(ImageIO.read(cached.toFile()).getWidth()).isEqualTo(800);
+    }
+
+    @Test
+    void toBase64_cachedRendition_isUsedWithoutTouchingTheOriginal() throws IOException {
+        UUID id = UUID.randomUUID();
+        Path original = createJpegFile("photo.jpg", 4000, 3000);
+        stubLocation(id, "photo.jpg");
+        stubUploadDir();
+
+        String first = inspectionImagesService.toBase64(id, null);
+        Files.delete(original);
+
+        assertThat(inspectionImagesService.toBase64(id, null)).isEqualTo(first);
+        assertThat(decodeBase64Image(inspectionImagesService.toBase64(
+                id, Set.of(newAnnotation("rectangle", "#ff0000", "1")))).getWidth()).isEqualTo(800);
+    }
+
+    @Test
+    void toBase64_noAnnotations_sendsTheCachedJpegUnchanged() throws IOException {
+        UUID id = UUID.randomUUID();
+        createJpegFile("photo.jpg", 4000, 3000);
+        stubLocation(id, "photo.jpg");
+        stubUploadDir();
+
+        String result = inspectionImagesService.toBase64(id, Set.of());
+
+        byte[] cached = Files.readAllBytes(tempDir.resolve("report_800").resolve("photo.jpg"));
+        assertThat(result).isEqualTo("data:image/jpeg;base64," + Base64.getEncoder().encodeToString(cached));
+    }
+
+    @Test
+    void deleteImage_removesTheCachedReportRenditionToo() throws IOException {
+        UUID id = UUID.randomUUID();
+        InspectionImage image = new InspectionImage();
+        image.setId(id);
+        image.setImageUrl("photo.jpg");
+        createJpegFile("photo.jpg", 50, 50);
+        stubLocation(id, "photo.jpg");
+        stubUploadDir();
+        when(inspectionImagesRepository.findById(id)).thenReturn(Optional.of(image));
+
+        inspectionImagesService.toBase64(id, null);
+        inspectionImagesService.deleteImage(id);
+
+        assertThat(tempDir.resolve("report_800").resolve("photo.jpg")).doesNotExist();
     }
 
     @Test

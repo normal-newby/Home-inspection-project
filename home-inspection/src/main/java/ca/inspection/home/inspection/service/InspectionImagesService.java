@@ -34,6 +34,8 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Service
@@ -66,8 +68,8 @@ public class InspectionImagesService {
         Path path = null;
         try {
             InspectionBookings booking = report.getInspectionBooking();
-            Path dir = helperFunctions.getDirectory(
-                    booking == null ? null : booking.getInspectionNumber());
+            Integer inspectionNumber = booking == null ? null : booking.getInspectionNumber();
+            Path dir = helperFunctions.getDirectory(inspectionNumber);
             Files.createDirectories(dir);
 
             String fileName = System.currentTimeMillis() + "_" + UUID.randomUUID().toString() + ".jpg";
@@ -78,7 +80,9 @@ public class InspectionImagesService {
             inspectionImage.setInspectionReport(report);
             inspectionImage.setImageUrl(fileName);
 
-            return inspectionImagesRepository.save(inspectionImage);
+            InspectionImage saved = inspectionImagesRepository.save(inspectionImage);
+            buildReportRenditionLater(ImageLocation.of(inspectionNumber, fileName));
+            return saved;
         } catch (Exception e){
             log.error("Failed to save uploaded image (report={})", report.getId(), e);
 
@@ -217,13 +221,18 @@ public class InspectionImagesService {
     // Never returns an exception
     public String toBase64(ImageLocation location, Set<ImageAnnotation> annotations){
         try {
-            Path filePath = helperFunctions.resolveUpload(location);
-            BufferedImage img = ImageIO.read(filePath.toFile());
-            if (img == null) throw new IOException("Unreadable image: " + location.getImageUrl());
+            // Already at print size: annotations are placed against the dimensions read
+            // below, so scaling first keeps them proportional for free.
+            Path rendition = getOrCreateReportRendition(location);
 
-            // Down to print size before anything else: annotations are placed against the
-            // dimensions read below, so scaling first keeps them proportional for free.
-            img = scaleForReport(img);
+            // Nothing to draw, so the cached jpeg goes out as is without a decode.
+            if (annotations == null || annotations.isEmpty()) {
+                return "data:image/jpeg;base64,"
+                        + Base64.getEncoder().encodeToString(Files.readAllBytes(rendition));
+            }
+
+            BufferedImage img = ImageIO.read(rendition.toFile());
+            if (img == null) throw new IOException("Unreadable image: " + location.getImageUrl());
 
             Graphics2D graphics2D = img.createGraphics();
             graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -247,8 +256,6 @@ public class InspectionImagesService {
             if (!ImageIO.write(img, "jpeg", baos)) {
                 throw new IOException("No jpeg writer took " + location.getImageUrl());
             }
-
-            System.out.println(baos.size());
 
             // Always jpeg here, whatever the file on disk started out as.
             return "data:image/jpeg;base64,"
@@ -326,9 +333,45 @@ public class InspectionImagesService {
         return reportImageMaxWidth > 0 ? reportImageMaxWidth : DEFAULT_REPORT_IMAGE_MAX_WIDTH;
     }
 
-    // Scale to 800 (no big difference in quality)
-    private BufferedImage scaleForReport(BufferedImage source){
-        return Thumbnails.scaleToWidth(source, maxReportWidth());
+    // The width is in the folder name so changing the cap never serves an old size.
+    private String reportRenditionDir(){
+        return "report_" + maxReportWidth();
+    }
+
+    private Path reportRenditionPath(ImageLocation location){
+        return helperFunctions.getDirectory(location.getInspectionNumber())
+                .resolve(reportRenditionDir())
+                .resolve(location.getImageUrl());
+    }
+
+    // Scale to 800 (no big difference in quality), once per photo rather than per report
+    private Path getOrCreateReportRendition(ImageLocation location) throws IOException {
+        return Thumbnails.getOrCreate(
+                helperFunctions.resolveUpload(location), reportRenditionPath(location), maxReportWidth());
+    }
+
+    // Two at a time, so a bulk upload never decodes dozens of phone photos at once.
+    private Executor renditionBuilder = Executors.newFixedThreadPool(2,
+            Thread.ofPlatform().daemon().name("report-rendition-", 0).factory());
+
+    // Built at upload so the first report does not pay a full size decode per photo.
+    // Never throws: the upload has already succeeded, and the report builds it lazily anyway.
+    private void buildReportRenditionLater(ImageLocation location){
+        try {
+            renditionBuilder.execute(() -> {
+                try {
+                    Path rendition = getOrCreateReportRendition(location);
+                    // Photo deleted while this ran: don't leave its copy behind.
+                    if (!Files.exists(helperFunctions.resolveUpload(location))) {
+                        Files.deleteIfExists(rendition);
+                    }
+                } catch (Exception e) {
+                    log.warn("Could not prebuild report copy of {}", location.getImageUrl(), e);
+                }
+            });
+        } catch (Exception e) {
+            log.warn("Could not queue report copy of {}", location.getImageUrl(), e);
+        }
     }
 
     private static double scaleFor(Double displayed, double actual){
@@ -384,6 +427,7 @@ public class InspectionImagesService {
         leftovers.forEach(name -> {
             deleteQuietly(root.resolve(name));
             deleteQuietly(root.resolve("thumbs").resolve(name));
+            deleteQuietly(root.resolve(reportRenditionDir()).resolve(name));
         });
     }
 
@@ -425,6 +469,7 @@ public class InspectionImagesService {
             for (Path dir : dirs) {
                 Files.deleteIfExists(dir.resolve(image.getImageUrl()));
                 Files.deleteIfExists(dir.resolve("thumbs").resolve(image.getImageUrl()));
+                Files.deleteIfExists(dir.resolve(reportRenditionDir()).resolve(image.getImageUrl()));
             }
 
             return ResponseEntity.ok().build();

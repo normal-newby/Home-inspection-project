@@ -1,13 +1,18 @@
 package ca.inspection.home.inspection.service;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReadParam;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Iterator;
 
 public final class Thumbnails {
 
@@ -19,20 +24,42 @@ public final class Thumbnails {
 
         Files.createDirectories(thumbPath.getParent());
 
-        BufferedImage full = ImageIO.read(source.toFile());
-        if (full == null) throw new IOException("Unreadable image: " + source.getFileName());
-
-        BufferedImage thumb = scaleToWidth(full, maxWidth);
+        BufferedImage thumb = readScaledToWidth(source, maxWidth);
 
         Path tmp = Files.createTempFile(thumbPath.getParent(), "thumb_", ".jpg");
         try {
             ImageIO.write(thumb, "jpeg", tmp.toFile());
             Files.move(tmp, thumbPath);
+        } catch (FileAlreadyExistsException e) {
+            // Another request built the same file first; theirs serves just as well.
+            Files.deleteIfExists(tmp);
         } catch (Exception e) {
             Files.deleteIfExists(tmp);
             throw e;
         }
         return thumbPath;
+    }
+
+    // Subsampled decode, keeping twice the target width so the final resize still has
+    // pixels to blend. Saves little decode time but most of the memory of a phone photo.
+    public static BufferedImage readScaledToWidth(Path source, int maxWidth) throws IOException {
+        try (ImageInputStream in = ImageIO.createImageInputStream(source.toFile())) {
+            Iterator<ImageReader> readers = in == null ? null : ImageIO.getImageReaders(in);
+            if (readers == null || !readers.hasNext()) {
+                throw new IOException("Unreadable image: " + source.getFileName());
+            }
+
+            ImageReader reader = readers.next();
+            try {
+                reader.setInput(in, true, true);
+                ImageReadParam param = reader.getDefaultReadParam();
+                int step = Math.max(1, reader.getWidth(0) / (maxWidth * 2));
+                param.setSourceSubsampling(step, step, 0, 0);
+                return scaleToWidth(reader.read(0, param), maxWidth);
+            } finally {
+                reader.dispose();
+            }
+        }
     }
 
     public static BufferedImage scaleToWidth(BufferedImage source, int maxWidth) {
