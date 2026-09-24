@@ -4,6 +4,7 @@ import ca.inspection.home.inspection.DTO.FieldGroup;
 import ca.inspection.home.inspection.entity.InspectionField;
 import ca.inspection.home.inspection.entity.InspectionFieldDefinition;
 import ca.inspection.home.inspection.entity.InspectionImage;
+import ca.inspection.home.inspection.entity.InspectionRecommendationField;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -161,6 +162,45 @@ public class ReportTemplateRenderTest {
         assertThat(html).contains("Metal, Slate");
         assertThat(occurrences(html, "report-field-instance")).isEqualTo(2);
         assertThat(html).contains("Rust at the ridge").contains("Two cracked tiles");
+    }
+
+    @Test
+    void recommendation_putsEachItemOnItsOwnLine() {
+        InspectionFieldDefinition gutters = definition("Gutters", "roofing", "recommendations");
+        InspectionField field = field(gutters, "Leaking");
+        InspectionRecommendationField recommendation = new InspectionRecommendationField();
+        recommendation.setImplication("Water damage");
+        recommendation.setTask("Repair");
+        recommendation.setTime("Immediate");
+        field.setInspectionRecommendationField(recommendation);
+
+        String html = renderBody(List.of(field));
+
+        // Condition, Implication, Recommendation, Time
+        assertThat(occurrences(html, "class=\"report-field-line\"")).isEqualTo(4);
+    }
+
+    @Test
+    void entryWithMoreFiguresThanFitOnAPage_isMarkedToSplit() {
+        InspectionFieldDefinition covering = definition("Roof Covering", "roofing", "description");
+
+        String many = renderBody(List.of(withPhotos(field(covering, "Metal"), 5)));
+        String few = renderBody(List.of(withPhotos(field(covering, "Metal"), 4)));
+
+        assertThat(many).contains("report-field-entry report-field-split");
+        assertThat(few).doesNotContain("report-field-split");
+    }
+
+    @Test
+    void groupedEntryWithManyFigures_marksOnlyThatEntryToSplit() {
+        InspectionFieldDefinition covering = definition("Roof Covering", "roofing", "description");
+
+        String html = renderBody(List.of(
+                withPhotos(field(covering, "Metal"), 5),
+                withPhotos(field(covering, "Slate"), 1)));
+
+        assertThat(occurrences(html, "report-field-split")).isEqualTo(1);
+        assertThat(html).contains("report-field-instance report-field-split");
     }
 
     @Test

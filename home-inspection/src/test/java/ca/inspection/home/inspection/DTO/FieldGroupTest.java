@@ -6,6 +6,7 @@ import ca.inspection.home.inspection.entity.InspectionImage;
 import ca.inspection.home.inspection.entity.InspectionRecommendationField;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -121,6 +122,40 @@ public class FieldGroupTest {
         field.setInspectionRecommendationField(new InspectionRecommendationField());
 
         assertThat(groupOf("recommendations", field).isDetailed()).isTrue();
+    }
+
+    // PAGE SPLITTING
+
+    private static InspectionField withPhotos(int count) {
+        InspectionField field = fieldValued("Metal");
+        List<InspectionImage> images = new ArrayList<>();
+        for (int i = 0; i < count; i++) images.add(new InspectionImage());
+        field.setInspectionImages(images);
+        return field;
+    }
+
+    @Test
+    void splitsAcrossPages_onlyPastAPageOfFigures() {
+        assertThat(groupOf("description", withPhotos(FieldGroup.FIGURES_PER_PAGE)).splitsAcrossPages()).isFalse();
+        assertThat(groupOf("description", withPhotos(FieldGroup.FIGURES_PER_PAGE + 1)).splitsAcrossPages()).isTrue();
+    }
+
+    @Test
+    void splitsAcrossPages_countsDiagramsAlongsidePhotos() {
+        InspectionField field = withPhotos(FieldGroup.FIGURES_PER_PAGE);
+        field.setRecommendationDiagrams(List.of(new ReportDiagram("Flashing", "data:", null)));
+
+        assertThat(groupOf("recommendations", field).splitsAcrossPages()).isTrue();
+    }
+
+    @Test
+    void splitsAcrossPages_groupedCardLeavesItToEachEntry() {
+        // A grouped card already splits between its entries, so only an entry itself is marked.
+        FieldGroup group = groupOf("description", withPhotos(FieldGroup.FIGURES_PER_PAGE + 1), withPhotos(1));
+
+        assertThat(group.splitsAcrossPages()).isFalse();
+        assertThat(group.splitsAcrossPages(group.fields().get(0))).isTrue();
+        assertThat(group.splitsAcrossPages(group.fields().get(1))).isFalse();
     }
 
     // MATCHING

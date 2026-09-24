@@ -302,7 +302,8 @@
             <div th:each="group : ${typeEntry.value}"
                  th:class="${group.grouped}
                            ? 'report-field-entry report-field-entry--grouped'
-                           : 'report-field-entry'">
+                           : 'report-field-entry'"
+                 th:classappend="${group.splitsAcrossPages()} ? 'report-field-split'">
 
                 <!-- Card Header: definition name only; the value always sits on its own line -->
                 <div th:class="${group.detailed}
@@ -320,46 +321,42 @@
                      th:if="${field.inspectionFieldDefinition.fieldType == 'recommendations'
                              or field.detailed
                              or (field.recommendationDiagrams != null and !#lists.isEmpty(field.recommendationDiagrams))}"
-                     th:class="${group.grouped} ? 'report-field-instance' : null">
+                     th:class="${group.grouped} ? 'report-field-instance' : null"
+                     th:classappend="${group.grouped and group.splitsAcrossPages(field)} ? 'report-field-split'">
 
-                    <!-- Line 1: Condition + Location -->
-                    <div class="report-field-meta"
+                    <!-- One line per item; the value only wraps when it is longer than the line -->
+                    <div class="report-field-line"
                          th:if="${field.inspectionFieldDefinition.fieldType == 'recommendations'}">
-                        <div class="report-meta-item">
-                            <span class="report-meta-label">Condition</span>
-                            <span class="report-meta-value" th:text="${field.displayValue}"></span>
-                        </div>
-                        <div class="report-meta-item"
-                             th:if="${field.inspectionRecommendationField != null
-                                     and field.inspectionRecommendationField.getLocationDisplay() != null}">
-                            <span class="report-meta-label">Location</span>
-                            <span class="report-meta-value" th:text="${field.inspectionRecommendationField.getLocationDisplay()}"></span>
-                        </div>
+                        <span class="report-meta-label">Condition</span>
+                        <span th:text="${field.displayValue}"></span>
                     </div>
 
-                    <!-- Line 2: Implication -->
-                    <div class="report-field-implication"
+                    <div class="report-field-line"
+                         th:if="${field.inspectionRecommendationField != null
+                                 and field.inspectionRecommendationField.getLocationDisplay() != null}">
+                        <span class="report-meta-label">Location</span>
+                        <span th:text="${field.inspectionRecommendationField.getLocationDisplay()}"></span>
+                    </div>
+
+                    <div class="report-field-line"
                          th:if="${field.inspectionRecommendationField != null and field.inspectionRecommendationField.implication != null}">
                         <span class="report-meta-label">Implication</span>
                         <span th:text="${field.inspectionRecommendationField.implication}"></span>
                     </div>
 
-                    <!-- Line 3: Recommendation -->
-                    <div class="report-field-recommendation"
+                    <div class="report-field-line"
                          th:if="${field.inspectionRecommendationField != null and field.inspectionRecommendationField.task != null}">
                         <span class="report-meta-label">Recommendation</span>
                         <span th:text="${field.inspectionRecommendationField.task}"></span>
                     </div>
 
-                    <!-- Line 4: Time -->
-                    <div class="report-field-time"
+                    <div class="report-field-line"
                          th:if="${field.inspectionRecommendationField != null and field.inspectionRecommendationField.time != null}">
                         <span class="report-meta-label">Time</span>
                         <span th:text="${field.inspectionRecommendationField.time}"></span>
                     </div>
 
-                    <!-- Est. Cost -->
-                    <div class="report-field-cost"
+                    <div class="report-field-line"
                          th:if="${field.inspectionRecommendationField != null and field.inspectionRecommendationField.lower_cost != null}">
                         <span class="report-meta-label">Est. Cost</span>
                         <span th:text="${field.inspectionRecommendationField.upper_cost != null}
@@ -368,8 +365,7 @@
                         </span>
                     </div>
 
-                    <!-- Note -->
-                    <div class="report-field-note"
+                    <div class="report-field-line report-field-note"
                          th:if="${field.note != null and !#strings.isEmpty(field.note)}">
                         <span class="report-meta-label">Note</span>
                         <span th:text="${field.note}"></span>

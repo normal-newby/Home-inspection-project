@@ -752,6 +752,7 @@ body {
     border-bottom: 1px solid var(--accent);
     padding-bottom: var(--space-xs);
     margin: var(--space-lg) 0 var(--space-sm);
+    break-after: avoid;
 }
 
 .report-type-card {
@@ -789,6 +790,18 @@ body {
     break-inside: avoid;
 }
 
+/* Too many figures for one page: split between rows of figures rather than pushing the
+   whole entry along, but keep the heading and text with the first row. */
+.report-field-split {
+    page-break-inside: auto;
+    break-inside: auto;
+}
+
+.report-field-split .report-field-line,
+.report-field-split .report-field-value-line {
+    break-after: avoid;
+}
+
 .report-field-instance + .report-field-instance {
     margin-top: var(--space-sm);
     padding-top: var(--space-sm);
@@ -809,6 +822,7 @@ body {
     padding-bottom: var(--space-sm);
     margin-bottom: var(--space-sm);
     border-bottom: 1px solid var(--border);
+    break-after: avoid;
 }
 
 .report-field-header--no-border {
@@ -856,76 +870,51 @@ body {
     content: ":";
 }
 
-/* ── Meta row (Condition / Location) ── */
-.report-field-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-xs) var(--space-lg);
-    margin-bottom: var(--space-sm);
-}
-
-.report-meta-item {
-    display: flex;
-    gap: var(--space-xs);
-    align-items: baseline;
-}
-
-.report-meta-value {
-    font-size: var(--value-size);
-    font-weight: 400;
-    color: var(--ink);
-}
-
-/* ── Implication / Recommendation / Time / Cost / Note ── */
-.report-field-implication,
-.report-field-recommendation,
-.report-field-time,
-.report-field-cost,
-.report-field-note {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: var(--space-xs);
+/* ── Condition / Location / Implication / ... : one per line ── */
+.report-field-line {
     font-size: var(--value-size);
     font-weight: 400;
     color: var(--ink);
     line-height: 1.5;
-}
-
-.report-field-implication,
-.report-field-recommendation,
-.report-field-time,
-.report-field-cost {
     margin-bottom: var(--space-xs);
+    break-inside: avoid;
 }
 
 .report-field-note {
+    margin-top: var(--space-sm);
     padding-top: var(--space-sm);
     border-top: 1px solid var(--border);
 }
 
 /* ── Images ── */
+/* Rows of inline blocks rather than flex: WeasyPrint can break a page between lines but not
+   between flex rows, so a flex grid too tall for the page was pushed onto the next one whole. */
 .images-wrapper {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: var(--space-md);
+    margin-top: var(--space-sm);
+    text-align: center;
+    font-size: 0; /* drops the gap the whitespace between figures would add; captions use rem */
+    orphans: 1;
+    widows: 1;
 }
 
 .report-field-image-wrap {
     position: relative;
     display: inline-block;
+    vertical-align: top;
     box-sizing: border-box;
     width: calc(50% - var(--space-md) / 2);
     margin-bottom: var(--space-sm);
+}
+
+.report-field-image-wrap:nth-child(even) {
+    margin-left: var(--space-md);
 }
 
 .report-field-image {
     display: block;
     width: 100%;
     max-width: 300px;
-    max-height: 300px;
+    max-height: 250px;
     margin: 0 auto;
     border-radius: 3px;
     border: 1px solid var(--border);
