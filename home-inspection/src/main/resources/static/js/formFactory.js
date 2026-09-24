@@ -65,7 +65,7 @@ export async function loadForm(URI, fields){
             }
         }
 
-        if (form.invoices) return form.invoices; // Return invoices for further processing
+        return form;
 
     } catch (err) {
         console.error('Error loading form:', err);

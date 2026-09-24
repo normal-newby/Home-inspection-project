@@ -1,5 +1,6 @@
 package ca.inspection.home.inspection.service;
 
+import ca.inspection.home.inspection.entity.Client;
 import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectorProfile;
 import org.junit.jupiter.api.Test;
@@ -9,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -38,10 +40,8 @@ public class GoogleCalendarServiceTest {
         booking.setCity("Toronto");
         booking.setProvince("ON");
         booking.setPostalCode("M2N 6S3");
-        booking.setClientFirstName("Ada");
-        booking.setClientLastName("Lovelace");
-        booking.setPhone("416-555-0100");
-        booking.setEmail("ada@example.com");
+        booking.setClients(new ArrayList<>(List.of(
+                new Client(null, "Ada", "Lovelace", "ada@example.com", "416-555-0100", 0, booking))));
         booking.setBookedBy("Client");
         booking.setReferredBy("None");
         booking.setMonth("March");
@@ -129,6 +129,21 @@ public class GoogleCalendarServiceTest {
         assertThat(description).contains("Phone: 416-555-0100");
         assertThat(description).contains("Booked by: Client");
         assertThat(description).doesNotContain("Referred by");
+    }
+
+    @Test
+    void buildEvent_multipleClients_titleNamesAllAndDescriptionListsEach() {
+        InspectionBookings booking = sampleBooking();
+        booking.setInspectionAddress(null);
+        booking.getClients().add(new Client(null, "Alan", "Turing", "alan@example.com", null, 1, booking));
+
+        Map<String, Object> event =
+                googleCalendarService.buildEvent(booking, BookingSchedule.of(booking));
+
+        assertThat(event.get("summary")).isEqualTo("Home Inspection #1042 - Ada Lovelace and Alan Turing");
+        String description = String.valueOf(event.get("description"));
+        assertThat(description).contains("Client: Ada Lovelace\nPhone: 416-555-0100\nEmail: ada@example.com");
+        assertThat(description).contains("Client: Alan Turing\nEmail: alan@example.com");
     }
 
     // GUARDS

@@ -276,6 +276,32 @@
 
 .remove-btn:hover { color: #c0392b; }
 
+/* ── Clients on a booking ── */
+
+.client-entry {
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.client-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.client-label {
+    font-size: var(--fs-hint);
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+/* A booking always keeps at least one client. */
+.client-entry:only-child .remove-btn { visibility: hidden; }
+
 /* ── Template builder ── */
 
 .add-invoice {

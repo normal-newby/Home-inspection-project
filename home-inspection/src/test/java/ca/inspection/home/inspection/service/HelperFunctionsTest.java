@@ -1,6 +1,8 @@
 package ca.inspection.home.inspection.service;
 
 import ca.inspection.home.inspection.DTO.ImageLocation;
+import ca.inspection.home.inspection.entity.Client;
+import ca.inspection.home.inspection.entity.InspectionBookings;
 import lombok.experimental.Helper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -9,6 +11,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.in;
@@ -162,5 +165,42 @@ public class HelperFunctionsTest {
 
         assertThat(helperFunctions.resolveUpload(ImageLocation.of(7, "photo.jpg")))
                 .isEqualTo(expected);
+    }
+
+    // Client names
+
+    private static InspectionBookings bookingWith(Client... clients) {
+        InspectionBookings booking = new InspectionBookings();
+        booking.setClients(List.of(clients));
+        return booking;
+    }
+
+    @Test
+    void fullName_joinsClientsTheWayALetterWould() {
+        Client ada = new Client(null, "Ada", "Lovelace", "ada@example.com", null, 0, null);
+        Client alan = new Client(null, "Alan", "Turing", " ADA@example.com ", null, 1, null);
+        Client grace = new Client(null, "Grace", "Hopper", "grace@example.com", null, 2, null);
+
+        assertThat(HelperFunctions.fullName(bookingWith(ada))).isEqualTo("Ada Lovelace");
+        assertThat(HelperFunctions.fullName(bookingWith(ada, alan))).isEqualTo("Ada Lovelace and Alan Turing");
+        assertThat(HelperFunctions.fullName(bookingWith(ada, alan, grace)))
+                .isEqualTo("Ada Lovelace, Alan Turing and Grace Hopper");
+    }
+
+    @Test
+    void fullName_noNamedClients_isNull() {
+        assertThat(HelperFunctions.fullName(new InspectionBookings())).isNull();
+        assertThat(HelperFunctions.fullName(bookingWith(new Client()))).isNull();
+    }
+
+    @Test
+    void clientEmails_skipsBlanksAndRepeats() {
+        Client ada = new Client(null, "Ada", null, "ada@example.com", null, 0, null);
+        Client twin = new Client(null, "Twin", null, " ada@example.com ", null, 1, null);
+        Client noEmail = new Client(null, "Alan", null, "  ", null, 2, null);
+        Client grace = new Client(null, "Grace", null, "grace@example.com", null, 3, null);
+
+        assertThat(HelperFunctions.clientEmails(bookingWith(ada, twin, noEmail, grace)))
+                .isEqualTo(List.of("ada@example.com", "grace@example.com"));
     }
 }

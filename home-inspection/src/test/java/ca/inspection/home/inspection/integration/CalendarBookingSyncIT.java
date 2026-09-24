@@ -1,5 +1,6 @@
 package ca.inspection.home.inspection.integration;
 
+import ca.inspection.home.inspection.entity.Client;
 import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectorProfile;
 import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
@@ -15,6 +16,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,8 +49,7 @@ public class CalendarBookingSyncIT {
 
     private InspectionBookings sample() {
         InspectionBookings b = new InspectionBookings();
-        b.setClientFirstName("Ada");
-        b.setClientLastName("Lovelace");
+        b.setClients(new ArrayList<>(List.of(new Client(null, "Ada", "Lovelace", null, null, null, null))));
         b.setMonth("April");
         b.setDay(2);
         b.setYear(2026);

@@ -36,7 +36,7 @@ emailReportButton.addEventListener("click", async () => {
         if (!res.ok){
             notify(data.error || "Could not send the report", {error: true});
         } else {
-            notify(`Report sent to ${data.to}`);
+            notify(`Report sent to ${data.to}${data.cc ? ` (cc ${data.cc})` : ""}`);
         }
     } catch (error){
         notify("Could not reach server.",{ error: true});

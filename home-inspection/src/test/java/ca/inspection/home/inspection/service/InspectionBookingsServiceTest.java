@@ -3,6 +3,7 @@ package ca.inspection.home.inspection.service;
 import ca.inspection.home.inspection.DTO.BookingDetails;
 import ca.inspection.home.inspection.DTO.InvoiceAmount;
 import ca.inspection.home.inspection.entity.BookingStatus;
+import ca.inspection.home.inspection.entity.Client;
 import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectionReport;
 import ca.inspection.home.inspection.entity.InspectorProfile;
@@ -54,6 +55,9 @@ public class InspectionBookingsServiceTest {
 
     @Mock
     private ca.inspection.home.inspection.repository.InvoiceRepository invoiceRepository;
+
+    @Mock
+    private ca.inspection.home.inspection.repository.ClientRepository clientRepository;
 
     @InjectMocks
     private InspectionBookingsService inspectionBookingsService;
@@ -367,6 +371,40 @@ public class InspectionBookingsServiceTest {
     }
 
     @Test
+    void updateBooking_withoutClients_keepsTheStoredOnesInOrder() {
+        UUID id = UUID.randomUUID();
+        Client ada = new Client(UUID.randomUUID(), "Ada", "Lovelace", null, null, 0, null);
+        Client alan = new Client(UUID.randomUUID(), "Alan", "Turing", null, null, 1, null);
+        InspectionBookings incoming = new InspectionBookings();
+
+        when(inspectionBookingsRepository.findById(id)).thenReturn(Optional.of(new InspectionBookings()));
+        when(clientRepository.findByBooking_IdOrderByPosition(id)).thenReturn(List.of(ada, alan));
+
+        inspectionBookingsService.updateBooking(id, incoming);
+
+        assertThat(incoming.getClients())
+                .extracting(Client::getId, Client::getPosition, Client::getBooking)
+                .containsExactly(
+                        org.assertj.core.groups.Tuple.tuple(ada.getId(), 0, incoming),
+                        org.assertj.core.groups.Tuple.tuple(alan.getId(), 1, incoming));
+    }
+
+    @Test
+    void createBooking_numbersClientsInFormOrder() {
+        InspectionBookings booking = new InspectionBookings();
+        booking.setClients(List.of(new Client(), new Client(), new Client()));
+        when(inspectorProfileService.getProfile()).thenReturn(new InspectorProfile());
+        when(inspectionBookingsRepository.save(booking)).thenReturn(booking);
+        when(inspectionReportsRepository.save(any(InspectionReport.class)))
+                .thenAnswer(res -> res.getArgument(0));
+
+        inspectionBookingsService.createBooking(booking);
+
+        assertThat(booking.getClients()).extracting(Client::getPosition).containsExactly(0, 1, 2);
+        assertThat(booking.getClients()).allSatisfy(c -> assertThat(c.getBooking()).isSameAs(booking));
+    }
+
+    @Test
     void updateBooking_impossibleDate_throwsInsteadOfSaving() {
         UUID id = UUID.randomUUID();
         InspectionBookings booking = new InspectionBookings();
@@ -488,7 +526,9 @@ public class InspectionBookingsServiceTest {
     /** Minimal stand-in for the projection: only the fields the ordering looks at. */
     private BookingDetails booking(String name, String month, Integer day, Integer year) {
         BookingDetails details = mock(BookingDetails.class);
-        lenient().when(details.getClientLastName()).thenReturn(name);
+        Client client = new Client();
+        client.setLastName(name);
+        lenient().when(details.getClients()).thenReturn(List.of(client));
         lenient().when(details.getMonth()).thenReturn(month);
         lenient().when(details.getDay()).thenReturn(day);
         lenient().when(details.getYear()).thenReturn(year);
@@ -498,7 +538,7 @@ public class InspectionBookingsServiceTest {
     private List<String> orderOf(LocalDate today, BookingDetails... bookings) {
         List<BookingDetails> list = new ArrayList<>(List.of(bookings));
         list.sort(InspectionBookingsService.byInspectionDate(today));
-        return list.stream().map(BookingDetails::getClientLastName).toList();
+        return list.stream().map(b -> b.getClients().getFirst().getLastName()).toList();
     }
 
     @Test
@@ -613,7 +653,7 @@ public class InspectionBookingsServiceTest {
         existing.setStatus(BookingStatus.COMPLETED);
 
         InspectionBookings incoming = new InspectionBookings();
-        incoming.setClientFirstName("Jane");
+        incoming.setInspectionAddress("1 Status Rd");
 
         when(inspectionBookingsRepository.findById(id)).thenReturn(Optional.of(existing));
 

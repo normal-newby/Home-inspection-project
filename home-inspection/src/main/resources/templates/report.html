@@ -80,7 +80,7 @@
     <!-- Client info -->
     <div id="cover-meta">
         <div class="meta-row">
-            <span class="label">Prepared For</span><span class="value" th:text="|${booking.clientFirstName} ${booking.clientLastName}|"></span>
+            <span class="label">Prepared For</span><span class="value" th:text="${clientNames}"></span>
         </div>
         <div class="meta-row">
             <span class="label">Inspection Date</span><span class="value" th:text="|${booking.month} ${booking.day}, ${booking.year}|"></span>
@@ -126,7 +126,7 @@
     </div>
 
     <!-- Salutation -->
-    <div class="letter-salutation" th:text="|Dear ${booking.clientFirstName} ${booking.clientLastName},|"></div>
+    <div class="letter-salutation" th:text="|Dear ${clientNames},|"></div>
 
     <!-- RE line -->
     <div class="letter-re">
@@ -149,7 +149,7 @@
     <h2 class="invoice-header">INVOICE</h2>
 
     <div class="invoice-date" th:text="|${booking.month} ${booking.day}, ${booking.year}|"></div>
-    <div class="invoice-client" th:text="|Client: ${booking.clientFirstName} ${booking.clientLastName}|"></div>
+    <div class="invoice-client" th:text="|Client: ${clientNames}|"></div>
 
     <div class="invoice-info">
         <span th:text="|Report No. ${booking.inspectionNumber}"></span>
@@ -206,8 +206,8 @@
                 <div class="agreement-party-value" th:text="|${profile.city}, ${profile.province} ${profile.postalCode}|"></div>
             </div>
             <div class="agreement-party-block">
-                <div class="agreement-party-label">Client</div>
-                <div class="agreement-party-value" th:text="|${booking.clientFirstName} ${booking.clientLastName}|"></div>
+                <div class="agreement-party-label" th:text="${booking.clients != null and booking.clients.size() > 1} ? 'Clients' : 'Client'">Client</div>
+                <div class="agreement-party-value" th:each="client : ${booking.clients}" th:text="${client.fullName}"></div>
             </div>
             <!--
             <div class="agreement-party-block">
@@ -216,7 +216,7 @@
             </div>-->
         </div>
         <div class="agreement-preamble">
-            <span th:text="|This is an agreement between ${booking.clientFirstName} ${booking.clientLastName} and ${profile.company}.|"></span>
+            <span th:text="|This is an agreement between ${clientNames} and ${profile.company}.|"></span>
             <strong>THIS CONTRACT LIMITS THE LIABILITY OF THE HOME INSPECTION COMPANY. PLEASE READ CAREFULLY BEFORE SIGNING.</strong>
         </div>
     </div>
@@ -225,9 +225,9 @@
     <div class="agreement-body" th:text="${profile.agreementBody}"></div>
 
     <!-- Signature Block -->
-    <div class="agreement-signature">
+    <div class="agreement-signature" th:each="client : ${booking.clients}">
         <span>I, </span>
-        <span th:text="|${booking.clientFirstName} ${booking.clientLastName}|"></span>
+        <span th:text="${client.fullName}"></span>
         <span> (Signature)___________________________, (Date)_______________, have read, understood and accepted the terms of this agreement.</span>
     </div>
 

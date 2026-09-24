@@ -643,6 +643,11 @@ body {
     color: var(--ink);
 }
 
+.agreement-signature + .agreement-signature {
+    margin-top: 0;
+    border-top: none;
+}
+
 /* ── Summary page ── */
 
 .summary-title {

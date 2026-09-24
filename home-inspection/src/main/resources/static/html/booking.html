@@ -25,7 +25,7 @@
 
     <div class = "page-header">
         <h1>Book an Inspection</h1>
-        <p>Enter client information</p>
+        <p>Enter the property, clients and schedule</p>
     </div>
 
     <form id="booking-form">
@@ -71,28 +71,11 @@
             </div>
         </div>
     
-        <!-- Client Info -->
+        <!-- Clients -->
         <div class="card">
-            <div class="card-title">Client Info</div>
-    
-            <div class = "form-grid">
-                <div class = "field">
-                    <label for="clientFirstName">First Name *</label>
-                    <input type="text" id="clientFirstName" required>
-                </div>
-                <div class = "field">
-                    <label for="clientLastName">Last Name *</label>
-                    <input type="text" id="clientLastName" required>
-                </div>
-                <div class = "field">
-                    <label for="email">Email</label>
-                    <input type="email" id="email">
-                </div>
-                <div class = "field">
-                    <label for="phone">Phone Number</label>
-                    <input type="tel" id="phone">
-                </div>
-            </div>
+            <div class="card-title">Clients</div>
+            <div id="client-list"></div>
+            <button type="button" class="btn btn-secondary" id="add-client-btn">+ Add Client</button>
         </div>
 
         <!-- Time -->

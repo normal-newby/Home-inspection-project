@@ -18,7 +18,6 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.util.*;
 
-import static ca.inspection.home.inspection.service.HelperFunctions.notBlank;
 
 @Slf4j
 @Controller
@@ -64,9 +63,9 @@ public class ReportViewController {
     public ResponseEntity<?> emailReport(@PathVariable UUID bookingId){
         try {
             InspectionBookings booking = inspectionBookingsService.findById(bookingId);
-            String email = booking.getEmail();
+            List<String> emails = HelperFunctions.clientEmails(booking);
 
-            if (!notBlank(email)) {
+            if (emails.isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "booking has no email"));
             }
 
@@ -80,9 +79,11 @@ public class ReportViewController {
 
             byte[] pdf = reportViewService.generatePdf("report", context, bookingId, report);
 
-            googleEmailService.sendReportEmail(email, pdf, booking, report.getEmailBody());
+            String cc = googleEmailService.sendReportEmail(emails, pdf, booking, report.getEmailBody());
 
-            return ResponseEntity.ok().body(Map.of("sent", true, "to", email));
+            Map<String, Object> sent = new HashMap<>(Map.of("sent", true, "to", String.join(", ", emails)));
+            if (cc != null) sent.put("cc", cc);
+            return ResponseEntity.ok().body(sent);
         } catch (Exception e){
             log.error("Failed to send report email for booking {}", bookingId, e);
             return ResponseEntity.internalServerError().body(Map.of("error", "could not send email"));
@@ -107,6 +108,7 @@ public class ReportViewController {
         boolean hasAppendix = inspectionReportsService.readAppendixPdfBytes(report) != null;
 
         context.setVariable("booking", booking);
+        context.setVariable("clientNames", Objects.requireNonNullElse(HelperFunctions.fullName(booking), ""));
         context.setVariable("invoiceAmount", amount);
         context.setVariable("profile", profile);
         context.setVariable("summaryFields", summaryFields);

@@ -1,6 +1,7 @@
 package ca.inspection.home.inspection.DTO;
 
 import ca.inspection.home.inspection.entity.BookingStatus;
+import ca.inspection.home.inspection.entity.Client;
 import ca.inspection.home.inspection.entity.Invoice;
 
 import java.util.List;
@@ -14,10 +15,7 @@ public interface BookingDetails {
     String getCity();
     String getPostalCode();
     String getProvince();
-    String getClientFirstName();
-    String getClientLastName();
-    String getEmail();
-    String getPhone();
+    List<Client> getClients();
     String getMonth();
     Integer getDay();
     Integer getYear();

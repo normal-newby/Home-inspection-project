@@ -1,8 +1,10 @@
 package ca.inspection.home.inspection.integration;
 
+import ca.inspection.home.inspection.entity.Client;
 import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectorProfile;
 import ca.inspection.home.inspection.entity.Invoice;
+import ca.inspection.home.inspection.repository.ClientRepository;
 import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
 import ca.inspection.home.inspection.repository.InspectionReportsRepository;
 import ca.inspection.home.inspection.repository.InspectorProfileRepository;
@@ -52,6 +54,9 @@ public class InspectionBookingsFlowIT {
     private InvoiceRepository invoiceRepository;
 
     @Autowired
+    private ClientRepository clientRepository;
+
+    @Autowired
     private ca.inspection.home.inspection.service.InspectionBookingsService bookingsService;
 
     @BeforeEach
@@ -88,8 +93,10 @@ public class InspectionBookingsFlowIT {
     void createBooking_persistsBookingAndLinkedReport() throws Exception {
         InspectionBookings payload = new InspectionBookings();
         payload.setInspectionAddress("500 Test Ave");
-        payload.setClientFirstName("Ada");
-        payload.setClientLastName("Lovelace");
+        Client ada = new Client();
+        ada.setFirstName("Ada");
+        ada.setLastName("Lovelace");
+        payload.setClients(List.of(ada));
 
         MvcResult postResult = mockMvc.perform(post("/api/bookings")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -106,7 +113,9 @@ public class InspectionBookingsFlowIT {
 
         // Booking really landed in the DB…
         InspectionBookings persisted = bookingsRepository.findById(bookingId).orElseThrow();
-        assertThat(persisted.getClientLastName()).isEqualTo("Lovelace");
+        assertThat(persisted).isNotNull();
+        assertThat(clientRepository.findByBooking_IdOrderByPosition(bookingId))
+                .extracting(Client::getLastName).containsExactly("Lovelace");
 
         // …and its report was created with the inspector's summary letter body.
         var report = reportsRepository.findByInspectionBooking_IdLite(bookingId);

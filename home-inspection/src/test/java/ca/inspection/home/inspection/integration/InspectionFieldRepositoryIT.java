@@ -1,6 +1,7 @@
 package ca.inspection.home.inspection.integration;
 
 import ca.inspection.home.inspection.entity.ImageAnnotation;
+import ca.inspection.home.inspection.entity.Client;
 import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectionField;
 import ca.inspection.home.inspection.entity.InspectionFieldDefinition;
@@ -15,6 +16,7 @@ import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabas
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,8 +40,7 @@ public class InspectionFieldRepositoryIT {
     private InspectionReport persistReport() {
         InspectionBookings booking = new InspectionBookings();
         booking.setInspectionAddress("1 Test Street");
-        booking.setClientFirstName("Jane");
-        booking.setClientLastName("Doe");
+        booking.setClients(new ArrayList<>(List.of(new Client(null, "Jane", "Doe", null, null, 0, booking))));
         em.persist(booking);
 
         InspectionReport report = new InspectionReport();

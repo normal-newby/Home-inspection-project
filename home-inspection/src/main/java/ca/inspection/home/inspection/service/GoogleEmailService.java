@@ -45,17 +45,20 @@ public class GoogleEmailService {
         return googleService.isConfigured();
     }
 
-    public void sendReportEmail(String toEmail, byte[] pdfBytes, InspectionBookings booking, String template){
+    // Returns the address the inspector was copied on, or null if there was none to use.
+    public String sendReportEmail(List<String> toEmails, byte[] pdfBytes, InspectionBookings booking, String template){
         InspectorProfile profile = inspectorProfileService.getProfile();
 
         if (!isConfigured()){
             throw new IllegalStateException("Email is not set up.");
         }
 
-        String fromAddress = inspectorProfileService.getProfile().getGoogleAccountEmail();
+        String fromAddress = profile.getGoogleAccountEmail();
+        String cc = inspectorCc(profile, toEmails);
         UUID bookingId = booking.getId();
 
-        String raw = buildMimeMessage(fromAddress, toEmail, fillTemplate(template, booking), pdfBytes, bookingId, booking);
+        String raw = buildMimeMessage(fromAddress, String.join(", ", toEmails), cc,
+                fillTemplate(template, booking), pdfBytes, bookingId, booking);
         String encoded = Base64.getUrlEncoder().withoutPadding().encodeToString(raw.getBytes(StandardCharsets.UTF_8));
 
         String token = googleService.accessToken();
@@ -79,6 +82,16 @@ public class GoogleEmailService {
             log.error("Failed to send report email for booking {}", booking.getId(), e);
             throw new RuntimeException("Failed to send email: " + e.getMessage(), e);
         }
+        return cc;
+    }
+
+    // The profile's contact email, else the connected Gmail account. Skipped if already a recipient.
+    static String inspectorCc(InspectorProfile profile, List<String> toEmails){
+        String cc = notBlank(profile.getEmail()) ? profile.getEmail().trim()
+                : notBlank(profile.getGoogleAccountEmail()) ? profile.getGoogleAccountEmail().trim()
+                : null;
+        if (cc == null) return null;
+        return toEmails.stream().anyMatch(cc::equalsIgnoreCase) ? null : cc;
     }
 
     // Placeholders match the hint under the template field on the report layout page.
@@ -97,13 +110,14 @@ public class GoogleEmailService {
                 .replace("\n", "\r\n"); // The textarea sends bare newlines; MIME wants CRLF.
     }
 
-    private String buildMimeMessage(String from, String to, String body, byte[] pdfBytes, UUID bookingId, InspectionBookings bookings) {
+    static String buildMimeMessage(String from, String to, String cc, String body, byte[] pdfBytes, UUID bookingId, InspectionBookings bookings) {
         String boundary = "boundary_" + UUID.randomUUID();
         String base64Pdf = Base64.getMimeEncoder().encodeToString(pdfBytes);
 
         StringBuilder mime = new StringBuilder();
         mime.append("From: ").append(from).append("\r\n");
         mime.append("To: ").append(to).append("\r\n");
+        if (cc != null) mime.append("Cc: ").append(cc).append("\r\n");
         mime.append("Subject: Inspection Report to: ").append(HelperFunctions.formatAddress(bookings))
                 .append(" - ").append(HelperFunctions.formatDateTime(bookings)).append("\r\n");
         mime.append("MIME-Version: 1.0\r\n");

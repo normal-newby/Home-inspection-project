@@ -1,6 +1,7 @@
 package ca.inspection.home.inspection.integration;
 
 import ca.inspection.home.inspection.DTO.BookingDetails;
+import ca.inspection.home.inspection.entity.Client;
 import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectionReport;
 import ca.inspection.home.inspection.entity.Invoice;
@@ -16,6 +17,7 @@ import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,8 +47,7 @@ public class InspectionBookingsRepositoryIT {
     private InspectionBookings persistBooking(String address, BigDecimal... invoiceFees) {
         InspectionBookings booking = new InspectionBookings();
         booking.setInspectionAddress(address);
-        booking.setClientFirstName("Jane");
-        booking.setClientLastName("Doe");
+        booking.setClients(new ArrayList<>(List.of(new Client(null, "Jane", "Doe", null, null, 0, booking))));
         em.persist(booking);
 
         for (BigDecimal fee : invoiceFees) {
@@ -70,7 +71,7 @@ public class InspectionBookingsRepositoryIT {
         assertThat(result).hasSize(1);
         BookingDetails details = result.getFirst();
         assertThat(details.getInspectionAddress()).isEqualTo("100 Main St");
-        assertThat(details.getClientFirstName()).isEqualTo("Jane");
+        assertThat(details.getClients()).extracting(Client::getFirstName).containsExactly("Jane");
 
         assertThat(details.getInvoices()).hasSize(2);
         assertThat(details.getInvoices().stream()

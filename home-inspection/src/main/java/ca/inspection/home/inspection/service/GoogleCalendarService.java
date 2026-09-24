@@ -1,5 +1,6 @@
 package ca.inspection.home.inspection.service;
 
+import ca.inspection.home.inspection.entity.Client;
 import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectorProfile;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static ca.inspection.home.inspection.service.HelperFunctions.fullName;
 import static ca.inspection.home.inspection.service.HelperFunctions.notBlank;
 
 @Service
@@ -172,9 +174,11 @@ public class GoogleCalendarService {
 
     private String eventDescription(InspectionBookings booking) {
         StringBuilder description = new StringBuilder();
-        appendLine(description, "Client", fullName(booking));
-        appendLine(description, "Phone", booking.getPhone());
-        appendLine(description, "Email", booking.getEmail());
+        for (Client client : HelperFunctions.clients(booking)) {
+            appendLine(description, "Client", client.getFullName());
+            appendLine(description, "Phone", client.getPhone());
+            appendLine(description, "Email", client.getEmail());
+        }
         appendLine(description, "Booked by", booking.getBookedBy());
         appendLine(description, "Referred by", booking.getReferredBy());
         if (booking.getInspectionNumber() != null) {
@@ -187,13 +191,6 @@ public class GoogleCalendarService {
         if (value != null && !value.isBlank() && !"None".equalsIgnoreCase(value.trim())) {
             sb.append(label).append(": ").append(value.trim()).append("\n");
         }
-    }
-
-    private static String fullName(InspectionBookings booking) {
-        String first = booking.getClientFirstName() == null ? "" : booking.getClientFirstName();
-        String last = booking.getClientLastName() == null ? "" : booking.getClientLastName();
-        String name = (first + " " + last).trim();
-        return name.isEmpty() ? null : name;
     }
 
     private static String formatAddress(InspectionBookings booking) {

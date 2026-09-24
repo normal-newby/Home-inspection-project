@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.BatchSize;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
@@ -18,6 +19,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -43,11 +45,11 @@ public class InspectionBookings {
     private String postalCode;
     private String province;
 
-    // Client info
-    private String clientFirstName;
-    private String clientLastName;
-    private String email;
-    private String phone;
+    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("position")
+    @BatchSize(size = 100)
+    @JsonManagedReference("clients")
+    private List<Client> clients;
 
     // Time
     private String month;

@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import ca.inspection.home.inspection.DTO.ImageLocation;
+import ca.inspection.home.inspection.entity.Client;
 import ca.inspection.home.inspection.entity.InspectionBookings;
 
 @Component
@@ -68,11 +69,28 @@ public class HelperFunctions {
         return s != null && !s.isBlank();
     }
 
+    public static List<Client> clients(InspectionBookings booking){
+        return booking.getClients() == null ? List.of() : booking.getClients();
+    }
+
+    // "Ada Lovelace", "Ada Lovelace and Alan Turing", "Ada Lovelace, Alan Turing and Grace Hopper"
     public static String fullName(InspectionBookings booking){
-        String first = booking.getClientFirstName() == null ? "" : booking.getClientFirstName();
-        String last = booking.getClientLastName() == null ? "" : booking.getClientLastName();
-        String name = (first + " " + last).trim();
-        return name.isEmpty() ? null : name;
+        List<String> names = clients(booking).stream()
+                .map(Client::getFullName)
+                .filter(HelperFunctions::notBlank)
+                .toList();
+        if (names.isEmpty()) return null;
+        if (names.size() == 1) return names.getFirst();
+        return String.join(", ", names.subList(0, names.size() - 1)) + " and " + names.getLast();
+    }
+
+    public static List<String> clientEmails(InspectionBookings booking){
+        return clients(booking).stream()
+                .map(Client::getEmail)
+                .filter(HelperFunctions::notBlank)
+                .map(String::trim)
+                .distinct()
+                .toList();
     }
 
     public static String formatAddress(InspectionBookings booking){

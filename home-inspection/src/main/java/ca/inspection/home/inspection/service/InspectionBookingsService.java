@@ -3,10 +3,12 @@ package ca.inspection.home.inspection.service;
 import ca.inspection.home.inspection.DTO.BookingDetails;
 import ca.inspection.home.inspection.DTO.InvoiceAmount;
 import ca.inspection.home.inspection.entity.BookingStatus;
+import ca.inspection.home.inspection.entity.Client;
 import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectionReport;
 import ca.inspection.home.inspection.entity.InspectorProfile;
 import ca.inspection.home.inspection.entity.Invoice;
+import ca.inspection.home.inspection.repository.ClientRepository;
 import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
 import ca.inspection.home.inspection.repository.InspectionImagesRepository;
 import ca.inspection.home.inspection.repository.InspectionReportsRepository;
@@ -52,8 +54,11 @@ public class InspectionBookingsService {
     @Autowired
     private InvoiceRepository invoiceRepository;
 
+    @Autowired
+    private ClientRepository clientRepository;
+
     public InspectionBookings createBooking(InspectionBookings booking){
-        log.info("Creating booking for {} {}", booking.getClientFirstName(), booking.getClientLastName());
+        log.info("Creating booking for {}", HelperFunctions.fullName(booking));
         // Rejects impossible dates (Feb 30, half-filled dates) before anything is written.
         BookingSchedule.of(booking);
         booking.setInspectionNumber(inspectorProfileService.getAndUpdateNumber());
@@ -61,6 +66,7 @@ public class InspectionBookingsService {
         if (booking.getInvoices() != null){
             booking.getInvoices().forEach(invoice -> invoice.setBookings(booking));
         }
+        attachClients(booking);
         InspectionBookings saved = inspectionBookingsRepository.save(booking);
 
         InspectionReport report = new InspectionReport();
@@ -111,7 +117,14 @@ public class InspectionBookingsService {
                     // Past bookings count backwards, so the most recent one leads that group.
                     return date.isBefore(today) ? LocalDate.MAX.minusDays(date.toEpochDay()) : date;
                 })
-                .thenComparing(booking -> booking.getClientLastName() == null ? "" : booking.getClientLastName());
+                .thenComparing(InspectionBookingsService::primaryLastName);
+    }
+
+    private static String primaryLastName(BookingDetails booking){
+        List<Client> clients = booking.getClients();
+        if (clients == null || clients.isEmpty()) return "";
+        String last = clients.getFirst().getLastName();
+        return last == null ? "" : last;
     }
 
     static LocalDate inspectionDate(BookingDetails booking){
@@ -200,6 +213,11 @@ public class InspectionBookingsService {
             }
             booking.getInvoices().forEach(invoice -> invoice.setBookings(booking));
 
+            if (booking.getClients() == null){
+                booking.setClients(detachedClientCopies(clientRepository.findByBooking_IdOrderByPosition(id)));
+            }
+            attachClients(booking);
+
             inspectionBookingsRepository.save(booking);
 
             pushToCalendar(booking);
@@ -220,6 +238,29 @@ public class InspectionBookingsService {
             copy.setFee(source.getFee());
             return copy;
         }).collect(Collectors.toList());
+    }
+
+    private static List<Client> detachedClientCopies(List<Client> clients){
+        if (clients == null) return new ArrayList<>();
+        return clients.stream().map(source -> {
+            Client copy = new Client();
+            copy.setId(source.getId());
+            copy.setFirstName(source.getFirstName());
+            copy.setLastName(source.getLastName());
+            copy.setEmail(source.getEmail());
+            copy.setPhone(source.getPhone());
+            return copy;
+        }).collect(Collectors.toList());
+    }
+
+    // The form's order is the stored order, so the first client stays first.
+    private static void attachClients(InspectionBookings booking){
+        if (booking.getClients() == null) return;
+        List<Client> clients = booking.getClients();
+        for (int i = 0; i < clients.size(); i++){
+            clients.get(i).setBooking(booking);
+            clients.get(i).setPosition(i);
+        }
     }
 
     public ResponseEntity<?> deleteBooking(UUID id){

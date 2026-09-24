@@ -11,6 +11,12 @@ const STATUS_LABELS = {
     COMPLETED: "Completed"
 };
 
+function clientNames(booking){
+    return (booking.clients ?? [])
+        .map(client => `${client.firstName ?? ""} ${client.lastName ?? ""}`.trim())
+        .filter(Boolean);
+}
+
 // Rows written before the status column existed come back null, which means Scheduled.
 function statusOf(booking){
     return booking.status ?? "SCHEDULED";
@@ -71,7 +77,11 @@ function createBooking(booking) {
     row.appendChild(address);
 
     const client = document.createElement("td");
-    client.textContent = `${booking.clientFirstName} ${booking.clientLastName}`;
+    clientNames(booking).forEach(name => {
+        const line = document.createElement("div");
+        line.textContent = name;
+        client.appendChild(line);
+    });
     row.appendChild(client);
 
     const when = document.createElement("td");
@@ -107,7 +117,7 @@ function createBooking(booking) {
     removeButton.type = "button";
     removeButton.className = "remove-btn";
     removeButton.title = "Remove booking";
-    removeButton.setAttribute("aria-label", `Remove booking for ${booking.clientFirstName} ${booking.clientLastName}`);
+    removeButton.setAttribute("aria-label", `Remove booking for ${clientNames(booking).join(" and ") || "this booking"}`);
     removeButton.innerHTML = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1l10 10M11 1L1 11"/></svg>';
     removeButton.addEventListener("click", () => deleteBooking(booking));
     remove.appendChild(removeButton);
@@ -229,7 +239,7 @@ async function loadBookings(){
 }
 
 async function deleteBooking(booking) {
-    const name = `${booking.clientFirstName ?? ""} ${booking.clientLastName ?? ""}`.trim();
+    const name = clientNames(booking).join(" and ");
     const confirmed = await confirmDialog(
         `${name || "This booking"} and its whole report will be removed. This cannot be undone.`,
         { title: "Delete this booking?", confirmLabel: "Delete booking", danger: true }

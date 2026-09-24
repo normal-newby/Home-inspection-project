@@ -1,10 +1,12 @@
 package ca.inspection.home.inspection.integration;
 
+import ca.inspection.home.inspection.entity.Client;
 import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectionImage;
 import ca.inspection.home.inspection.entity.InspectionReport;
 import ca.inspection.home.inspection.entity.InspectorProfile;
 import ca.inspection.home.inspection.entity.Invoice;
+import ca.inspection.home.inspection.repository.ClientRepository;
 import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
 import ca.inspection.home.inspection.repository.InspectionImagesRepository;
 import ca.inspection.home.inspection.repository.InspectionReportsRepository;
@@ -47,6 +49,7 @@ public class InspectionBookingsUpdateIT {
     @Autowired private InspectorProfileRepository inspectorProfileRepository;
     @Autowired private InvoiceRepository invoiceRepository;
     @Autowired private InspectionImagesRepository imagesRepository;
+    @Autowired private ClientRepository clientRepository;
 
     @BeforeEach
     void resetState() {
@@ -147,6 +150,79 @@ public class InspectionBookingsUpdateIT {
                 .andExpect(status().isOk());
 
         assertThat(invoiceRepository.findAll()).isEmpty();
+    }
+
+    private UUID createBookingWithClients(Client... clients) throws Exception {
+        InspectionBookings payload = new InspectionBookings();
+        payload.setInspectionAddress("5 Many Clients Rd");
+        payload.setClients(List.of(clients));
+        MvcResult res = mockMvc.perform(post("/api/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(payload)))
+                .andExpect(status().isOk())
+                .andReturn();
+        return UUID.fromString(objectMapper.readTree(res.getResponse().getContentAsString())
+                .get("id").asString());
+    }
+
+    private static Client client(String first, String last) {
+        Client client = new Client();
+        client.setFirstName(first);
+        client.setLastName(last);
+        return client;
+    }
+
+    @Test
+    void editingABooking_keepsClientsItDidNotMention() throws Exception {
+        UUID id = createBookingWithClients(client("Ada", "Lovelace"), client("Alan", "Turing"));
+
+        InspectionBookings edit = new InspectionBookings();
+        edit.setInspectionAddress("5 Many Clients Rd");
+        mockMvc.perform(put("/api/bookings/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(edit)))
+                .andExpect(status().isOk());
+
+        assertThat(clientRepository.findByBooking_IdOrderByPosition(id))
+                .extracting(Client::getFirstName)
+                .containsExactly("Ada", "Alan");
+    }
+
+    @Test
+    void editingABooking_clientListReplacesTheOldOneInFormOrder() throws Exception {
+        UUID id = createBookingWithClients(client("Ada", "Lovelace"), client("Alan", "Turing"));
+        Client alan = clientRepository.findByBooking_IdOrderByPosition(id).get(1);
+
+        Client keptAlan = client("Alan", "Turing");
+        keptAlan.setId(alan.getId());
+        keptAlan.setEmail("alan@example.com");
+        InspectionBookings edit = new InspectionBookings();
+        edit.setInspectionAddress("5 Many Clients Rd");
+        edit.setClients(List.of(keptAlan, client("Grace", "Hopper")));
+        mockMvc.perform(put("/api/bookings/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(edit)))
+                .andExpect(status().isOk());
+
+        List<Client> stored = clientRepository.findByBooking_IdOrderByPosition(id);
+        assertThat(stored).extracting(Client::getFirstName).containsExactly("Alan", "Grace");
+        assertThat(stored.getFirst().getId()).isEqualTo(alan.getId());
+        assertThat(stored.getFirst().getEmail()).isEqualTo("alan@example.com");
+        assertThat(clientRepository.count()).isEqualTo(2);
+
+        mockMvc.perform(get("/api/bookings/{id}", id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.clients[0].firstName").value("Alan"))
+                .andExpect(jsonPath("$.clients[1].firstName").value("Grace"));
+    }
+
+    @Test
+    void deletingABooking_removesItsClients() throws Exception {
+        UUID id = createBookingWithClients(client("Ada", "Lovelace"));
+
+        mockMvc.perform(delete("/api/bookings/{id}", id)).andExpect(status().isOk());
+
+        assertThat(clientRepository.count()).isZero();
     }
 
     @Test

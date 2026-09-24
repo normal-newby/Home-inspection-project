@@ -6,7 +6,6 @@ const id = params.get("id");
 
 const URI = id ? `/api/bookings/${id}` : `/api/bookings`
 const fields = ["inspectionAddress", "suite", "city", "postalCode", "province", // Address
-    "clientFirstName", "clientLastName", "email", "phone", // Client
     "month", "day", "year", "startTime", "durationMinutes", // Date
     "referredBy", "bookedBy", // Data
     "paidInFull", "removeTax", // Invoice
@@ -20,7 +19,7 @@ bookingFormEl.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!assertValidDate()) return;
 
-    const result = await saveWithInvoices();
+    const result = await saveBooking();
     if (!result.ok) {
         showDateError(result.message);
         return;
@@ -34,8 +33,9 @@ bookingFormEl.addEventListener("submit", async (e) => {
     notify("Booking saved");
 });
 
-async function saveWithInvoices() {
+async function saveBooking() {
     const bookingForm = collectForm(fields);
+    bookingForm.clients = collectClients();
     const invoices = [];
     invoiceList.querySelectorAll(".invoice-item").forEach(item => {
         const invoiceId = item.dataset.invoiceId.startsWith("local-") ? null : item.dataset.invoiceId; // Ignore local IDs
@@ -64,13 +64,97 @@ async function saveWithInvoices() {
     }
 }
 
-async function loadWithInvoices() {
-    const invoices = await loadForm(URI, fields);
-    invoices.forEach(invoice => createInvoice(invoice));
+async function loadBooking() {
+    const booking = await loadForm(URI, fields);
+    const clients = booking?.clients ?? [];
+    if (clients.length) clients.forEach(client => createClient(client));
+    else createClient();
+    (booking?.invoices ?? []).forEach(invoice => createInvoice(invoice));
     calculateTotals();
     // The saved date only reaches the picker once the fields have been filled in.
     syncPickerFromForm();
 }
+
+// Clients
+const clientList = document.getElementById("client-list");
+const addClientBtn = document.getElementById("add-client-btn");
+const clientFields = [
+    { key: "firstName", label: "First Name *", type: "text", required: true },
+    { key: "lastName", label: "Last Name *", type: "text", required: true },
+    { key: "email", label: "Email", type: "email" },
+    { key: "phone", label: "Phone Number", type: "tel" },
+];
+let clientCounter = 0;
+
+function createClient(client = {}) {
+    const entry = document.createElement("div");
+    entry.className = "client-entry";
+    if (client.id) entry.dataset.clientId = client.id;
+    const n = clientCounter++;
+
+    const header = document.createElement("div");
+    header.className = "client-header";
+    const label = document.createElement("span");
+    label.className = "client-label";
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.textContent = "✕";
+    removeBtn.className = "remove-btn";
+    removeBtn.title = "Remove client";
+    removeBtn.addEventListener("click", () => removeClient(entry));
+    header.append(label, removeBtn);
+
+    const grid = document.createElement("div");
+    grid.className = "form-grid";
+    clientFields.forEach(({ key, label: text, type, required }) => {
+        const field = document.createElement("div");
+        field.className = "field";
+        const fieldLabel = document.createElement("label");
+        fieldLabel.textContent = text;
+        const input = document.createElement("input");
+        input.type = type;
+        input.required = Boolean(required);
+        input.dataset.key = key;
+        input.value = client[key] ?? "";
+        fieldLabel.htmlFor = input.id = `client-${n}-${key}`;
+        field.append(fieldLabel, input);
+        grid.appendChild(field);
+    });
+
+    entry.append(header, grid);
+    clientList.appendChild(entry);
+    renumberClients();
+    return entry;
+}
+
+function removeClient(entry) {
+    if (clientList.children.length <= 1) return;
+    entry.remove();
+    renumberClients();
+}
+
+function renumberClients() {
+    const entries = clientList.querySelectorAll(".client-entry");
+    entries.forEach((entry, i) => {
+        const label = entry.querySelector(".client-label");
+        label.textContent = `Client ${i + 1}`;
+        entry.querySelector(".remove-btn").setAttribute("aria-label", `Remove client ${i + 1}`);
+    });
+}
+
+function collectClients() {
+    return [...clientList.querySelectorAll(".client-entry")].map(entry => {
+        const client = { id: entry.dataset.clientId ?? null };
+        entry.querySelectorAll("input[data-key]").forEach(input => {
+            client[input.dataset.key] = input.value.trim();
+        });
+        return client;
+    });
+}
+
+addClientBtn.addEventListener("click", () => {
+    createClient().querySelector("input").focus();
+});
 
 // Invoice
 const addInvoiceBtn = document.getElementById("add-invoice-btn");
@@ -370,7 +454,8 @@ async function deleteTemplate(id, row){
     }
 }
 
-if (id) loadWithInvoices();
+if (id) loadBooking();
+else createClient();
 loadTemplates();
 
 // Google Maps Autocomplete
