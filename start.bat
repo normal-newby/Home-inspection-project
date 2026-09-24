@@ -1,5 +1,15 @@
 @echo off
 title Home Inspection App
+cd /d "%~dp0"
+
+rem cmd reads .bat files as it runs, so if the pull changes this file, restart it from the top
+if not "%~1"=="--pulled" (
+    echo Pulling latest code...
+    git pull --ff-only
+    if errorlevel 1 echo WARNING: git pull failed, starting with local code.
+    call "%~f0" --pulled
+    exit /b
+)
 
 wsl docker info >nul 2>&1
 if not errorlevel 1 (
