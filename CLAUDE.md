@@ -31,13 +31,14 @@ sqlite3 data/database.db < seed/field_definitions.sql
   `ReportViewService.generatePdf` inlines `static/styles.css` and POSTs `{html, appendixBase64}` to
   `pdf-service /generate-pdf` → WeasyPrint. Appendix PDFs are converted to SVG pages (PyMuPDF) and added before `</body>`.
 - Images are base64-inlined into the report HTML; annotations are drawn onto the images at that point.
-- Data lives outside the repo image: `data/database.db` and `uploads/` (bind-mounted, gitignored).
+- Data lives outside the repo image: `data/database.db`, `uploads/` and `logs/` (bind-mounted, gitignored).
 - Optional integrations are configured in `home-inspection/.env` (loaded by Spring and by compose):
   `GOOGLE_CLIENT_ID/SECRET` (Calendar + sending email via the Gmail API), `GEMINI_API_KEY`. If blank, the feature turns off.
-  `RESEND_API_KEY` is bound to `resend.api-key` but nothing reads it.
 
 ## Gotchas
 
+- Logs: backend writes `logs/home-inspection.log` (repo-root `logs/` under Docker, `home-inspection/logs/` when run locally);
+  pdf-service errors only appear in `wsl docker compose logs pdf-service`.
 - **Two different `styles.css` files**: `static/styles.css` = PDF report styling; `static/css/styles.css` = web UI styling.
 - Keep SQLite in `journal_mode=DELETE` — WAL doesn't work on the WSL/Docker bind mount.
 - Default paths (`../data/database.db`, `../uploads`, pdf service at `localhost:3001`) assume the backend

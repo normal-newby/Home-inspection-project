@@ -37,6 +37,7 @@ def generate_pdf():
         )
 
     except Exception as e:
+        app.logger.exception("PDF generation failed")
         return {'error': str(e)}, 500
     
 

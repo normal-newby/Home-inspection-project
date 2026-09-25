@@ -22,3 +22,6 @@ database.db-shm
 backups/
 database.backup-*/
 database.snapshot-*/
+
+# docker backend logs (bind-mounted)
+logs/
