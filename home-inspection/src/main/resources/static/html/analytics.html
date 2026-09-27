@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics</title>
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/bookings.css">
+    <link rel="stylesheet" href="../css/dialog.css">
+    <link rel="stylesheet" href="../css/analytics.css">
+</head>
+<body>
+    <div class="navbar">
+        <div class="container">
+            <div class="navbarBox"><a href="index.html">Home</a></div>
+            <div class="navbarBox"><a href="booking.html">Book Inspection</a></div>
+            <div class="navbarBox"><a href="profile.html">Profile</a></div>
+            <div class="navbarBox"><a href="report_layout.html">Report Layout</a></div>
+            <div class="navbarBox"><a href="analytics.html" class="active">Analytics</a></div>
+        </div>
+    </div>
+
+    <div class="page analytics-page">
+        <div class="page-header">
+            <h1>Analytics</h1>
+            <p>Revenue and inspections by month. Revenue is before tax; the tax you collected is shown on its own.</p>
+        </div>
+
+        <div class="analytics-filters">
+            <div class="filter-group">
+                <span class="filter-group-label">Months</span>
+                <div class="month-range">
+                    <label class="sr-only" for="fromMonth">From month</label>
+                    <input type="month" id="fromMonth" required>
+                    <span class="month-range-to">to</span>
+                    <label class="sr-only" for="toMonth">To month</label>
+                    <input type="month" id="toMonth" required>
+                    <button type="button" class="booking-filter" data-preset="MONTH">This month</button>
+                    <button type="button" class="booking-filter" data-preset="YTD">Year to date</button>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <span class="filter-group-label">Status</span>
+                <div class="booking-filters" role="group" aria-label="Filter by booking status">
+                    <button type="button" class="booking-filter active" data-status="ALL">All</button>
+                    <button type="button" class="booking-filter" data-status="COMPLETED">Completed</button>
+                    <button type="button" class="booking-filter" data-status="SCHEDULED">Scheduled</button>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <span class="filter-group-label">Payment</span>
+                <div class="booking-filters" role="group" aria-label="Filter by payment">
+                    <button type="button" class="booking-filter active" data-payment="ALL">All</button>
+                    <button type="button" class="booking-filter" data-payment="PAID">Paid</button>
+                    <button type="button" class="booking-filter" data-payment="UNPAID">Unpaid</button>
+                </div>
+            </div>
+        </div>
+
+        <p class="analytics-note" hidden></p>
+
+        <div class="analytics-content">
+            <div class="stat-tiles">
+                <div class="stat-tile">
+                    <div class="stat-label">Revenue</div>
+                    <div class="stat-value" data-stat="revenue">–</div>
+                    <div class="stat-sub">Before tax</div>
+                </div>
+                <div class="stat-tile">
+                    <div class="stat-label">Inspections</div>
+                    <div class="stat-value" data-stat="inspections">–</div>
+                    <div class="stat-sub" data-stat="range">&nbsp;</div>
+                </div>
+                <div class="stat-tile">
+                    <div class="stat-label">Average fee</div>
+                    <div class="stat-value" data-stat="averageFee">–</div>
+                    <div class="stat-sub">Per inspection, before tax</div>
+                </div>
+                <div class="stat-tile">
+                    <div class="stat-label">Tax collected</div>
+                    <div class="stat-value" data-stat="tax">–</div>
+                    <div class="stat-sub">HST + GST</div>
+                </div>
+            </div>
+
+            <div class="analytics-grid">
+                <section class="analytics-card">
+                    <h2 class="analytics-card-title">Revenue per month</h2>
+                    <div class="chart-box"><canvas id="revenueChart" role="img" aria-label="Revenue per month"></canvas></div>
+                </section>
+                <section class="analytics-card">
+                    <h2 class="analytics-card-title">Inspections per month</h2>
+                    <div class="chart-box"><canvas id="inspectionsChart" role="img" aria-label="Inspections per month"></canvas></div>
+                </section>
+            </div>
+
+            <section class="analytics-card">
+                <h2 class="analytics-card-title">Service mix</h2>
+                <div class="bookings-table-wrap">
+                    <table class="bookings-table analytics-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Service</th>
+                                <th scope="col" class="cell-num">Count</th>
+                                <th scope="col" class="cell-num">Revenue</th>
+                                <th scope="col" class="cell-share">Share of revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody class="services-body"></tbody>
+                    </table>
+                </div>
+                <p class="analytics-empty services-empty" hidden>No invoices in this range.</p>
+            </section>
+
+            <section class="analytics-card">
+                <h2 class="analytics-card-title">Monthly breakdown</h2>
+                <div class="bookings-table-wrap">
+                    <table class="bookings-table analytics-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Month</th>
+                                <th scope="col" class="cell-num">Inspections</th>
+                                <th scope="col" class="cell-num">Revenue</th>
+                                <th scope="col" class="cell-num">Average fee</th>
+                                <th scope="col" class="cell-num">Tax</th>
+                            </tr>
+                        </thead>
+                        <tbody class="months-body"></tbody>
+                        <tfoot class="months-total"></tfoot>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </div>
+    <script src="../js/vendor/chart.umd.min.js"></script>
+    <script type="module" src="../js/analytics/analytics.js"></script>
+</body>
+</html>

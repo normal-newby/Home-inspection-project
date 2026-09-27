@@ -44,8 +44,12 @@ sqlite3 data/database.db < seed/field_definitions.sql
 - Default paths (`../data/database.db`, `../uploads`, pdf service at `localhost:3001`) assume the backend
   runs from inside `home-inspection/`.
 - `HomeInspectionApplicationTests` and `ReportTemplateRenderTest` have no `test` profile, so they boot
-  against the real `../data/database.db`. New Spring tests should use `@ActiveProfiles("test")`
+  against the real `../data/database.db` — `ddl-auto=update` and the startup `ApplicationRunner` migrations
+  in `config/` run against it too. When testing schema/migration changes, exclude them:
+  `-Dtest='!HomeInspectionApplicationTests,!ReportTemplateRenderTest'`. New Spring tests should use `@ActiveProfiles("test")`
   (throwaway db in `target/`; the pdf service points at a dead port, so mock `RestTemplate`).
+- Money columns are whole cents (`fee_cents`, via `CentsConverter`); `inspection_date` is ISO `yyyy-MM-dd` text
+  (`IsoDateConverter`) because Hibernate's default stores JVM-local-midnight millis, which shifts days between Docker (UTC) and local runs.
 - pdf-service outside Docker on Windows: WeasyPrint needs native Pango DLLs from MSYS2
   (`pacman -S mingw-w64-ucrt-x86_64-pango`) and the user env var `WEASYPRINT_DLL_DIRECTORIES=C:\msys64\ucrt64\bin`;
   `libgobject-2.0-0` import errors mean one of these is missing.

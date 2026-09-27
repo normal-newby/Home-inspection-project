@@ -1,5 +1,6 @@
 package ca.inspection.home.inspection.entity;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -11,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -55,6 +57,10 @@ public class InspectionBookings {
     private String month;
     private Integer day;
     private Integer year;
+
+    // Derived from month/day/year on every save, so it can be range-queried.
+    @Convert(converter = IsoDateConverter.class)
+    private LocalDate inspectionDate;
 
     // Start of the inspection as "HH:mm" (24h)
     private String startTime;

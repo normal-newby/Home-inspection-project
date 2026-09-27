@@ -171,6 +171,24 @@ public class InspectionBookingsServiceTest {
     }
 
     @Test
+    void createBooking_storesTheInspectionDate() {
+        InspectionBookings booking = new InspectionBookings();
+        booking.setMonth("March");
+        booking.setDay(14);
+        booking.setYear(2026);
+
+        when(inspectorProfileService.getAndUpdateNumber()).thenReturn(1);
+        when(inspectorProfileService.getProfile()).thenReturn(new InspectorProfile());
+        when(inspectionBookingsRepository.save(booking)).thenReturn(booking);
+        when(inspectionReportsRepository.save(any(InspectionReport.class)))
+                .thenAnswer(res -> res.getArgument(0));
+
+        inspectionBookingsService.createBooking(booking);
+
+        assertThat(booking.getInspectionDate()).isEqualTo(LocalDate.of(2026, 3, 14));
+    }
+
+    @Test
     void createBooking_impossibleDate_isRejectedBeforeAnythingIsSaved() {
         InspectionBookings booking = new InspectionBookings();
         booking.setMonth("February");
@@ -346,6 +364,42 @@ public class InspectionBookingsServiceTest {
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(booking.getId()).isEqualTo(id);
         verify(inspectionBookingsRepository).save(booking);
+    }
+
+    @Test
+    void updateBooking_rederivesTheInspectionDateFromTheForm() {
+        UUID id = UUID.randomUUID();
+        InspectionBookings existing = new InspectionBookings();
+        existing.setInspectionDate(LocalDate.of(2026, 3, 14));
+
+        InspectionBookings incoming = new InspectionBookings();
+        incoming.setMonth("April");
+        incoming.setDay(2);
+        incoming.setYear(2026);
+
+        when(inspectionBookingsRepository.findById(id)).thenReturn(Optional.of(existing));
+        when(inspectionBookingsRepository.save(incoming)).thenReturn(incoming);
+
+        inspectionBookingsService.updateBooking(id, incoming);
+
+        assertThat(incoming.getInspectionDate()).isEqualTo(LocalDate.of(2026, 4, 2));
+    }
+
+    @Test
+    void updateBooking_clearingTheDate_clearsTheInspectionDate() {
+        UUID id = UUID.randomUUID();
+        InspectionBookings existing = new InspectionBookings();
+        existing.setInspectionDate(LocalDate.of(2026, 3, 14));
+
+        InspectionBookings incoming = new InspectionBookings();
+        incoming.setInspectionDate(LocalDate.of(2026, 3, 14));
+
+        when(inspectionBookingsRepository.findById(id)).thenReturn(Optional.of(existing));
+        when(inspectionBookingsRepository.save(incoming)).thenReturn(incoming);
+
+        inspectionBookingsService.updateBooking(id, incoming);
+
+        assertThat(incoming.getInspectionDate()).isNull();
     }
 
     @Test

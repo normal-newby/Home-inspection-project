@@ -20,5 +20,7 @@ public class InvoiceDefinition {
     private UUID id;
 
     private String type;
+    @Convert(converter = CentsConverter.class)
+    @Column(name = "fee_cents")
     private BigDecimal fee;
 }

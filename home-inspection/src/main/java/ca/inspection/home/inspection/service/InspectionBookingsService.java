@@ -60,7 +60,7 @@ public class InspectionBookingsService {
     public InspectionBookings createBooking(InspectionBookings booking){
         log.info("Creating booking for {}", HelperFunctions.fullName(booking));
         // Rejects impossible dates (Feb 30, half-filled dates) before anything is written.
-        BookingSchedule.of(booking);
+        setInspectionDate(booking);
         booking.setInspectionNumber(inspectorProfileService.getAndUpdateNumber());
         // Set up invoices
         if (booking.getInvoices() != null){
@@ -193,7 +193,7 @@ public class InspectionBookingsService {
     }
 
     public ResponseEntity<?> updateBooking(UUID id, InspectionBookings booking){
-        BookingSchedule.of(booking);
+        setInspectionDate(booking);
         try {
             InspectionBookings existing = inspectionBookingsRepository.findById(id).orElse(null);
             if (existing == null){
@@ -253,6 +253,12 @@ public class InspectionBookingsService {
         }).collect(Collectors.toList());
     }
 
+    // Validates month/day/year (throws on an impossible date) and stores the result.
+    private static void setInspectionDate(InspectionBookings booking){
+        BookingSchedule schedule = BookingSchedule.of(booking);
+        booking.setInspectionDate(schedule == null ? null : schedule.date());
+    }
+
     // The form's order is the stored order, so the first client stays first.
     private static void attachClients(InspectionBookings booking){
         if (booking.getClients() == null) return;
@@ -291,6 +297,10 @@ public class InspectionBookingsService {
         BigDecimal subtotal = invoices.stream()
                 .map(Invoice::getFee)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return invoiceAmount(subtotal, removeTax);
+    }
+
+    public static InvoiceAmount invoiceAmount(BigDecimal subtotal, boolean removeTax){
         BigDecimal hst = removeTax ? BigDecimal.ZERO : subtotal.multiply(new BigDecimal("0.08"));
         BigDecimal gst = removeTax ? BigDecimal.ZERO : subtotal.multiply(new BigDecimal("0.05"));
         BigDecimal total = subtotal.add(hst).add(gst);
