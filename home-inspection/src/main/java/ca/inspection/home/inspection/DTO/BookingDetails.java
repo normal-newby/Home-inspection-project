@@ -16,6 +16,9 @@ public interface BookingDetails {
     String getPostalCode();
     String getProvince();
     List<Client> getClients();
+    String getAgentName();
+    String getAgentPhone();
+    String getAgentEmail();
     String getMonth();
     Integer getDay();
     Integer getYear();

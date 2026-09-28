@@ -141,6 +141,40 @@ public class InspectionBookingsFlowIT {
     }
 
     @Test
+    void agent_roundTripsThroughCreateAndEdit() throws Exception {
+        InspectionBookings payload = new InspectionBookings();
+        payload.setInspectionAddress("12 Agent St");
+        payload.setAgentName("Jane Realtor");
+        payload.setAgentPhone("416-555-0100");
+        payload.setAgentEmail("jane@realty.ca");
+        MvcResult created = mockMvc.perform(post("/api/bookings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(payload)))
+                .andExpect(status().isOk())
+                .andReturn();
+        UUID id = UUID.fromString(objectMapper.readTree(created.getResponse().getContentAsString())
+                .get("id").asString());
+
+        mockMvc.perform(get("/api/bookings/{id}", id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.agentName").value("Jane Realtor"))
+                .andExpect(jsonPath("$.agentPhone").value("416-555-0100"))
+                .andExpect(jsonPath("$.agentEmail").value("jane@realty.ca"));
+
+        InspectionBookings edit = new InspectionBookings();
+        edit.setInspectionAddress("12 Agent St");
+        edit.setAgentName("John Broker");
+        mockMvc.perform(put("/api/bookings/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(edit)))
+                .andExpect(status().isOk());
+
+        InspectionBookings persisted = bookingsRepository.findById(id).orElseThrow();
+        assertThat(persisted.getAgentName()).isEqualTo("John Broker");
+        assertThat(persisted.getAgentEmail()).isNull();
+    }
+
+    @Test
     void createBooking_withInvoices_persistsInvoicesLinkedToBooking() throws Exception {
         InspectionBookings payload = new InspectionBookings();
         payload.setInspectionAddress("77 Invoice Ln");

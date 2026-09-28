@@ -6,6 +6,7 @@ const id = params.get("id");
 
 const URI = id ? `/api/bookings/${id}` : `/api/bookings`
 const fields = ["inspectionAddress", "suite", "city", "postalCode", "province", // Address
+    "agentName", "agentPhone", "agentEmail", // Agent
     "month", "day", "year", "startTime", "durationMinutes", // Date
     "referredBy", "bookedBy", // Data
     "paidInFull", "removeTax", // Invoice

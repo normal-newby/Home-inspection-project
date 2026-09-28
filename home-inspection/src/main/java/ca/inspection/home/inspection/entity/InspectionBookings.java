@@ -53,6 +53,11 @@ public class InspectionBookings {
     @JsonManagedReference("clients")
     private List<Client> clients;
 
+    // Real estate agent on the deal
+    private String agentName;
+    private String agentPhone;
+    private String agentEmail;
+
     // Time
     private String month;
     private Integer day;
