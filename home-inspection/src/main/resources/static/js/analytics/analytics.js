@@ -127,6 +127,33 @@ async function load(){
     }
 }
 
+// ── Download ──
+
+const downloadButton = document.getElementById("downloadXlsx");
+
+// Fetched rather than linked, so a rejected range shows a toast instead of a JSON error page.
+downloadButton.addEventListener("click", async () => {
+    downloadButton.disabled = true;
+    try {
+        const response = await fetch(`/api/analytics/export?${new URLSearchParams(state)}`);
+        if (!response.ok) {
+            const body = await response.json().catch(() => null);
+            throw new Error(body?.message ?? "Could not build the spreadsheet.");
+        }
+        const name = response.headers.get("Content-Disposition")?.match(/filename="?([^"]+)"?/)?.[1] ?? "inspections.xlsx";
+        const url = URL.createObjectURL(await response.blob());
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = name;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error) {
+        notify(error.message || "Could not build the spreadsheet.", { error: true });
+    } finally {
+        downloadButton.disabled = false;
+    }
+});
+
 // ── Rendering ──
 
 function render(report){

@@ -1,5 +1,6 @@
 package ca.inspection.home.inspection.service;
 
+import ca.inspection.home.inspection.DTO.AnalyticsExportRow;
 import ca.inspection.home.inspection.DTO.AnalyticsReport;
 import ca.inspection.home.inspection.DTO.AnalyticsReport.MonthTotals;
 import ca.inspection.home.inspection.DTO.AnalyticsReport.ServiceTotals;
@@ -7,9 +8,13 @@ import ca.inspection.home.inspection.DTO.AnalyticsReport.Totals;
 import ca.inspection.home.inspection.DTO.AnalyticsRow;
 import ca.inspection.home.inspection.DTO.InvoiceAmount;
 import ca.inspection.home.inspection.entity.BookingStatus;
+import ca.inspection.home.inspection.entity.Client;
+import ca.inspection.home.inspection.entity.InspectionBookings;
+import ca.inspection.home.inspection.entity.Invoice;
 import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -21,7 +26,10 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class AnalyticsService {
@@ -34,12 +42,7 @@ public class AnalyticsService {
     private InspectionBookingsRepository inspectionBookingsRepository;
 
     public AnalyticsReport build(YearMonth from, YearMonth to, String status, String payment){
-        if (from.isAfter(to)) {
-            throw new IllegalArgumentException("The start month has to be on or before the end month.");
-        }
-        if (from.until(to, ChronoUnit.MONTHS) >= MAX_MONTHS) {
-            throw new IllegalArgumentException("Pick a range of " + MAX_MONTHS / 12 + " years or less.");
-        }
+        checkRange(from, to);
         BookingStatus wantedStatus = parseStatus(status);
         PaymentFilter wantedPayment = parsePayment(payment);
 
@@ -51,9 +54,7 @@ public class AnalyticsService {
         Map<String, ServiceTally> services = new LinkedHashMap<>();
 
         for (Booking booking : groupByBooking(inspectionBookingsRepository.findAnalyticsRows(from.atDay(1), to.atEndOfMonth()))) {
-            if (wantedStatus != null && booking.status != wantedStatus) continue;
-            if (wantedPayment == PaymentFilter.PAID && !booking.paid) continue;
-            if (wantedPayment == PaymentFilter.UNPAID && booking.paid) continue;
+            if (!matches(wantedStatus, wantedPayment, booking.status, booking.paid)) continue;
 
             BigDecimal subtotal = BigDecimal.ZERO;
             for (AnalyticsRow line : booking.lines) {
@@ -92,6 +93,70 @@ public class AnalyticsService {
                 serviceTotals,
                 inspectionBookingsRepository.countByInspectionDateIsNull()
         );
+    }
+
+    // Same range and filters as build(), one row per booking.
+    @Transactional(readOnly = true)
+    public List<AnalyticsExportRow> exportRows(YearMonth from, YearMonth to, String status, String payment){
+        checkRange(from, to);
+        BookingStatus wantedStatus = parseStatus(status);
+        PaymentFilter wantedPayment = parsePayment(payment);
+
+        return inspectionBookingsRepository.findForExport(from.atDay(1), to.atEndOfMonth()).stream()
+                .filter(booking -> matches(wantedStatus, wantedPayment,
+                        booking.getStatus(), Boolean.TRUE.equals(booking.getPaidInFull())))
+                .map(AnalyticsService::toExportRow)
+                .toList();
+    }
+
+    private static AnalyticsExportRow toExportRow(InspectionBookings booking){
+        List<Invoice> invoices = booking.getInvoices() == null ? List.of() : booking.getInvoices();
+        BigDecimal subtotal = invoices.stream()
+                .map(Invoice::getFee)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        String types = invoices.stream()
+                .map(Invoice::getType)
+                .filter(HelperFunctions::notBlank)
+                .map(String::trim)
+                .collect(Collectors.joining(", "));
+
+        return new AnalyticsExportRow(
+                booking.getInspectionNumber(),
+                booking.getInspectionDate(),
+                HelperFunctions.formatAddress(booking),
+                HelperFunctions.fullName(booking),
+                String.join("; ", HelperFunctions.clientEmails(booking)),
+                joinClients(booking, Client::getPhone),
+                booking.getAgentName(),
+                booking.getAgentPhone(),
+                booking.getAgentEmail(),
+                types,
+                InspectionBookingsService.invoiceAmount(subtotal, Boolean.TRUE.equals(booking.getRemoveTax()))
+        );
+    }
+
+    private static String joinClients(InspectionBookings booking, Function<Client, String> field){
+        return HelperFunctions.clients(booking).stream()
+                .map(field)
+                .filter(HelperFunctions::notBlank)
+                .map(String::trim)
+                .collect(Collectors.joining("; "));
+    }
+
+    private static void checkRange(YearMonth from, YearMonth to){
+        if (from.isAfter(to)) {
+            throw new IllegalArgumentException("The start month has to be on or before the end month.");
+        }
+        if (from.until(to, ChronoUnit.MONTHS) >= MAX_MONTHS) {
+            throw new IllegalArgumentException("Pick a range of " + MAX_MONTHS / 12 + " years or less.");
+        }
+    }
+
+    private static boolean matches(BookingStatus wantedStatus, PaymentFilter wantedPayment, BookingStatus status, boolean paid){
+        if (wantedStatus != null && status != wantedStatus) return false;
+        if (wantedPayment == PaymentFilter.PAID && !paid) return false;
+        return wantedPayment != PaymentFilter.UNPAID || !paid;
     }
 
     // "ALL" (or nothing) means no status filter.

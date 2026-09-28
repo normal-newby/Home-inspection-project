@@ -57,6 +57,9 @@
 
 .month-range .booking-filter:first-of-type { margin-left: 0.4rem; }
 
+.analytics-download { margin-left: auto; }
+.analytics-download:disabled { opacity: 0.6; cursor: progress; }
+
 .analytics-note {
     margin: -0.5rem 0 1.25rem;
     font-size: var(--fs-label);

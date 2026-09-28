@@ -44,4 +44,13 @@ public interface InspectionBookingsRepository extends JpaRepository<InspectionBo
         WHERE b.inspectionDate BETWEEN :from AND :to
     """)
     List<AnalyticsRow> findAnalyticsRows(@Param("from") LocalDate from, @Param("to") LocalDate to);
+
+    // Clients load lazily in batches (@BatchSize), so call this inside a transaction.
+    @Query("""
+        SELECT DISTINCT b FROM InspectionBookings b
+        LEFT JOIN FETCH b.invoices
+        WHERE b.inspectionDate BETWEEN :from AND :to
+        ORDER BY b.inspectionDate, b.inspectionNumber
+    """)
+    List<InspectionBookings> findForExport(@Param("from") LocalDate from, @Param("to") LocalDate to);
 }
