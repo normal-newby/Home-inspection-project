@@ -102,10 +102,10 @@
             </div>
         </div>
 
-        <!-- Google Calendar -->
+        <!-- Google account: calendar sync and emailing reports -->
         <div class="card collapsible" id="googleCalendarCard" data-card="google-calendar">
             <button type="button" class="card-toggle" aria-expanded="false" aria-controls="card-google-calendar">
-                <span class="card-title">Google Calendar</span>
+                <span class="card-title">Google</span>
                 <span class="card-chevron" aria-hidden="true"></span>
             </button>
             <div class="card-body" id="card-google-calendar" hidden>
@@ -114,6 +114,7 @@
                     <span id="calendarStatusText">Checking connection…</span>
                     <span class="calendar-account" id="calendarAccount"></span>
                 </div>
+                <p class="calendar-hint">Linking Google adds bookings to your calendar and sends reports from your Gmail.</p>
 
                 <div id="calendarConnected" style="display: none;">
                     <div class="field">
@@ -135,8 +136,8 @@
                 </p>
 
                 <div class="actions" style="margin-top: 1rem;">
-                    <button type="button" id="calendarDisconnectBtn" class="btn btn-secondary" style="display: none;">Disconnect</button>
-                    <button type="button" id="calendarConnectBtn" class="btn btn-primary">Connect Google Calendar</button>
+                    <button type="button" id="calendarDisconnectBtn" class="btn btn-secondary" style="display: none;">Unlink</button>
+                    <button type="button" id="calendarConnectBtn" class="btn btn-primary">Link Google</button>
                 </div>
             </div>
         </div>

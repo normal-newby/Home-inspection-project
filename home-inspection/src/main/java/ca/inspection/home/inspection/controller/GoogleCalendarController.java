@@ -37,7 +37,7 @@ public class GoogleCalendarController {
         if (!googleService.isConfigured()) {
             // Reached by typing the URL, or by a stale page
             return redirectToProfile("error",
-                    "Google Calendar is not set up yet. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to .env.");
+                    "Google is not set up yet. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to .env.");
         }
         return ResponseEntity.status(HttpStatus.FOUND)
                 .location(URI.create(googleService.buildAuthUrl()))
@@ -50,7 +50,7 @@ public class GoogleCalendarController {
                                          @RequestParam(required = false) String state,
                                          @RequestParam(required = false) String error) {
         if (error != null) {
-            log.warn("Google Calendar consent was declined: {}", error);
+            log.warn("Google consent was declined: {}", error);
             return redirectToProfile("error", "Google sign-in was cancelled.");
         }
         if (code == null || code.isBlank()) {
@@ -60,7 +60,7 @@ public class GoogleCalendarController {
             googleService.completeConnection(code, state);
             return redirectToProfile("connected", null);
         } catch (RuntimeException e) {
-            log.error("Google Calendar connection failed", e);
+            log.error("Google connection failed", e);
             return redirectToProfile("error", e.getMessage());
         }
     }

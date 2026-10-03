@@ -28,15 +28,15 @@ function render(status) {
     disconnectBtn.style.display = connected ? "inline-block" : "none";
     setupHint.style.display = configured ? "none" : "block";
 
-    connectBtn.textContent = connected ? "Reconnect" : "Connect Google Calendar";
+    connectBtn.textContent = connected ? "Relink" : "Link Google";
     connectBtn.disabled = !configured;
 
     if (!configured) {
         statusText.textContent = "Not set up";
     } else if (connected) {
-        statusText.textContent = "Connected";
+        statusText.textContent = "Linked";
     } else {
-        statusText.textContent = "Not connected — bookings stay in this app only";
+        statusText.textContent = "Not linked — bookings stay in this app only and reports cannot be emailed";
     }
     accountText.textContent = connected && account ? account : "";
 
@@ -68,9 +68,9 @@ async function loadStatus() {
         if (!res.ok) throw new Error("status request failed");
         render(await res.json());
     } catch (err) {
-        console.error("Could not load Google Calendar status:", err);
+        console.error("Could not load Google status:", err);
         statusText.textContent = "Unavailable";
-        notify("Could not read the Google Calendar settings.", { error: true });
+        notify("Could not read the Google settings.", { error: true });
     }
 }
 
@@ -87,7 +87,7 @@ async function saveSettings() {
         if (!res.ok) throw new Error("settings request failed");
         render(await res.json());
     } catch (err) {
-        console.error("Could not save Google Calendar settings:", err);
+        console.error("Could not save Google settings:", err);
         notify("Could not save the calendar settings.", { error: true });
     }
 }
@@ -98,16 +98,16 @@ connectBtn.addEventListener("click", () => {
 
 disconnectBtn.addEventListener("click", async () => {
     const confirmed = await confirmDialog(
-        "New bookings will stop being added to it. Events already there stay put.",
-        { title: "Disconnect Google Calendar?", confirmLabel: "Disconnect", danger: true }
+        "New bookings will stop being added to your calendar, and reports can no longer be emailed. Events already there stay put.",
+        { title: "Unlink Google?", confirmLabel: "Unlink", danger: true }
     );
     if (!confirmed) return;
     try {
         const res = await fetch(`${BASE}/disconnect`, { method: "POST" });
         if (!res.ok) throw new Error("disconnect request failed");
     } catch (err) {
-        console.error("Could not disconnect Google Calendar:", err);
-        notify("Could not disconnect from Google.", { error: true });
+        console.error("Could not unlink Google:", err);
+        notify("Could not unlink Google.", { error: true });
     }
     await loadStatus();
 });
@@ -118,7 +118,7 @@ enabledCheckbox.addEventListener("change", saveSettings);
 // The OAuth callback bounces back here with the outcome in the query string.
 const params = new URLSearchParams(window.location.search);
 if (params.get("calendar") === "error") {
-    notify(params.get("message") ?? "Could not connect to Google Calendar.", { error: true });
+    notify(params.get("message") ?? "Could not link Google.", { error: true });
 }
 if (params.has("calendar")) {
     window.history.replaceState({}, "", window.location.pathname);
