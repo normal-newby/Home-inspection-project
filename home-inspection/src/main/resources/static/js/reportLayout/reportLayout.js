@@ -1,4 +1,5 @@
 import { saveForm, loadForm } from "../formFactory.js";
+import { autoSaveOnLeave } from "../ui/autoSave.js";
 
 const URI = `/api/profile`;
 
@@ -7,18 +8,29 @@ const fields = ['coverLetterBody', 'summaryLetterBody', 'agreementBody', 'emailT
 const saveBtn = document.getElementById("saveBtn");
 const resetBtn = document.getElementById("resetBtn");
 
-saveBtn.addEventListener("click", () => saveWithPdf());
-resetBtn.addEventListener("click", () => loadForm(URI, fields));
+// Cover page images upload through their own button.
+const autoSave = autoSaveOnLeave(document.getElementById("reportLayoutForm"), saveWithPdf,
+    { ignore: '[data-card="cover-images"]' });
+
+saveBtn.addEventListener("click", async () => {
+    if (await saveWithPdf()) autoSave.markClean();
+});
+resetBtn.addEventListener("click", async () => {
+    await loadForm(URI, fields);
+    autoSave.markClean();
+});
 
 async function saveWithPdf() {
-    await saveForm(URI, fields);
+    if (!await saveForm(URI, fields)) return false;
 
     const fileEl = document.getElementById("appendixPdf");
     if (fileEl?.files[0]) {
         const formData = new FormData();
         formData.append("appendixPdf", fileEl.files[0]);
-        await fetch(`${URI}/appendix-pdf`, { method: "POST", body: formData });
+        const res = await fetch(`${URI}/appendix-pdf`, { method: "POST", body: formData }).catch(() => null);
+        if (!res?.ok) return false;
     }
+    return true;
 }
 
 loadForm(URI, fields);

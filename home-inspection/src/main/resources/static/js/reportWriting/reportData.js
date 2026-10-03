@@ -1,5 +1,6 @@
 import { saveForm, loadForm } from "../formFactory.js";
 import { notify } from "../ui/dialog.js";
+import { autoSaveOnLeave } from "../ui/autoSave.js";
 import { bookingId } from "./getReport.js";
 
 const URI = `/api/reports/${bookingId}`;
@@ -27,8 +28,15 @@ const saveBtn = document.getElementById("saveBtn");
 const resetBtn = document.getElementById("resetBtn");
 const generateSummaryBtn = document.getElementById("generateSummaryBtn");
 
-saveBtn.addEventListener("click", () => saveWithOthers());
-resetBtn.addEventListener("click", () => loadForm(URI, fields));
+const autoSave = autoSaveOnLeave(document.getElementById("reportForm"), saveWithOthers);
+
+saveBtn.addEventListener("click", async () => {
+    if (await saveWithOthers()) autoSave.markClean();
+});
+resetBtn.addEventListener("click", async () => {
+    await loadForm(URI, fields);
+    autoSave.markClean();
+});
 generateSummaryBtn?.addEventListener("click", () => generateSummary());
 
 async function generateSummary() {
@@ -43,6 +51,7 @@ async function generateSummary() {
         }
         const data = await res.json();
         document.getElementById("summary").value = data.summary ?? "";
+        autoSave.markDirty();
     } catch (err) {
         console.error("Error generating summary:", err);
         notify("Could not generate summary: " + err.message, { error: true });
@@ -53,21 +62,21 @@ async function generateSummary() {
 }
 
 async function saveWithOthers() {
-     await saveForm(URI, fields);
+    if (!await saveForm(URI, fields)) return false;
 
-     const fileEl = document.getElementById("appendixPdf");
-     if (fileEl?.files[0]) {
-        const formData = new FormData();
-        formData.append("file", fileEl.files[0]);
-        await fetch(`${URI}/appendix-pdf`, { method: "POST", body: formData });
-    }
+    const fileEl = document.getElementById("appendixPdf");
+    if (fileEl?.files[0] && !await upload(`${URI}/appendix-pdf`, fileEl.files[0])) return false;
 
     const coverPageEl = document.getElementById("coverPageImage");
-    if (coverPageEl?.files[0]) {
-        const formData = new FormData();
-        formData.append("file", coverPageEl.files[0]);
-        await fetch(`${URI_IMAGES}/cover-page-image`, { method: "POST", body: formData });
-    }
+    if (coverPageEl?.files[0] && !await upload(`${URI_IMAGES}/cover-page-image`, coverPageEl.files[0])) return false;
+    return true;
+}
+
+async function upload(url, file) {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch(url, { method: "POST", body: formData }).catch(() => null);
+    return Boolean(res?.ok);
 }
 
 loadForm(URI, fields);

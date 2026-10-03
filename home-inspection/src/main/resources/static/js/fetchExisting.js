@@ -24,15 +24,17 @@ export function saveFunction(e, textArea){
         notify("Select an item before saving a note.", { error: true });
         return;
     }
-    save(`/api/fields/${activeFieldButton.dataset.id}/note`, content);
+    return saveNote(activeFieldButton.dataset.id, content);
 }
 
-function save(URI, content){
-    fetch(URI,
+export function saveNote(fieldId, content){
+    // keepalive lets a save started by clicking a link away from the page still land.
+    return fetch(`/api/fields/${fieldId}/note`,
         {
             method: "POST",
             headers: { "Content-Type": "text/plain" },
-            body: content
+            body: content,
+            keepalive: true
         }
     )
     .then(response => {

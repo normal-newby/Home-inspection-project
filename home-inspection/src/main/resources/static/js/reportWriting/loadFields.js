@@ -2,7 +2,7 @@ import { bookingId } from "./getReport.js";
 import { initImagesGrid, refreshImagePool } from "./loadImages.js";
 import { addAnnotationCanvas } from "./imageAnnotation.js";
 import { setUpRecommendationsPanel, setUpDiagramsButton, saveRecommendationsIfOpen } from "./recommendations.js";
-import { fetchExisting, saveFunction } from "../fetchExisting.js";
+import { fetchExisting, saveFunction, saveNote } from "../fetchExisting.js";
 import { confirmDialog, notify, isOverlayClick } from "../ui/dialog.js";
 import { makeResizable } from "../ui/resizablePanel.js";
 
@@ -43,6 +43,27 @@ const recommendationsPanel = document.querySelector(".recommendations-panel");
 let currentRecommendationFieldId = null;
 
 let curField = null;
+
+// Typed but unsaved edits in the open item, saved once the inspector clicks elsewhere.
+let noteEditFieldId = null;
+let conditionNameEdited = false;
+
+noteTextArea.addEventListener("input", () => { noteEditFieldId = curField; });
+conditionNameInput.addEventListener("input", () => { conditionNameEdited = true; });
+
+function flushFieldEdits(){
+    const saves = [];
+    if (noteEditFieldId){
+        saves.push(saveNote(noteEditFieldId, noteTextArea.value));
+        noteEditFieldId = null;
+    }
+    // Only the explicit button adds a permanent value; that one asks for confirmation first.
+    if (conditionNameEdited && openBlankItem){
+        saves.push(saveConditionName(openBlankItem, conditionNameInput.value.trim(), false));
+        conditionNameEdited = false;
+    }
+    return Promise.all(saves);
+}
 
 async function loadInspectionFieldDefinitions(){
     console.log(`Loading fields for place: ${place}, type: ${type}`);
@@ -131,10 +152,22 @@ function createField(field, existingFields = []){
         showButton.textContent = "Show";
     }
 
+    // Shown fields sit at the top, so a field shown from further down moves up to join them
+    // and the page follows it there.
+    async function show(){
+        const firstHidden = [...contentFields.children]
+            .find(el => el !== fieldDiv && el.querySelector(".values")?.hidden);
+        if (firstHidden && firstHidden.compareDocumentPosition(fieldDiv) & Node.DOCUMENT_POSITION_FOLLOWING) {
+            contentFields.insertBefore(fieldDiv, firstHidden);
+        }
+        await expand();
+        fieldDiv.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
     showButton.addEventListener("click", (e) => {
         e.stopPropagation();
         if (valuesDiv.hidden) {
-            expand();
+            show();
         } else {
             collapse();
         }
@@ -153,9 +186,9 @@ function createField(field, existingFields = []){
             body: JSON.stringify(newState),
         });
 
-        if (newState) {
-            expand();
-        } 
+        if (newState && valuesDiv.hidden) {
+            show();
+        }
     });
 
     if (field.isShowing) {
@@ -228,6 +261,8 @@ function createExistingField(parent, field, definition){ // Creates buttons for 
     button.addEventListener("dblclick", async (e) => { // Double click to change image
         e.preventDefault();
         if (!await flushAnnotations()) return;
+        await flushFieldEdits();
+        noteEditFieldId = null;
 
         button.classList.add("current-button");
 
@@ -303,13 +338,13 @@ function openConditionName(field, button, definition, valuesDiv){
     openBlankItem = { field, button, definition, valuesDiv };
     conditionNameSection.hidden = false;
     conditionNameInput.value = field.conditionName ?? "";
+    conditionNameEdited = false;
     savePermanentValueBox.checked = false;
     setConditionMessage("");
 }
 
 saveConditionNameButton.addEventListener("click", async () => {
     if (!openBlankItem) return;
-    const { field, button, definition, valuesDiv } = openBlankItem;
     const name = conditionNameInput.value.trim();
 
     // Adding a permanent value changes every future report, so make sure that's intended.
@@ -326,13 +361,20 @@ saveConditionNameButton.addEventListener("click", async () => {
         if (!permanent) savePermanentValueBox.checked = false;
     }
 
+    conditionNameEdited = false;
+    await saveConditionName(openBlankItem, name, permanent);
+});
+
+async function saveConditionName(item, name, permanent){
+    const { field, button, definition, valuesDiv } = item;
     try {
         const response = await fetch(
             `/api/fields/${field.id}/condition-name?saveAsPermanentValue=${permanent}`,
             {
                 method: "PUT",
                 headers: { "Content-Type": "text/plain" },
-                body: name
+                body: name,
+                keepalive: true
             }
         );
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -354,8 +396,10 @@ saveConditionNameButton.addEventListener("click", async () => {
     } catch (error){
         console.error("Error saving condition name:", error);
         setConditionMessage("Could not save the condition name.", true);
+        // A save made on the way out has no panel left to show the message in.
+        if (selectImageDiv.hidden) notify("Could not save the condition name.", { error: true });
     }
-});
+}
 
 async function addExistingImages(bookingId, selectImageDiv, fieldId, images){
     const grid = await initImagesGrid(bookingId, selectImageDiv); // Only images not yet used for the report
@@ -643,6 +687,7 @@ function markActiveTabs(){
 }
 
 async function closeFieldPanel(){
+    await flushFieldEdits();
     if (!await flushAnnotations()) return false;
     await saveRecommendationsIfOpen();
     selectImageDiv.hidden = true;
@@ -689,9 +734,13 @@ window.addEventListener("popstate", async () => {
     loadInspectionFieldDefinitions();
 });
 
-saveNoteButton.addEventListener("click", (e) => saveFunction(e, noteTextArea));
+saveNoteButton.addEventListener("click", (e) => {
+    noteEditFieldId = null;
+    saveFunction(e, noteTextArea);
+});
 
 recommendationsButton.addEventListener("click", () => {
+    flushFieldEdits();
     selectImageDiv.hidden = true;
     recommendationsPanel.hidden = false;
     if (currentRecommendationFieldId) {
@@ -713,6 +762,8 @@ document.addEventListener("click", async (e) => {
         || diagramsButton.contains(e.target);
 
     if (!clickedInsideSelect && !clickedInsideRecommendations) {
+        // Started before any await, so a click on a link still sends it before the page goes.
+        flushFieldEdits();
         if (selectImageDiv.hidden === false && !await flushAnnotations()) return; // stay open, work kept
         await saveRecommendationsIfOpen();
 
@@ -724,7 +775,7 @@ document.addEventListener("click", async (e) => {
 
 // A reload or a click on another page cannot be intercepted and saved, so warn instead.
 window.addEventListener("beforeunload", (e) => {
-    if (sharedState.hasUnsavedAnnotations?.()) e.preventDefault();
+    if (sharedState.hasUnsavedAnnotations?.() || noteEditFieldId || conditionNameEdited) e.preventDefault();
 });
 
 loadInspectionFieldDefinitions();

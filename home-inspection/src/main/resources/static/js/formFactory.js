@@ -35,10 +35,11 @@ export async function saveForm(URI, fields, method = "POST") {
         notify("Saved successfully!");
 
         const body = await res.text();
-        return body ? JSON.parse(body) : null;
+        return body ? JSON.parse(body) : true;
     } catch (err) {
         console.error('Error saving form:', err);
         notify("Could not save. Please try again.", { error: true });
+        return false;
     }
 }
 
