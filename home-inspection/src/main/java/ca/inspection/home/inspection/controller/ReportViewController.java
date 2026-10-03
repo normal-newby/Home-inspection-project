@@ -59,6 +59,18 @@ public class ReportViewController {
                 .body(pdf);
     }
 
+    // Lets the page check the Google link and show who the report goes to before sending.
+    @GetMapping("/{bookingId}/email")
+    @ResponseBody
+    public Map<String, Object> emailRecipients(@PathVariable UUID bookingId){
+        List<String> emails = HelperFunctions.clientEmails(inspectionBookingsService.findById(bookingId));
+
+        Map<String, Object> recipients = new HashMap<>(Map.of("linked", googleEmailService.isLinked(), "to", emails));
+        String cc = emails.isEmpty() ? null : googleEmailService.ccFor(emails);
+        if (cc != null) recipients.put("cc", cc);
+        return recipients;
+    }
+
     @PostMapping("/{bookingId}/email")
     public ResponseEntity<?> emailReport(@PathVariable UUID bookingId){
         try {
@@ -69,9 +81,9 @@ public class ReportViewController {
                 return ResponseEntity.badRequest().body(Map.of("error", "booking has no email"));
             }
 
-            if (!googleEmailService.isConfigured()) {
+            if (!googleEmailService.isLinked()) {
                 return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                        .body(Map.of("error", "Email or API key not set up"));
+                        .body(Map.of("error", "Google is not linked. Link it on the Profile page to send emails."));
             }
 
             InspectionReport report = inspectionReportsRepository.findByInspectionBooking_Id(bookingId);

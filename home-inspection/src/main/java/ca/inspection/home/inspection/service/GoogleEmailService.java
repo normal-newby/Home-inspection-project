@@ -45,6 +45,15 @@ public class GoogleEmailService {
         return googleService.isConfigured();
     }
 
+    // Sending needs both the OAuth client in .env and an inspector who has linked their account.
+    public boolean isLinked(){
+        return googleService.isConfigured() && googleService.isConnected();
+    }
+
+    public String ccFor(List<String> toEmails){
+        return inspectorCc(inspectorProfileService.getProfile(), toEmails);
+    }
+
     // Returns the address the inspector was copied on, or null if there was none to use.
     public String sendReportEmail(List<String> toEmails, byte[] pdfBytes, InspectionBookings booking, String template){
         InspectorProfile profile = inspectorProfileService.getProfile();
