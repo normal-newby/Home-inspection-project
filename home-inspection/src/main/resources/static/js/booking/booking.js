@@ -1,7 +1,7 @@
 import { collectForm, loadForm } from "../formFactory.js";
 import { assertValidDate, syncPickerFromForm, showDateError } from "./bookingDate.js";
-import { notify, confirmDialog } from "../ui/dialog.js";
-import { autoSaveOnLeave } from "../ui/autoSave.js";
+import { notify, confirmDialog, askToSave } from "../ui/dialog.js";
+import { askToSaveOnLeave, holdClickAway } from "../ui/unsaved.js";
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
@@ -18,7 +18,7 @@ const bookingFormEl = document.getElementById("booking-form");
 const method = id ? "PUT" : "POST";
 
 // Invoice templates live inside the form but are saved on their own.
-const autoSave = autoSaveOnLeave(bookingFormEl, autoSaveBooking,
+const unsaved = askToSaveOnLeave(bookingFormEl, saveBookingOnLeave,
     { ignore: "#template-form, #template-manage-list, #select-from-template" });
 
 bookingFormEl.addEventListener("submit", async (e) => {
@@ -30,7 +30,7 @@ bookingFormEl.addEventListener("submit", async (e) => {
         showDateError(result.message);
         return;
     }
-    autoSave.markClean();
+    unsaved.markClean();
     // New inspection lands on its own booking page, so a second save edits it
     if (!id && result.booking && result.booking.id) {
         window.location.href = `booking.html?id=${result.booking.id}`;
@@ -40,7 +40,7 @@ bookingFormEl.addEventListener("submit", async (e) => {
     notify("Booking saved");
 });
 
-async function autoSaveBooking() {
+async function saveBookingOnLeave() {
     if (!bookingFormEl.reportValidity() || !assertValidDate()) return false;
     const result = await saveBooking();
     if (!result.ok) showDateError(result.message);
@@ -117,7 +117,7 @@ function createClient(client = {}) {
     removeBtn.title = "Remove client";
     removeBtn.addEventListener("click", () => {
         removeClient(entry);
-        autoSave.markDirty();
+        unsaved.markDirty();
     });
     header.append(label, removeBtn);
 
@@ -171,7 +171,7 @@ function collectClients() {
 
 addClientBtn.addEventListener("click", () => {
     createClient().querySelector("input").focus();
-    autoSave.markDirty();
+    unsaved.markDirty();
 });
 
 // Invoice
@@ -246,7 +246,7 @@ addInvoiceBtn.addEventListener("click", () => {
         };
         createInvoice(invoice);
         calculateTotals();
-        autoSave.markDirty();
+        unsaved.markDirty();
     }
 });
 
@@ -254,7 +254,7 @@ function removeInvoice(invoiceId){
     const invoiceItem = invoiceList.querySelector(`[data-invoice-id="${invoiceId}"]`);
     invoiceItem.remove();
     calculateTotals();
-    autoSave.markDirty();
+    unsaved.markDirty();
 }
 
 // Templates
@@ -265,7 +265,7 @@ const createTemplateBtn = document.getElementById("add-template-btn");
 const saveTemplateBtn = document.getElementById("save-template-btn");
 const templateForm = document.getElementById("template-form");
 const templateManageList = document.getElementById("template-manage-list");
-const templateEdits = new WeakMap(); // open editor row -> saves it if its inputs changed
+const templateEdits = new WeakMap(); // open editor row -> { edited, save, discard }
 
 createTemplateBtn.addEventListener("click", () => {
     templateForm.classList.toggle("open");
@@ -273,39 +273,57 @@ createTemplateBtn.addEventListener("click", () => {
 
 saveTemplateBtn.addEventListener("click", saveNewTemplate);
 
-// Clicking away from a template being written or edited saves it.
-document.addEventListener("pointerdown", e => {
-    if (templateForm.classList.contains("open") && !templateForm.contains(e.target)) {
+const newTemplate = {
+    edited: () => {
         const { type, fee } = collectForm(templateFields);
-        if (type.trim() && fee !== "") saveNewTemplate();
-    }
-    templateManageList.querySelectorAll(".template-row.open").forEach(row => {
-        if (!row.contains(e.target)) templateEdits.get(row)?.();
-    });
-}, true);
+        return templateForm.classList.contains("open") && Boolean(type.trim()) && fee !== "";
+    },
+    save: saveNewTemplate,
+    discard: clearNewTemplate
+};
 
-let savingNewTemplate = false; // two quick clicks away would otherwise save it twice
+// Unsaved templates the click at target would walk away from.
+function templatesLeftBy(target){
+    const left = [];
+    if (!templateForm.contains(target) && newTemplate.edited()) left.push(newTemplate);
+    templateManageList.querySelectorAll(".template-row.open").forEach(row => {
+        const edit = templateEdits.get(row);
+        if (!row.contains(target) && edit?.edited()) left.push(edit);
+    });
+    return left;
+}
+
+holdClickAway(target => templatesLeftBy(target).length > 0, async target => {
+    const choice = await askToSave("The invoice template you were editing has not been saved.");
+    if (!choice) return false;
+    const results = await Promise.all(templatesLeftBy(target).map(t => choice === "save" ? t.save() : t.discard()));
+    return choice === "discard" || results.every(Boolean);
+});
+
+let savingNewTemplate = false; // two quick saves would otherwise add it twice
 
 async function saveNewTemplate() {
-    if (savingNewTemplate) return;
+    if (savingNewTemplate) return false;
     savingNewTemplate = true;
-    // keepalive lets a save started by clicking a link away from the page still land.
     const res = await fetch(templateURI, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(collectForm(templateFields)),
-        keepalive: true
+        body: JSON.stringify(collectForm(templateFields))
     }).catch(() => null);
     savingNewTemplate = false;
     if (!res?.ok) {
         notify("Could not save the template.", { error: true });
-        return;
+        return false;
     }
     notify("Template saved");
-    // Cleared so the same template is not saved twice by the next click away.
-    templateFields.forEach(f => { document.getElementById(f).value = ""; });
+    clearNewTemplate();
     templateForm.classList.remove("open");
     loadTemplates();
+    return true;
+}
+
+function clearNewTemplate() {
+    templateFields.forEach(f => { document.getElementById(f).value = ""; });
 }
 
 // The manage list is left alone when only a row's labels changed, so an editor being opened keeps its state.
@@ -433,10 +451,13 @@ function createTemplateManageRow(template){
     cancelBtn.type = "button";
     cancelBtn.textContent = "Cancel";
     cancelBtn.className = "btn btn-secondary";
-    cancelBtn.addEventListener("click", () => {
-        // Drop any half-made edit so reopening shows what is actually stored.
+    // Drop any half-made edit so reopening shows what is actually stored.
+    const discardEdit = () => {
         typeInput.value = template.type;
         feeInput.value = template.fee;
+    };
+    cancelBtn.addEventListener("click", () => {
+        discardEdit();
         openTemplateRow(row);
     });
 
@@ -445,9 +466,10 @@ function createTemplateManageRow(template){
     saveBtn.textContent = "Save";
     saveBtn.className = "btn btn-primary";
     saveBtn.addEventListener("click", () => saveTemplateEdit(template, typeInput, feeInput, saveBtn));
-    templateEdits.set(row, () => {
-        const edited = typeInput.value.trim() !== template.type || parseFloat(feeInput.value) !== Number(template.fee);
-        if (edited && !saveBtn.disabled) saveTemplateEdit(template, typeInput, feeInput, saveBtn);
+    templateEdits.set(row, {
+        edited: () => typeInput.value.trim() !== template.type || parseFloat(feeInput.value) !== Number(template.fee),
+        save: () => saveTemplateEdit(template, typeInput, feeInput, saveBtn),
+        discard: discardEdit
     });
 
     actions.append(cancelBtn, saveBtn);
@@ -472,17 +494,15 @@ async function saveTemplateEdit(template, typeInput, feeInput, saveBtn){
 
     if (!type || Number.isNaN(fee)){
         notify("Enter a type and valid fee before saving", { error: true });
-        return;
+        return false;
     }
 
     saveBtn.disabled = true;
     try {
-        // keepalive lets a save started by clicking a link away from the page still land.
         const res = await fetch(`${templateURI}/${template.id}`, {
             method: "PUT",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({type, fee}),
-            keepalive: true
+            body: JSON.stringify({type, fee})
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         template.type = type;
@@ -492,9 +512,11 @@ async function saveTemplateEdit(template, typeInput, feeInput, saveBtn){
         row.querySelector(".template-fee").textContent = `$${fee.toFixed(2)}`;
         await loadTemplates({ redrawList: false });
         notify("Template updated");
+        return true;
     } catch (error){
         console.error("Error updating template:", error);
         notify("Could not update template", { error: true });
+        return false;
     } finally {
         saveBtn.disabled = false;
     }

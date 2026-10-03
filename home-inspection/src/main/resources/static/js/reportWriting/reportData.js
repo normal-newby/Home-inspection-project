@@ -1,6 +1,6 @@
 import { saveForm, loadForm } from "../formFactory.js";
 import { notify } from "../ui/dialog.js";
-import { autoSaveOnLeave } from "../ui/autoSave.js";
+import { askToSaveOnLeave } from "../ui/unsaved.js";
 import { bookingId } from "./getReport.js";
 
 const URI = `/api/reports/${bookingId}`;
@@ -28,14 +28,14 @@ const saveBtn = document.getElementById("saveBtn");
 const resetBtn = document.getElementById("resetBtn");
 const generateSummaryBtn = document.getElementById("generateSummaryBtn");
 
-const autoSave = autoSaveOnLeave(document.getElementById("reportForm"), saveWithOthers);
+const unsaved = askToSaveOnLeave(document.getElementById("reportForm"), saveWithOthers);
 
 saveBtn.addEventListener("click", async () => {
-    if (await saveWithOthers()) autoSave.markClean();
+    if (await saveWithOthers()) unsaved.markClean();
 });
 resetBtn.addEventListener("click", async () => {
     await loadForm(URI, fields);
-    autoSave.markClean();
+    unsaved.markClean();
 });
 generateSummaryBtn?.addEventListener("click", () => generateSummary());
 
@@ -51,7 +51,7 @@ async function generateSummary() {
         }
         const data = await res.json();
         document.getElementById("summary").value = data.summary ?? "";
-        autoSave.markDirty();
+        unsaved.markDirty();
     } catch (err) {
         console.error("Error generating summary:", err);
         notify("Could not generate summary: " + err.message, { error: true });

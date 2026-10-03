@@ -1,5 +1,5 @@
 import { saveForm, loadForm } from "../formFactory.js";
-import { autoSaveOnLeave } from "../ui/autoSave.js";
+import { askToSaveOnLeave } from "../ui/unsaved.js";
 
 const URI = `/api/profile`;
 
@@ -11,15 +11,15 @@ const saveBtn = document.getElementById("saveBtn");
 const resetBtn = document.getElementById("resetBtn");
 
 // The Google card saves its own settings as they change.
-const autoSave = autoSaveOnLeave(document.getElementById("profileForm"),
+const unsaved = askToSaveOnLeave(document.getElementById("profileForm"),
     async () => Boolean(await saveForm(URI, fields)), { ignore: "#googleCalendarCard" });
 
 saveBtn.addEventListener("click", async () => {
-    if (await saveForm(URI, fields)) autoSave.markClean();
+    if (await saveForm(URI, fields)) unsaved.markClean();
 });
 resetBtn.addEventListener("click", async () => {
     await loadForm(URI, fields);
-    autoSave.markClean();
+    unsaved.markClean();
 });
 
 loadForm(URI, fields);

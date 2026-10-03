@@ -1,5 +1,5 @@
 import { saveForm, loadForm } from "../formFactory.js";
-import { autoSaveOnLeave } from "../ui/autoSave.js";
+import { askToSaveOnLeave } from "../ui/unsaved.js";
 
 const URI = `/api/profile`;
 
@@ -9,15 +9,15 @@ const saveBtn = document.getElementById("saveBtn");
 const resetBtn = document.getElementById("resetBtn");
 
 // Cover page images upload through their own button.
-const autoSave = autoSaveOnLeave(document.getElementById("reportLayoutForm"), saveWithPdf,
+const unsaved = askToSaveOnLeave(document.getElementById("reportLayoutForm"), saveWithPdf,
     { ignore: '[data-card="cover-images"]' });
 
 saveBtn.addEventListener("click", async () => {
-    if (await saveWithPdf()) autoSave.markClean();
+    if (await saveWithPdf()) unsaved.markClean();
 });
 resetBtn.addEventListener("click", async () => {
     await loadForm(URI, fields);
-    autoSave.markClean();
+    unsaved.markClean();
 });
 
 async function saveWithPdf() {

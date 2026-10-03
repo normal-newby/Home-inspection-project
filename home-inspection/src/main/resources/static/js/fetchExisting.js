@@ -28,21 +28,21 @@ export function saveFunction(e, textArea){
 }
 
 export function saveNote(fieldId, content){
-    // keepalive lets a save started by clicking a link away from the page still land.
     return fetch(`/api/fields/${fieldId}/note`,
         {
             method: "POST",
             headers: { "Content-Type": "text/plain" },
-            body: content,
-            keepalive: true
+            body: content
         }
     )
     .then(response => {
         if (!response.ok) throw new Error(response.status);
         notify("Note saved");
+        return true;
     })
     .catch(error => {
         console.error(error);
         notify("Could not save the note.", { error: true });
+        return false;
     });
 }

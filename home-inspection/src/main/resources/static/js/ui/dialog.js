@@ -22,6 +22,22 @@ export function confirmDialog(message, options = {}){
         danger = false
     } = options;
 
+    return showDialog(message, title, [
+        { label: cancelLabel, style: "secondary", value: false },
+        { label: confirmLabel, style: danger ? "danger" : "primary", value: true }
+    ], false);
+}
+
+// asks before saving
+export function askToSave(message, { title = "Save changes?" } = {}){
+    return showDialog(message, title, [
+        { label: "Keep editing", style: "secondary", value: null },
+        { label: "Don't save", style: "secondary", value: "discard" },
+        { label: "Save", style: "primary", value: "save" }
+    ], null);
+}
+
+function showDialog(message, title, choices, dismissValue){
     // A second question while one is open would strand the first promise.
     openDialog?.cancel();
 
@@ -44,17 +60,16 @@ export function confirmDialog(message, options = {}){
         const actions = document.createElement("div");
         actions.className = "app-dialog-actions";
 
-        const cancel = document.createElement("button");
-        cancel.type = "button";
-        cancel.className = "app-dialog-button secondary";
-        cancel.textContent = cancelLabel;
+        const buttons = choices.map(choice => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = `app-dialog-button ${choice.style}`;
+            button.textContent = choice.label;
+            button.addEventListener("click", () => close(choice.value));
+            return button;
+        });
 
-        const confirm = document.createElement("button");
-        confirm.type = "button";
-        confirm.className = `app-dialog-button ${danger ? "danger" : "primary"}`;
-        confirm.textContent = confirmLabel;
-
-        actions.append(cancel, confirm);
+        actions.append(...buttons);
         panel.append(heading, body, actions);
         backdrop.appendChild(panel);
 
@@ -72,30 +87,27 @@ export function confirmDialog(message, options = {}){
             if (e.key === "Escape"){
                 e.preventDefault();
                 e.stopPropagation();
-                close(false);
+                close(dismissValue);
                 return;
             }
             // Keep tabbing inside the dialog while it is up.
             if (e.key === "Tab"){
-                const focusable = [cancel, confirm];
-                const index = focusable.indexOf(document.activeElement);
+                const index = buttons.indexOf(document.activeElement);
                 if (index === -1) return;
                 e.preventDefault();
                 const next = e.shiftKey ? index - 1 : index + 1;
-                focusable[(next + focusable.length) % focusable.length].focus();
+                buttons[(next + buttons.length) % buttons.length].focus();
             }
         }
 
-        cancel.addEventListener("click", () => close(false));
-        confirm.addEventListener("click", () => close(true));
         backdrop.addEventListener("mousedown", e => {
-            if (e.target === backdrop) close(false);
+            if (e.target === backdrop) close(dismissValue);
         });
         document.addEventListener("keydown", onKeyDown, true);
 
-        openDialog = { cancel: () => close(false) };
+        openDialog = { cancel: () => close(dismissValue) };
         document.body.appendChild(backdrop);
-        confirm.focus();
+        buttons.at(-1).focus();
     });
 }
 
