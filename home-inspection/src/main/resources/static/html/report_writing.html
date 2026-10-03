@@ -93,7 +93,10 @@
             <!-- Fields! -->
             <p class="helper-text">Click an item to add. Highlighted items are already added — right-click to delete, double-click to edit.</p>
 
-            <input type="text" class="field-search" placeholder="search fields"></input>
+            <div class="field-search-wrap">
+                <input type="search" class="field-search" placeholder="Search all fields and values" autocomplete="off">
+                <div class="field-search-results" hidden></div>
+            </div>
             <div class="fields"></div>
 
             <!-- Select image / annotation box -->

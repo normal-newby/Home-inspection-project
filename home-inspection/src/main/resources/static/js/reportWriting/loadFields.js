@@ -3,8 +3,10 @@ import { initImagesGrid, refreshImagePool } from "./loadImages.js";
 import { addAnnotationCanvas } from "./imageAnnotation.js";
 import { setUpRecommendationsPanel, setUpDiagramsButton, saveRecommendationsIfOpen } from "./recommendations.js";
 import { fetchExisting, saveFunction, saveNote } from "../fetchExisting.js";
-import { confirmDialog, notify, isOverlayClick } from "../ui/dialog.js";
+import { confirmDialog, askToSave, notify, isOverlayClick } from "../ui/dialog.js";
+import { holdClickAway } from "../ui/unsaved.js";
 import { makeResizable } from "../ui/resizablePanel.js";
+import { setUpFieldSearch, fieldMatches, addSearchValue } from "./fieldSearch.js";
 
 const params = new URLSearchParams(window.location.search);
 let place = params.get("place");
@@ -14,6 +16,7 @@ export const buttons = document.querySelectorAll('.component_button:not(.compone
 export const lowerButtons = document.querySelectorAll('.component_button_lower');
 
 const searchBar = document.querySelector(".field-search");
+const searchResults = document.querySelector(".field-search-results");
 const contentFields = document.querySelector(".fields");
 const selectImageDiv = document.querySelector(".select-image-box");
 const existingImageDiv = document.querySelector(".existing-image-div");
@@ -44,26 +47,46 @@ let currentRecommendationFieldId = null;
 
 let curField = null;
 
-// Typed but unsaved edits in the open item, saved once the inspector clicks elsewhere.
+// Definition id -> that field's show(), so a search result can open it.
+const fieldShowers = new Map();
+
+// Typed but unsaved edits in the open item; leaving the item asks whether to save them.
 let noteEditFieldId = null;
 let conditionNameEdited = false;
 
 noteTextArea.addEventListener("input", () => { noteEditFieldId = curField; });
 conditionNameInput.addEventListener("input", () => { conditionNameEdited = true; });
 
-function flushFieldEdits(){
-    const saves = [];
-    if (noteEditFieldId){
-        saves.push(saveNote(noteEditFieldId, noteTextArea.value));
-        noteEditFieldId = null;
-    }
-    // Only the explicit button adds a permanent value; that one asks for confirmation first.
-    if (conditionNameEdited && openBlankItem){
-        saves.push(saveConditionName(openBlankItem, conditionNameInput.value.trim(), false));
-        conditionNameEdited = false;
-    }
-    return Promise.all(saves);
+function hasFieldEdits(){
+    return Boolean(noteEditFieldId) || (conditionNameEdited && Boolean(openBlankItem));
 }
+
+/** Resolves true once the open item's edits are saved or discarded, false to keep editing. */
+async function confirmFieldEdits(){
+    if (!hasFieldEdits()) return true;
+    const edited = [noteEditFieldId && "note", conditionNameEdited && openBlankItem && "condition name"].filter(Boolean);
+    const choice = await askToSave(`Your changes to this item's ${edited.join(" and ")} have not been saved.`);
+    if (!choice) return false;
+    if (choice === "discard"){
+        noteEditFieldId = null;
+        conditionNameEdited = false;
+        return true;
+    }
+
+    const saves = [];
+    if (noteEditFieldId) saves.push(saveNote(noteEditFieldId, noteTextArea.value));
+    // Only the explicit button adds a permanent value; that one asks for confirmation first.
+    if (conditionNameEdited && openBlankItem) saves.push(saveConditionName(openBlankItem, conditionNameInput.value.trim(), false));
+    if (!(await Promise.all(saves)).every(Boolean)) return false; // stay, so the failed edit is not lost
+    noteEditFieldId = null;
+    conditionNameEdited = false;
+    return true;
+}
+
+// The Recommendations and Diagrams buttons sit in the panel but swap it out.
+holdClickAway(target => hasFieldEdits()
+    && (!selectImageDiv.contains(target) || recommendationsButton.contains(target) || diagramsButton.contains(target)),
+    confirmFieldEdits);
 
 async function loadInspectionFieldDefinitions(){
     console.log(`Loading fields for place: ${place}, type: ${type}`);
@@ -89,10 +112,12 @@ async function loadInspectionFieldDefinitions(){
     });
 
     contentFields.innerHTML = "";
+    fieldShowers.clear();
     fieldsWithExisting.forEach(({ field, existingFields, existingCount, pinned }) => {
         field.isShowing = existingCount > 0 || pinned; // Show if there are existing fields or if pinned
         createField(field, existingFields);
     });
+    filterCurrentFields();
 }
 
 function createField(field, existingFields = []){
@@ -163,6 +188,7 @@ function createField(field, existingFields = []){
         await expand();
         fieldDiv.scrollIntoView({ behavior: "smooth", block: "start" });
     }
+    fieldShowers.set(String(field.id), show);
 
     showButton.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -261,8 +287,7 @@ function createExistingField(parent, field, definition){ // Creates buttons for 
     button.addEventListener("dblclick", async (e) => { // Double click to change image
         e.preventDefault();
         if (!await flushAnnotations()) return;
-        await flushFieldEdits();
-        noteEditFieldId = null;
+        if (!await confirmFieldEdits()) return;
 
         button.classList.add("current-button");
 
@@ -373,8 +398,7 @@ async function saveConditionName(item, name, permanent){
             {
                 method: "PUT",
                 headers: { "Content-Type": "text/plain" },
-                body: name,
-                keepalive: true
+                body: name
             }
         );
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -387,17 +411,18 @@ async function saveConditionName(item, name, permanent){
         if (result.savedPermanently){
             // Show the new option immediately instead of waiting for the next page load.
             if (definition && valuesDiv) createButton(valuesDiv, { value: name }, definition.id);
+            if (definition) addSearchValue(definition.id, name);
             setConditionMessage("Saved, and added as a permanent value.");
         } else if (result.alreadyExisted){
             setConditionMessage("Saved. That value was already on the list.");
         } else {
             setConditionMessage("Saved for this report.");
         }
+        return true;
     } catch (error){
         console.error("Error saving condition name:", error);
         setConditionMessage("Could not save the condition name.", true);
-        // A save made on the way out has no panel left to show the message in.
-        if (selectImageDiv.hidden) notify("Could not save the condition name.", { error: true });
+        return false;
     }
 }
 
@@ -672,13 +697,46 @@ function fetchInSummary(fieldId){
 
 //Buttons
 
-searchBar.addEventListener("input", () => { //search function for fields
-    const query = searchBar.value.toLowerCase();
-    document.querySelectorAll(".inspection-field").forEach(field => {
-        const fieldName = field.querySelector(".field-header").textContent.toLowerCase();
-        const match = fieldName.includes(query);
+// The open tab narrows in place; the dropdown from setUpFieldSearch covers every other tab.
+function filterCurrentFields(){
+    const query = searchBar.value.trim();
+    contentFields.querySelectorAll(".inspection-field").forEach(field => {
+        const match = fieldMatches(field.dataset.id, query)
+            ?? field.querySelector(".field-header").textContent.toLowerCase().includes(query.toLowerCase());
         field.style.display = match ? "" : "none";
     });
+}
+
+searchBar.addEventListener("input", filterCurrentFields);
+
+async function revealSearchResult({ definitionId, place: resultPlace, type: resultType, value }){
+    searchBar.value = "";
+    filterCurrentFields();
+
+    if (resultPlace !== place || resultType !== type){
+        if (!await goTo(resultPlace, resultType)) return;
+    }
+
+    const show = fieldShowers.get(definitionId);
+    if (!show) return;
+    await show();
+    if (!value) return;
+
+    const fieldDiv = contentFields.querySelector(`.inspection-field[data-id="${definitionId}"]`);
+    const valueButton = [...fieldDiv.querySelectorAll(".value-button:not(.selected-button)")]
+        .find(button => button.textContent === value);
+    if (!valueButton) return;
+
+    valueButton.scrollIntoView({ behavior: "smooth", block: "center" });
+    valueButton.classList.remove("search-flash");
+    void valueButton.offsetWidth; // restarts the animation when the same value is picked twice
+    valueButton.classList.add("search-flash");
+    valueButton.addEventListener("animationend", () => valueButton.classList.remove("search-flash"), { once: true });
+}
+
+setUpFieldSearch(searchBar, searchResults, {
+    current: () => ({ place, type }),
+    onPick: revealSearchResult,
 });
 
 function markActiveTabs(){
@@ -687,7 +745,7 @@ function markActiveTabs(){
 }
 
 async function closeFieldPanel(){
-    await flushFieldEdits();
+    if (!await confirmFieldEdits()) return false;
     if (!await flushAnnotations()) return false;
     await saveRecommendationsIfOpen();
     selectImageDiv.hidden = true;
@@ -700,13 +758,14 @@ async function closeFieldPanel(){
 }
 
 async function goTo(newPlace, newType){
-    if (!await closeFieldPanel()) return;
+    if (!await closeFieldPanel()) return false;
 
     place = newPlace;
     type = newType;
     markActiveTabs();
     history.pushState({ place, type }, "", `report_writing.html?id=${bookingId}&place=${place}&type=${type}`);
-    loadInspectionFieldDefinitions();
+    await loadInspectionFieldDefinitions();
+    return true;
 }
 
 makeResizable(selectImageDiv, "panelSize.selectImage");
@@ -740,7 +799,6 @@ saveNoteButton.addEventListener("click", (e) => {
 });
 
 recommendationsButton.addEventListener("click", () => {
-    flushFieldEdits();
     selectImageDiv.hidden = true;
     recommendationsPanel.hidden = false;
     if (currentRecommendationFieldId) {
@@ -762,8 +820,6 @@ document.addEventListener("click", async (e) => {
         || diagramsButton.contains(e.target);
 
     if (!clickedInsideSelect && !clickedInsideRecommendations) {
-        // Started before any await, so a click on a link still sends it before the page goes.
-        flushFieldEdits();
         if (selectImageDiv.hidden === false && !await flushAnnotations()) return; // stay open, work kept
         await saveRecommendationsIfOpen();
 

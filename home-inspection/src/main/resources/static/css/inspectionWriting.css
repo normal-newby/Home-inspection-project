@@ -222,7 +222,6 @@
     display: block;
     width: 100%;
     padding: 8px 12px;
-    margin-bottom: 16px;
     border: 1px solid var(--border);
     border-radius: 4px;
     font-family: inherit;
@@ -234,6 +233,103 @@
 .field-search:focus {
     outline: none;
     border-color: var(--accent);
+}
+
+.field-search-wrap {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+/* Below the side panels (z-index 100+), above the field cards */
+.field-search-results {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 50;
+    max-height: 60vh;
+    overflow-y: auto;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    box-shadow: 0 6px 18px rgba(26, 26, 24, 0.12);
+    padding: 4px 0;
+}
+
+.search-group + .search-group {
+    border-top: 1px solid var(--border);
+}
+
+.search-result {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    font-family: inherit;
+    color: var(--ink);
+    cursor: pointer;
+}
+
+.search-result:hover,
+.search-result.active {
+    background: var(--paper);
+}
+
+.search-field {
+    padding: 8px 12px 4px;
+}
+
+.search-section {
+    display: block;
+    font-size: var(--fs-eyebrow);
+    letter-spacing: var(--ls-caps);
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.search-field-name {
+    font-size: var(--fs-body);
+    font-weight: 500;
+}
+
+.search-value {
+    padding: 4px 12px 4px 28px;
+    font-size: var(--fs-label);
+    color: var(--label);
+}
+
+.search-result mark {
+    background: #fdf0ea;
+    color: var(--dark-accent);
+    font-weight: 600;
+}
+
+.search-more,
+.search-empty {
+    margin: 0;
+    padding: 4px 12px 8px 28px;
+    font-size: var(--fs-label);
+    color: var(--muted);
+}
+
+.search-empty {
+    padding: 8px 12px;
+}
+
+/* A value jumped to from search */
+.value-button.search-flash {
+    animation: search-flash 1.6s ease-out;
+}
+
+@keyframes search-flash {
+    0%, 40% {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(181, 71, 11, 0.35);
+    }
+    100% {
+        box-shadow: 0 0 0 3px rgba(181, 71, 11, 0);
+    }
 }
 
 /* Information values */

@@ -34,5 +34,11 @@ public interface InspectionFieldDefinitionRepository extends JpaRepository<Inspe
             @Param("id") UUID id
     );
 
+    @Query("""
+            SELECT DISTINCT d FROM InspectionFieldDefinition d
+            LEFT JOIN FETCH d.possibleValues
+            """)
+    List<InspectionFieldDefinition> findAllWithValues();
+
     List<InspectionFieldDefinition> findByFieldPlaceAndFieldType(String fieldPlace, String fieldType);
 }

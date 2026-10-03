@@ -1,8 +1,10 @@
 package ca.inspection.home.inspection.service;
 
+import ca.inspection.home.inspection.DTO.FieldSearchEntry;
 import ca.inspection.home.inspection.DTO.ReportLayoutPlace;
 import ca.inspection.home.inspection.DTO.ReportLayoutType;
 import ca.inspection.home.inspection.entity.InspectionFieldDefinition;
+import ca.inspection.home.inspection.entity.InspectionFieldDefinitionValue;
 import ca.inspection.home.inspection.repository.InspectionFieldDefinitionRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -128,6 +130,56 @@ public class InspectionFieldDefinitionServiceTest {
         List<ReportLayoutPlace> layout = inspectionFieldDefinitionService.getReportLayout();
 
         assertThat(layout).extracting(ReportLayoutPlace::place).containsExactly("roofing");
+    }
+
+    // SEARCH INDEX
+
+    private void addValue(InspectionFieldDefinition definition, String value) {
+        InspectionFieldDefinitionValue possible = new InspectionFieldDefinitionValue();
+        possible.setValue(value);
+        possible.setInspectionFieldDefinition(definition);
+        definition.getPossibleValues().add(possible);
+    }
+
+    @Test
+    void getSearchIndex_carriesEachDefinitionWithItsValues() {
+        InspectionFieldDefinition gutters = definition("Gutters", "roofing", "recommendations", null);
+        addValue(gutters, "Leaking");
+        addValue(gutters, "Loose");
+        when(inspectionFieldDefinitionRepository.findAllWithValues()).thenReturn(List.of(gutters));
+
+        List<FieldSearchEntry> index = inspectionFieldDefinitionService.getSearchIndex();
+
+        assertThat(index).singleElement().satisfies(entry -> {
+            assertThat(entry.id()).isEqualTo(gutters.getId());
+            assertThat(entry.fieldName()).isEqualTo("Gutters");
+            assertThat(entry.place()).isEqualTo("roofing");
+            assertThat(entry.type()).isEqualTo("recommendations");
+            assertThat(entry.values()).containsExactly("Leaking", "Loose");
+        });
+    }
+
+    @Test
+    void getSearchIndex_definitionMissingItsPlaceOrType_isLeftOut() {
+        // A result with nowhere to navigate to would be a dead end.
+        when(inspectionFieldDefinitionRepository.findAllWithValues()).thenReturn(List.of(
+                definition("Orphan", null, "description", null),
+                definition("Covering", "roofing", "description", null)));
+
+        assertThat(inspectionFieldDefinitionService.getSearchIndex())
+                .extracting(FieldSearchEntry::fieldName).containsExactly("Covering");
+    }
+
+    @Test
+    void getSearchIndex_nullValue_isSkipped() {
+        InspectionFieldDefinition covering = definition("Covering", "roofing", "description", null);
+        addValue(covering, null);
+        addValue(covering, "Asphalt shingles");
+        when(inspectionFieldDefinitionRepository.findAllWithValues()).thenReturn(List.of(covering));
+
+        assertThat(inspectionFieldDefinitionService.getSearchIndex())
+                .singleElement().extracting(FieldSearchEntry::values)
+                .isEqualTo(List.of("Asphalt shingles"));
     }
 
     // SAVING AN ORDER

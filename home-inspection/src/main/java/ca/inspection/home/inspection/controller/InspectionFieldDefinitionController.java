@@ -1,5 +1,6 @@
 package ca.inspection.home.inspection.controller;
 
+import ca.inspection.home.inspection.DTO.FieldSearchEntry;
 import ca.inspection.home.inspection.DTO.ReportLayoutPlace;
 import ca.inspection.home.inspection.entity.InspectionFieldDefinition;
 import ca.inspection.home.inspection.service.InspectionFieldDefinitionService;
@@ -32,6 +33,11 @@ public class InspectionFieldDefinitionController {
     @GetMapping("/{place}/{type}")
     public List<InspectionFieldDefinition> getAllFields(@PathVariable String place, @PathVariable String type){
         return inspectionFieldDefinitionService.getAllFields(place, type);
+    }
+
+    @GetMapping("/search-index")
+    public List<FieldSearchEntry> getSearchIndex(){
+        return inspectionFieldDefinitionService.getSearchIndex();
     }
 
     @GetMapping("/layout")

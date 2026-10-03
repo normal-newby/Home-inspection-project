@@ -1,9 +1,11 @@
 package ca.inspection.home.inspection.service;
 
+import ca.inspection.home.inspection.DTO.FieldSearchEntry;
 import ca.inspection.home.inspection.DTO.ReportLayoutDefinition;
 import ca.inspection.home.inspection.DTO.ReportLayoutPlace;
 import ca.inspection.home.inspection.DTO.ReportLayoutType;
 import ca.inspection.home.inspection.entity.InspectionFieldDefinition;
+import ca.inspection.home.inspection.entity.InspectionFieldDefinitionValue;
 import ca.inspection.home.inspection.entity.InspectionReport;
 import ca.inspection.home.inspection.repository.InspectionFieldDefinitionRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +19,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -59,6 +62,18 @@ public class InspectionFieldDefinitionService {
             log.error("Failed to load field definition with values {}", id, e);
             return null;
         }
+    }
+
+    // Every definition and value at once, so the report page can search across all sections.
+    public List<FieldSearchEntry> getSearchIndex(){
+        return inspectionFieldDefinitionRepository.findAllWithValues().stream()
+                .filter(d -> d.getFieldPlace() != null && d.getFieldType() != null)
+                .map(d -> new FieldSearchEntry(d.getId(), d.getFieldName(), d.getFieldPlace(), d.getFieldType(),
+                        d.getPossibleValues().stream()
+                                .map(InspectionFieldDefinitionValue::getValue)
+                                .filter(Objects::nonNull)
+                                .toList()))
+                .toList();
     }
 
     public List<ReportLayoutPlace> getReportLayout(){
