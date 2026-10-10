@@ -210,14 +210,16 @@ body {
 
 .cover-photo {
     margin: 0 20mm 5mm 20mm;
-    overflow: hidden;
 }
 
+/* Fixed height; width follows the photo's own aspect ratio, so it is never cropped or stretched */
 .cover-photo img {
     display: block;
-    width: 100%;
-    max-height: 100mm;
-    object-fit: cover;
+    height: 100mm;
+    width: auto;
+    max-width: 100%;
+    margin: 0 auto;
+    object-fit: contain;
 }
 
 #cover-property-address {
