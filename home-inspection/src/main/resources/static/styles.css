@@ -912,10 +912,10 @@ body {
     margin-left: var(--space-md);
 }
 
+
 .report-field-image {
     display: block;
-    width: 100%;
-    max-width: 300px;
+    max-width: min(100%, 300px);
     max-height: 250px;
     margin: 0 auto;
     border-radius: 3px;
