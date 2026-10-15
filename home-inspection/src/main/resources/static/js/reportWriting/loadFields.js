@@ -259,6 +259,7 @@ function createExistingField(parent, field, definition){ // Creates buttons for 
     button.classList.add("selected-button");
     button.dataset.id = field.id;
     renderFieldButton(button, field);
+    markInSummary(button, field.includeInSummary);
 
     button.addEventListener("contextmenu", async (e) => { // Right click to delete
         e.preventDefault();
@@ -336,6 +337,11 @@ function renderImageCount(button, count){
     badge.classList.add("image-count-badge");
     badge.textContent = `(${count})`;
     button.appendChild(badge);
+}
+
+function markInSummary(button, inSummary){
+    button.classList.toggle("in-summary", Boolean(inSummary));
+    button.title = inSummary ? "Included in summary" : "";
 }
 
 function updateImageCount(fieldId, count){
@@ -674,6 +680,8 @@ async function updateInSummary() {
             body: JSON.stringify(includeBool),
         });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const button = contentFields.querySelector(`.value-button[data-id="${curField}"]`);
+        if (button) markInSummary(button, includeBool);
     } catch (error){
         console.error("Error updating summary flag:", error);
         // Put the tick back, so the box never disagrees with what the report will print.
