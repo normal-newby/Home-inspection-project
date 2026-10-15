@@ -458,5 +458,6 @@
 .value-button.selected-button.in-summary:not(.current-button) {
 	border-color: #000;
 	color: #000;
+	font-weight: bold;
 }
 
