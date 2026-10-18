@@ -4,6 +4,7 @@ const bookingsContainer = document.querySelector(".bookings-container");
 const bookingsTable = document.querySelector(".bookings-table-wrap");
 const emptyMessage = document.querySelector(".bookings-empty");
 const filterButtons = [...document.querySelectorAll(".booking-filter")];
+const sortSelect = document.getElementById("booking-sort");
 
 const STATUS_LABELS = {
     SCHEDULED: "Scheduled",
@@ -41,8 +42,32 @@ function writeFilter(value){
     }
 }
 
+const SORT_KEY = "bookings-sort";
+const SORT_MODES = ["DATE", "PRICE_ASC", "PRICE_DESC"];
+
+function readSort(){
+    try {
+        const stored = localStorage.getItem(SORT_KEY);
+        return SORT_MODES.includes(stored) ? stored : "DATE";
+    } catch (error) {
+        return "DATE";
+    }
+}
+
+function writeSort(value){
+    try {
+        localStorage.setItem(SORT_KEY, value);
+    } catch (error) {
+        // Storage off; the sort just resets next visit.
+    }
+}
+
 let activeFilter = readFilter();
+let activeSort = readSort();
 let loadedBookings = [];
+const rowsById = new Map();
+
+const priceFormat = new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD" });
 
 function formatWhen(booking) {
     if (!booking.month || !booking.day || !booking.year) return "Date not set";
@@ -89,6 +114,12 @@ function createBooking(booking) {
     when.textContent = formatWhen(booking);
     row.appendChild(when);
 
+    const price = document.createElement("td");
+    price.className = "cell-num";
+    price.textContent = booking.price != null ? priceFormat.format(booking.price) : "—";
+    price.classList.toggle("cell-empty", booking.price == null);
+    row.appendChild(price);
+
     const status = document.createElement("td");
     status.appendChild(createStatusControl(booking, row));
     row.appendChild(status);
@@ -123,6 +154,7 @@ function createBooking(booking) {
     remove.appendChild(removeButton);
     row.appendChild(remove);
 
+    rowsById.set(booking.id, row);
     bookingsContainer.appendChild(row);
 }
 
@@ -210,6 +242,31 @@ function applyFilter(){
     if (emptyMessage) emptyMessage.hidden = shown > 0 || loadedBookings.length === 0;
 }
 
+// ── Sorting by price ──
+
+// Bookings without a price stay at the bottom either way.
+function byPrice(direction){
+    return (a, b) => {
+        if (a.price == null || b.price == null) return (a.price == null) - (b.price == null);
+        return (a.price - b.price) * direction;
+    };
+}
+
+function applySort(){
+    // DATE keeps the server's order (upcoming first, then past).
+    const ordered = activeSort === "DATE"
+        ? loadedBookings
+        : [...loadedBookings].sort(byPrice(activeSort === "PRICE_ASC" ? 1 : -1));
+    ordered.forEach(booking => bookingsContainer.appendChild(rowsById.get(booking.id)));
+    sortSelect.value = activeSort;
+}
+
+sortSelect.addEventListener("change", () => {
+    activeSort = sortSelect.value;
+    writeSort(activeSort);
+    applySort();
+});
+
 filterButtons.forEach(button => {
     button.addEventListener("click", () => {
         activeFilter = button.dataset.status;
@@ -228,8 +285,10 @@ async function loadBookings(){
 
         console.log(loadedBookings);
         bookingsContainer.innerHTML = "";
+        rowsById.clear();
         loadedBookings.forEach(createBooking);
 
+        applySort();
         renderCounts();
         applyFilter();
     } catch (error) {

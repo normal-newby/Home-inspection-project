@@ -25,11 +25,21 @@
             <h1>Bookings</h1>
             <p>Bookings information</p>
         </div>
-        <div class="booking-filters" role="group" aria-label="Filter bookings by status">
-            <button type="button" class="booking-filter active" data-status="ALL">All <span class="booking-filter-count">0</span></button>
-            <button type="button" class="booking-filter" data-status="SCHEDULED">Scheduled <span class="booking-filter-count">0</span></button>
-            <button type="button" class="booking-filter" data-status="IN_PROGRESS">In Progress <span class="booking-filter-count">0</span></button>
-            <button type="button" class="booking-filter" data-status="COMPLETED">Completed <span class="booking-filter-count">0</span></button>
+        <div class="bookings-toolbar">
+            <div class="booking-filters" role="group" aria-label="Filter bookings by status">
+                <button type="button" class="booking-filter active" data-status="ALL">All <span class="booking-filter-count">0</span></button>
+                <button type="button" class="booking-filter" data-status="SCHEDULED">Scheduled <span class="booking-filter-count">0</span></button>
+                <button type="button" class="booking-filter" data-status="IN_PROGRESS">In Progress <span class="booking-filter-count">0</span></button>
+                <button type="button" class="booking-filter" data-status="COMPLETED">Completed <span class="booking-filter-count">0</span></button>
+            </div>
+            <label class="booking-sort">
+                <span>Sort by</span>
+                <select id="booking-sort">
+                    <option value="DATE">Inspection date</option>
+                    <option value="PRICE_ASC">Price: low to high</option>
+                    <option value="PRICE_DESC">Price: high to low</option>
+                </select>
+            </label>
         </div>
 
         <div class="bookings-table-wrap">
@@ -40,6 +50,7 @@
                         <th scope="col">Address</th>
                         <th scope="col">Clients</th>
                         <th scope="col">Date &amp; Time</th>
+                        <th scope="col" class="cell-num">Price</th>
                         <th scope="col">Status</th>
                         <th scope="col" class="cell-action">View Details</th>
                         <th scope="col" class="cell-action">Write Report</th>

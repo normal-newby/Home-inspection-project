@@ -81,6 +81,26 @@ public class InspectionBookingsRepositoryIT {
     }
 
     @Test
+    void findBookingDetails_exposesTaxedPrice() {
+        InspectionBookings taxed = persistBooking("1 Taxed Rd", new BigDecimal("400.00"), new BigDecimal("100.00"));
+        InspectionBookings untaxed = persistBooking("2 Untaxed Rd", new BigDecimal("500.00"));
+        untaxed.setRemoveTax(true);
+        persistBooking("3 Unbilled Rd");
+        em.flush();
+        em.clear();
+
+        List<BookingDetails> result = bookingsRepository.findBookingDetailsByOrderByCreatedAtDesc();
+
+        assertThat(byAddress(result, "1 Taxed Rd").getPrice()).isEqualByComparingTo("565.00");
+        assertThat(byAddress(result, "2 Untaxed Rd").getPrice()).isEqualByComparingTo("500.00");
+        assertThat(byAddress(result, "3 Unbilled Rd").getPrice()).isNull();
+    }
+
+    private static BookingDetails byAddress(List<BookingDetails> bookings, String address) {
+        return bookings.stream().filter(b -> address.equals(b.getInspectionAddress())).findFirst().orElseThrow();
+    }
+
+    @Test
     void findBookingDetailsByOrderByCreatedAtDesc_ordersByCreatedAtDesc() throws InterruptedException {
         InspectionBookings older = persistBooking("1 Old Rd");
         Thread.sleep(20); // CreationTimestamp uses ms precision

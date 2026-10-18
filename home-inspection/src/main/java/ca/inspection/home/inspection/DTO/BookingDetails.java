@@ -3,8 +3,11 @@ package ca.inspection.home.inspection.DTO;
 import ca.inspection.home.inspection.entity.BookingStatus;
 import ca.inspection.home.inspection.entity.Client;
 import ca.inspection.home.inspection.entity.Invoice;
+import ca.inspection.home.inspection.service.InspectionBookingsService;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 public interface BookingDetails {
@@ -30,4 +33,15 @@ public interface BookingDetails {
     Boolean getPaidInFull();
     Boolean getRemoveTax();
     List<Invoice> getInvoices();
+
+    // Invoice total with tax
+    default BigDecimal getPrice() {
+        List<Invoice> invoices = getInvoices();
+        if (invoices == null || invoices.isEmpty()) return null;
+        BigDecimal subtotal = invoices.stream()
+                .map(Invoice::getFee)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return InspectionBookingsService.invoiceAmount(subtotal, Boolean.TRUE.equals(getRemoveTax())).getTotal();
+    }
 }
