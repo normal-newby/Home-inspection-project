@@ -41,19 +41,26 @@ emailReportButton.addEventListener("click", async () => {
     }
 
     const cc = recipients.cc ? ` (cc ${recipients.cc})` : "";
-    const confirmed = await confirmDialog(
+    const agent = recipients.agentName
+        ? `${recipients.agentName} (${recipients.agentEmail})`
+        : recipients.agentEmail;
+    const answer = await confirmDialog(
         `You are sending the report to ${recipients.to.join(", ")}${cc}, with the PDF attached.`,
-        {title : "Send email", confirmLabel : "Send", danger: true }
+        {
+            title : "Send email", confirmLabel : "Send", danger: true,
+            checkbox: agent ? { label: `Also cc the agent, ${agent}` } : null
+        }
     );
 
-    if (!confirmed) return;
+    if (!answer) return;
+    const ccAgent = Boolean(answer.checked);
 
     emailReportButton.disabled = true;
     const originalButtonText = emailReportButton.textContent;
     emailReportButton.textContent = "Sending...";
 
     try {
-        const res = await fetch(`/report/${bookingId}/email`,
+        const res = await fetch(`/report/${bookingId}/email?ccAgent=${ccAgent}`,
             {method: "POST"}
         );
         const data = await res.json();

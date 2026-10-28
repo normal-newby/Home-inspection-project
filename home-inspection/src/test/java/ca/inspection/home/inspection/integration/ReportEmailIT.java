@@ -64,7 +64,13 @@ public class ReportEmailIT {
     }
 
     private UUID createBooking(String clientEmail) throws Exception {
+        return createBooking(clientEmail, null);
+    }
+
+    private UUID createBooking(String clientEmail, String agentEmail) throws Exception {
         InspectionBookings payload = new InspectionBookings();
+        payload.setAgentName("Rita Realtor");
+        payload.setAgentEmail(agentEmail);
         payload.setInspectionAddress("12 Mail St");
         Client ada = new Client();
         ada.setFirstName("Ada");
@@ -89,6 +95,26 @@ public class ReportEmailIT {
                 .andExpect(jsonPath("$.linked").value(false))
                 .andExpect(jsonPath("$.to[0]").value("ada@example.com"))
                 .andExpect(jsonPath("$.cc").value("inspector@example.com"));
+    }
+
+    @Test
+    void recipients_offerTheAgentAsAnOptionalCc() throws Exception {
+        UUID bookingId = createBooking("ada@example.com", "rita@realty.ca");
+
+        mockMvc.perform(get("/report/{id}/email", bookingId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cc").value("inspector@example.com"))
+                .andExpect(jsonPath("$.agentEmail").value("rita@realty.ca"))
+                .andExpect(jsonPath("$.agentName").value("Rita Realtor"));
+    }
+
+    @Test
+    void recipients_withoutAnAgentEmail_offerNoAgent() throws Exception {
+        UUID bookingId = createBooking("ada@example.com");
+
+        mockMvc.perform(get("/report/{id}/email", bookingId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.agentEmail").doesNotExist());
     }
 
     @Test

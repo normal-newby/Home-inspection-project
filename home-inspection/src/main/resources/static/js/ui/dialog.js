@@ -13,19 +13,34 @@ function buildBackdrop(){
 /**
  * Asks the question in the page and resolves true only if the user confirms.
  * Escape, the Cancel button and a click on the backdrop all resolve false.
+ * With a `checkbox: { label, checked }` option it instead resolves { checked } on confirm.
  */
 export function confirmDialog(message, options = {}){
     const {
         title = "Are you sure?",
         confirmLabel = "Confirm",
         cancelLabel = "Cancel",
-        danger = false
+        danger = false,
+        checkbox = null
     } = options;
+
+    const option = checkbox ? buildCheckbox(checkbox) : null;
+    const confirmValue = option ? () => ({ checked: option.input.checked }) : true;
 
     return showDialog(message, title, [
         { label: cancelLabel, style: "secondary", value: false },
-        { label: confirmLabel, style: danger ? "danger" : "primary", value: true }
-    ], false);
+        { label: confirmLabel, style: danger ? "danger" : "primary", value: confirmValue }
+    ], false, option);
+}
+
+function buildCheckbox({ label, checked = false }){
+    const wrapper = document.createElement("label");
+    wrapper.className = "app-dialog-option";
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.checked = checked;
+    wrapper.append(input, document.createTextNode(label));
+    return { element: wrapper, input };
 }
 
 // asks before saving
@@ -37,7 +52,7 @@ export function askToSave(message, { title = "Save changes?" } = {}){
     ], null);
 }
 
-function showDialog(message, title, choices, dismissValue){
+function showDialog(message, title, choices, dismissValue, option = null){
     // A second question while one is open would strand the first promise.
     openDialog?.cancel();
 
@@ -65,12 +80,13 @@ function showDialog(message, title, choices, dismissValue){
             button.type = "button";
             button.className = `app-dialog-button ${choice.style}`;
             button.textContent = choice.label;
-            button.addEventListener("click", () => close(choice.value));
+            button.addEventListener("click", () =>
+                close(typeof choice.value === "function" ? choice.value() : choice.value));
             return button;
         });
 
         actions.append(...buttons);
-        panel.append(heading, body, actions);
+        panel.append(heading, body, ...(option ? [option.element] : []), actions);
         backdrop.appendChild(panel);
 
         const previouslyFocused = document.activeElement;
@@ -92,11 +108,12 @@ function showDialog(message, title, choices, dismissValue){
             }
             // Keep tabbing inside the dialog while it is up.
             if (e.key === "Tab"){
-                const index = buttons.indexOf(document.activeElement);
+                const focusable = option ? [option.input, ...buttons] : buttons;
+                const index = focusable.indexOf(document.activeElement);
                 if (index === -1) return;
                 e.preventDefault();
                 const next = e.shiftKey ? index - 1 : index + 1;
-                buttons[(next + buttons.length) % buttons.length].focus();
+                focusable[(next + focusable.length) % focusable.length].focus();
             }
         }
 

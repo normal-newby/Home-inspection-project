@@ -43,6 +43,37 @@ public class GoogleEmailServiceTest {
     }
 
     @Test
+    void joinCc_addsTheAgentAfterTheInspector() {
+        assertThat(GoogleEmailService.joinCc("office@inspect.ca", "agent@realty.ca"))
+                .isEqualTo("office@inspect.ca, agent@realty.ca");
+    }
+
+    @Test
+    void joinCc_agentAlone_whenThereIsNoInspectorCc() {
+        assertThat(GoogleEmailService.joinCc(null, "agent@realty.ca")).isEqualTo("agent@realty.ca");
+    }
+
+    @Test
+    void joinCc_doesNotRepeatAnAgentWhoIsTheInspector() {
+        assertThat(GoogleEmailService.joinCc("office@inspect.ca", "OFFICE@inspect.ca")).isEqualTo("office@inspect.ca");
+    }
+
+    @Test
+    void agentCcFor_isSkippedWhenBlankOrAlreadyARecipient() {
+        GoogleEmailService service = new GoogleEmailService();
+        InspectionBookings booking = new InspectionBookings();
+
+        booking.setAgentEmail("  ");
+        assertThat(service.agentCcFor(booking, CLIENTS)).isNull();
+
+        booking.setAgentEmail("Alan@example.com");
+        assertThat(service.agentCcFor(booking, CLIENTS)).isNull();
+
+        booking.setAgentEmail(" agent@realty.ca ");
+        assertThat(service.agentCcFor(booking, CLIENTS)).isEqualTo("agent@realty.ca");
+    }
+
+    @Test
     void buildMimeMessage_addressesEveryClientAndCopiesTheInspector() {
         String mime = GoogleEmailService.buildMimeMessage("me@gmail.com", String.join(", ", CLIENTS),
                 "office@inspect.ca", "body", new byte[]{1}, UUID.randomUUID(), new InspectionBookings());

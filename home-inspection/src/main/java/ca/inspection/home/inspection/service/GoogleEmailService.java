@@ -54,8 +54,15 @@ public class GoogleEmailService {
         return inspectorCc(inspectorProfileService.getProfile(), toEmails);
     }
 
-    // Returns the address the inspector was copied on, or null if there was none to use.
-    public String sendReportEmail(List<String> toEmails, byte[] pdfBytes, InspectionBookings booking, String template){
+    // The agent can be offered as a cc only if they have an address and aren't already being sent the report.
+    public String agentCcFor(InspectionBookings booking, List<String> toEmails){
+        String agent = notBlank(booking.getAgentEmail()) ? booking.getAgentEmail().trim() : null;
+        if (agent == null || toEmails.stream().anyMatch(agent::equalsIgnoreCase)) return null;
+        return agent;
+    }
+
+    // Returns the addresses that were copied, joined, or null if there were none.
+    public String sendReportEmail(List<String> toEmails, byte[] pdfBytes, InspectionBookings booking, String template, boolean ccAgent){
         InspectorProfile profile = inspectorProfileService.getProfile();
 
         if (!isConfigured()){
@@ -63,7 +70,7 @@ public class GoogleEmailService {
         }
 
         String fromAddress = profile.getGoogleAccountEmail();
-        String cc = inspectorCc(profile, toEmails);
+        String cc = joinCc(inspectorCc(profile, toEmails), ccAgent ? agentCcFor(booking, toEmails) : null);
         UUID bookingId = booking.getId();
 
         String raw = buildMimeMessage(fromAddress, String.join(", ", toEmails), cc,
@@ -101,6 +108,11 @@ public class GoogleEmailService {
                 : null;
         if (cc == null) return null;
         return toEmails.stream().anyMatch(cc::equalsIgnoreCase) ? null : cc;
+    }
+
+    static String joinCc(String inspectorCc, String agentCc){
+        if (agentCc == null || agentCc.equalsIgnoreCase(inspectorCc)) return inspectorCc;
+        return inspectorCc == null ? agentCc : inspectorCc + ", " + agentCc;
     }
 
     // Placeholders match the hint under the template field on the report layout page.

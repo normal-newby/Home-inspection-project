@@ -63,16 +63,25 @@ public class ReportViewController {
     @GetMapping("/{bookingId}/email")
     @ResponseBody
     public Map<String, Object> emailRecipients(@PathVariable UUID bookingId){
-        List<String> emails = HelperFunctions.clientEmails(inspectionBookingsService.findById(bookingId));
+        InspectionBookings booking = inspectionBookingsService.findById(bookingId);
+        List<String> emails = HelperFunctions.clientEmails(booking);
 
         Map<String, Object> recipients = new HashMap<>(Map.of("linked", googleEmailService.isLinked(), "to", emails));
-        String cc = emails.isEmpty() ? null : googleEmailService.ccFor(emails);
-        if (cc != null) recipients.put("cc", cc);
+        if (!emails.isEmpty()) {
+            String cc = googleEmailService.ccFor(emails);
+            if (cc != null) recipients.put("cc", cc);
+            String agentCc = googleEmailService.agentCcFor(booking, emails);
+            if (agentCc != null) {
+                recipients.put("agentEmail", agentCc);
+                if (HelperFunctions.notBlank(booking.getAgentName())) recipients.put("agentName", booking.getAgentName().trim());
+            }
+        }
         return recipients;
     }
 
     @PostMapping("/{bookingId}/email")
-    public ResponseEntity<?> emailReport(@PathVariable UUID bookingId){
+    public ResponseEntity<?> emailReport(@PathVariable UUID bookingId,
+                                         @RequestParam(defaultValue = "false") boolean ccAgent){
         try {
             InspectionBookings booking = inspectionBookingsService.findById(bookingId);
             List<String> emails = HelperFunctions.clientEmails(booking);
@@ -91,7 +100,7 @@ public class ReportViewController {
 
             byte[] pdf = reportViewService.generatePdf("report", context, bookingId, report);
 
-            String cc = googleEmailService.sendReportEmail(emails, pdf, booking, report.getEmailBody());
+            String cc = googleEmailService.sendReportEmail(emails, pdf, booking, report.getEmailBody(), ccAgent);
 
             Map<String, Object> sent = new HashMap<>(Map.of("sent", true, "to", String.join(", ", emails)));
             if (cc != null) sent.put("cc", cc);
