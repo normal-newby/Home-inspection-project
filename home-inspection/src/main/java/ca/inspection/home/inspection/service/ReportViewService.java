@@ -107,7 +107,7 @@ public class ReportViewService {
         report.getFields().forEach(field -> {
             List<InspectionImage> images = imagesMap.getOrDefault(field.getId(), new ArrayList<>());
             images.forEach(img ->
-                    img.replaceAnnotations(annotationMap.getOrDefault(img.getId(), Set.of())));
+                    img.setReportAnnotations(annotationMap.getOrDefault(img.getId(), Set.of())));
             field.setInspectionImages(images);
         });
 
@@ -195,7 +195,7 @@ public class ReportViewService {
                 field.getInspectionImages().forEach(image -> {
                     ImageLocation location =
                             ImageLocation.of(inspectionNumber, image.getImageUrl());
-                    String src = inspectionImagesService.toBase64(location, image.getAnnotations());
+                    String src = inspectionImagesService.toBase64(location, image.getReportAnnotations());
                     image.setBase64(src);
                 });
 

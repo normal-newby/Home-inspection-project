@@ -1,9 +1,10 @@
 package ca.inspection.home.inspection.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -19,7 +20,7 @@ import java.util.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString(exclude = {"inspectionReport", "fields"})
-@EqualsAndHashCode(exclude = {"inspectionReport", "inspectionField", "annotations"})
+@EqualsAndHashCode(exclude = {"inspectionReport", "inspectionField", "annotations", "reportAnnotations"})
 public class InspectionImage {
     @Id
     @GeneratedValue
@@ -45,20 +46,16 @@ public class InspectionImage {
     @JoinColumn(name = "inspection_field_id")
     private InspectionField inspectionField;
 
+    // Never sent to the page: the editor asks for one photo's annotations when it opens.
     @OneToMany(mappedBy = "inspectionImage", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference("inspectionImage-annotations")
+    @BatchSize(size = 100)
+    @JsonIgnore
     private Set<ImageAnnotation> annotations = new HashSet<>();
 
     private Boolean used = false;
 
-    // replace instead of set annotations
-    public void replaceAnnotations(Collection<ImageAnnotation> replacements){
-        if (annotations == null){
-            annotations = new HashSet<>(replacements);
-            return;
-        }
-        if (annotations.size() == replacements.size() && annotations.containsAll(replacements)) return;
-        annotations.clear();
-        annotations.addAll(replacements);
-    }
+    // Filled in only while a report is rendered, from one query for the whole report.
+    @Transient
+    @JsonIgnore
+    private Set<ImageAnnotation> reportAnnotations = Set.of();
 }

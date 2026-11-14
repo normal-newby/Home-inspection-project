@@ -1,6 +1,7 @@
 package ca.inspection.home.inspection.service;
 
 import ca.inspection.home.inspection.DTO.ImageLocation;
+import ca.inspection.home.inspection.DTO.ImageSummary;
 import ca.inspection.home.inspection.entity.ImageAnnotation;
 import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectionImage;
@@ -340,19 +341,16 @@ public class InspectionImagesServiceTest {
     void getImages_multipleImages_returnsSortedByUrl() {
         UUID id = UUID.randomUUID();
 
-        InspectionImage imageA = new InspectionImage();
-        imageA.setImageUrl("a.jpg");
-        InspectionImage imageB = new InspectionImage();
-        imageB.setImageUrl("b.jpg");
-        InspectionImage imageC = new InspectionImage();
-        imageC.setImageUrl("c.jpg");
+        ImageSummary imageA = new ImageSummary(UUID.randomUUID(), "a.jpg", false);
+        ImageSummary imageB = new ImageSummary(UUID.randomUUID(), "b.jpg", true);
+        ImageSummary imageC = new ImageSummary(UUID.randomUUID(), "c.jpg", false);
 
         // Repository sorts by imageUrl ASC; simulate that here.
         when(inspectionBookingsRepository.existsById(id)).thenReturn(true);
-        when(inspectionImagesRepository.findByBookingIdOrdered(id))
+        when(inspectionImagesRepository.findSummariesByBookingId(id))
                 .thenReturn(List.of(imageA, imageB, imageC));
 
-        List<InspectionImage> result = inspectionImagesService.getImages(id);
+        List<ImageSummary> result = inspectionImagesService.getImages(id);
 
         assertThat(result).containsExactly(imageA, imageB, imageC);
     }

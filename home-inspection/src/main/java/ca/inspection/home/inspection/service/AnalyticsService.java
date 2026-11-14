@@ -6,11 +6,12 @@ import ca.inspection.home.inspection.DTO.AnalyticsReport.MonthTotals;
 import ca.inspection.home.inspection.DTO.AnalyticsReport.ServiceTotals;
 import ca.inspection.home.inspection.DTO.AnalyticsReport.Totals;
 import ca.inspection.home.inspection.DTO.AnalyticsRow;
+import ca.inspection.home.inspection.DTO.BookingRow;
+import ca.inspection.home.inspection.DTO.BookingSummary;
+import ca.inspection.home.inspection.DTO.ClientRow;
 import ca.inspection.home.inspection.DTO.InvoiceAmount;
+import ca.inspection.home.inspection.DTO.InvoiceRow;
 import ca.inspection.home.inspection.entity.BookingStatus;
-import ca.inspection.home.inspection.entity.Client;
-import ca.inspection.home.inspection.entity.InspectionBookings;
-import ca.inspection.home.inspection.entity.Invoice;
 import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,9 +27,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -102,46 +101,45 @@ public class AnalyticsService {
         BookingStatus wantedStatus = parseStatus(status);
         PaymentFilter wantedPayment = parsePayment(payment);
 
-        return inspectionBookingsRepository.findForExport(from.atDay(1), to.atEndOfMonth()).stream()
-                .filter(booking -> matches(wantedStatus, wantedPayment,
-                        booking.getStatus(), Boolean.TRUE.equals(booking.getPaidInFull())))
+        LocalDate start = from.atDay(1);
+        LocalDate end = to.atEndOfMonth();
+        return BookingSummary.assemble(
+                        inspectionBookingsRepository.findRows(start, end, false),
+                        inspectionBookingsRepository.findClientRows(start, end, false),
+                        inspectionBookingsRepository.findInvoiceRows(start, end, false)).stream()
+                .filter(summary -> matches(wantedStatus, wantedPayment,
+                        BookingStatus.orDefault(summary.booking().status()),
+                        Boolean.TRUE.equals(summary.booking().paidInFull())))
                 .map(AnalyticsService::toExportRow)
                 .toList();
     }
 
-    private static AnalyticsExportRow toExportRow(InspectionBookings booking){
-        List<Invoice> invoices = booking.getInvoices() == null ? List.of() : booking.getInvoices();
-        BigDecimal subtotal = invoices.stream()
-                .map(Invoice::getFee)
-                .filter(Objects::nonNull)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        String types = invoices.stream()
-                .map(Invoice::getType)
+    private static AnalyticsExportRow toExportRow(BookingSummary summary){
+        BookingRow booking = summary.booking();
+        String types = summary.invoices().stream()
+                .map(InvoiceRow::type)
                 .filter(HelperFunctions::notBlank)
                 .map(String::trim)
                 .collect(Collectors.joining(", "));
 
         return new AnalyticsExportRow(
-                booking.getInspectionNumber(),
-                booking.getInspectionDate(),
-                HelperFunctions.formatAddress(booking),
-                HelperFunctions.fullName(booking),
-                String.join("; ", HelperFunctions.clientEmails(booking)),
-                joinClients(booking, Client::getPhone),
-                booking.getAgentName(),
-                booking.getAgentPhone(),
-                booking.getAgentEmail(),
+                booking.inspectionNumber(),
+                booking.inspectionDate(),
+                HelperFunctions.formatAddress(booking.inspectionAddress(), booking.suite(), booking.city(),
+                        booking.province(), booking.postalCode()),
+                HelperFunctions.joinNames(summary.clients().stream().map(ClientRow::fullName).toList()),
+                String.join("; ", HelperFunctions.distinctEmails(summary.clients().stream().map(ClientRow::email))),
+                summary.clients().stream()
+                        .map(ClientRow::phone)
+                        .filter(HelperFunctions::notBlank)
+                        .map(String::trim)
+                        .collect(Collectors.joining("; ")),
+                booking.agentName(),
+                booking.agentPhone(),
+                booking.agentEmail(),
                 types,
-                InspectionBookingsService.invoiceAmount(subtotal, Boolean.TRUE.equals(booking.getRemoveTax()))
+                summary.amount()
         );
-    }
-
-    private static String joinClients(InspectionBookings booking, Function<Client, String> field){
-        return HelperFunctions.clients(booking).stream()
-                .map(field)
-                .filter(HelperFunctions::notBlank)
-                .map(String::trim)
-                .collect(Collectors.joining("; "));
     }
 
     private static void checkRange(YearMonth from, YearMonth to){

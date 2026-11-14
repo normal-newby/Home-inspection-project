@@ -1,5 +1,6 @@
 package ca.inspection.home.inspection.controller;
 
+import ca.inspection.home.inspection.DTO.ImageSummary;
 import ca.inspection.home.inspection.entity.InspectionImage;
 import ca.inspection.home.inspection.repository.InspectionImagesRepository;
 import ca.inspection.home.inspection.service.InspectionImagesService;
@@ -42,7 +43,7 @@ public class InspectionImagesController {
     }
 
     @GetMapping("/{id}")
-    public List<InspectionImage> getImages(@PathVariable UUID id) {
+    public List<ImageSummary> getImages(@PathVariable UUID id) {
         return inspectionImagesService.getImages(id);
     }
 

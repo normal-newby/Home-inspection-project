@@ -1,6 +1,7 @@
 package ca.inspection.home.inspection.service;
 
 import ca.inspection.home.inspection.DTO.ImageLocation;
+import ca.inspection.home.inspection.DTO.ImageSummary;
 import ca.inspection.home.inspection.entity.ImageAnnotation;
 import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectionImage;
@@ -115,12 +116,12 @@ public class InspectionImagesService {
         }
     }
 
-    public List<InspectionImage> getImages(UUID id){
+    public List<ImageSummary> getImages(UUID id){
         // An empty list would otherwise read the same as a booking that simply has no photos.
         if (!inspectionBookingsRepository.existsById(id)){
             throw new NoSuchElementException("Booking not found: " + id);
         }
-        return inspectionImagesRepository.findByBookingIdOrdered(id);
+        return inspectionImagesRepository.findSummariesByBookingId(id);
     }
 
     private Path locateOrThrow(UUID id){

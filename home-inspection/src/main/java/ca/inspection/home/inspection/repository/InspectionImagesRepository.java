@@ -1,6 +1,7 @@
 package ca.inspection.home.inspection.repository;
 
 import ca.inspection.home.inspection.DTO.ImageLocation;
+import ca.inspection.home.inspection.DTO.ImageSummary;
 import ca.inspection.home.inspection.entity.InspectionImage;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -22,6 +23,14 @@ public interface InspectionImagesRepository extends JpaRepository<InspectionImag
         ORDER BY i.imageUrl ASC
     """)
     List<InspectionImage> findByBookingIdOrdered(@Param("bookingId") UUID bookingId);
+
+    @Query("""
+        SELECT new ca.inspection.home.inspection.DTO.ImageSummary(i.id, i.imageUrl, i.used)
+        FROM InspectionImage i
+        WHERE i.inspectionReport.inspectionBooking.id = :bookingId
+        ORDER BY i.imageUrl ASC
+    """)
+    List<ImageSummary> findSummariesByBookingId(@Param("bookingId") UUID bookingId);
 
     @Query("""
         SELECT i.imageUrl FROM InspectionImage i

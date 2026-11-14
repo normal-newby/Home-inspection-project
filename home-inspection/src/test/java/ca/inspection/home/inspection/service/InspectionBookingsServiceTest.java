@@ -1,6 +1,11 @@
 package ca.inspection.home.inspection.service;
 
 import ca.inspection.home.inspection.DTO.BookingDetails;
+import ca.inspection.home.inspection.DTO.BookingList;
+import ca.inspection.home.inspection.DTO.BookingListItem;
+import ca.inspection.home.inspection.DTO.BookingRow;
+import ca.inspection.home.inspection.DTO.ClientRow;
+import ca.inspection.home.inspection.DTO.InvoiceRow;
 import ca.inspection.home.inspection.DTO.InvoiceAmount;
 import ca.inspection.home.inspection.entity.BookingStatus;
 import ca.inspection.home.inspection.entity.Client;
@@ -30,6 +35,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -241,17 +247,57 @@ public class InspectionBookingsServiceTest {
 
     // FIND ALL
 
+    private static BookingRow bookingRow(UUID id, boolean removeTax) {
+        return new BookingRow(id, 7, "7 Main St", null, "Toronto", "ON", "M1M 1M1", null, null, null,
+                null, null, null, null, "09:30", null, null, removeTax);
+    }
+
     @Test
-    void findAll_returnsBookingDetailsFromRepository() {
-        BookingDetails a = mock(BookingDetails.class);
-        BookingDetails b = mock(BookingDetails.class);
+    void findAll_recentOnly_asksForTheLast90DaysAndCountsTheRest() {
+        UUID id = UUID.randomUUID();
+        LocalDate from = LocalDate.now().minusDays(InspectionBookingsService.RECENT_DAYS);
 
-        when(inspectionBookingsRepository.findBookingDetailsByOrderByCreatedAtDesc())
-                .thenReturn(List.of(a, b));
+        when(inspectionBookingsRepository.findRows(eq(from), any(), eq(true))).thenReturn(List.of(bookingRow(id, false)));
+        when(inspectionBookingsRepository.findClientRows(eq(from), any(), eq(true)))
+                .thenReturn(List.of(new ClientRow(id, "Ada", "Lovelace", "ada@example.com", null)));
+        when(inspectionBookingsRepository.findInvoiceRows(eq(from), any(), eq(true)))
+                .thenReturn(List.of(new InvoiceRow(id, "Detached", new BigDecimal("400.00")),
+                        new InvoiceRow(id, "Radon Test", new BigDecimal("100.00"))));
+        when(inspectionBookingsRepository.countByInspectionDateBefore(from)).thenReturn(3L);
 
-        List<BookingDetails> result = inspectionBookingsService.findAll();
+        BookingList result = inspectionBookingsService.findAll(false);
 
-        assertThat(result).containsExactly(a, b);
+        assertThat(result.olderCount()).isEqualTo(3);
+        assertThat(result.bookings()).hasSize(1);
+        BookingListItem item = result.bookings().getFirst();
+        assertThat(item.id()).isEqualTo(id);
+        assertThat(item.inspectionAddress()).isEqualTo("7 Main St");
+        assertThat(item.clients()).containsExactly(new BookingListItem.ClientName("Ada", "Lovelace"));
+        // Rows written before the status column existed read as Scheduled.
+        assertThat(item.status()).isEqualTo(BookingStatus.SCHEDULED);
+        assertThat(item.price()).isEqualByComparingTo("565.00");
+    }
+
+    @Test
+    void findAll_includeOlder_loadsEverythingAndSkipsTheCount() {
+        UUID taxFree = UUID.randomUUID();
+        UUID unbilled = UUID.randomUUID();
+
+        when(inspectionBookingsRepository.findRows(eq(LocalDate.of(1, 1, 1)), any(), eq(true)))
+                .thenReturn(List.of(bookingRow(taxFree, true), bookingRow(unbilled, false)));
+        when(inspectionBookingsRepository.findClientRows(any(), any(), eq(true))).thenReturn(List.of());
+        when(inspectionBookingsRepository.findInvoiceRows(any(), any(), eq(true)))
+                .thenReturn(List.of(new InvoiceRow(taxFree, "Detached", new BigDecimal("500.00"))));
+
+        BookingList result = inspectionBookingsService.findAll(true);
+
+        assertThat(result.olderCount()).isZero();
+        assertThat(result.bookings()).extracting(BookingListItem::id).containsExactlyInAnyOrder(taxFree, unbilled);
+        assertThat(result.bookings()).filteredOn(b -> b.id().equals(taxFree))
+                .singleElement().satisfies(b -> assertThat(b.price()).isEqualByComparingTo("500.00"));
+        assertThat(result.bookings()).filteredOn(b -> b.id().equals(unbilled))
+                .singleElement().satisfies(b -> assertThat(b.price()).isNull());
+        verify(inspectionBookingsRepository, never()).countByInspectionDateBefore(any());
     }
 
     // FIND BY ID
@@ -577,22 +623,16 @@ public class InspectionBookingsServiceTest {
 
     // BOOKING ORDER — what is coming up, then what already happened, then undated
 
-    /** Minimal stand-in for the projection: only the fields the ordering looks at. */
-    private BookingDetails booking(String name, String month, Integer day, Integer year) {
-        BookingDetails details = mock(BookingDetails.class);
-        Client client = new Client();
-        client.setLastName(name);
-        lenient().when(details.getClients()).thenReturn(List.of(client));
-        lenient().when(details.getMonth()).thenReturn(month);
-        lenient().when(details.getDay()).thenReturn(day);
-        lenient().when(details.getYear()).thenReturn(year);
-        return details;
+    /** Only the fields the ordering looks at. */
+    private BookingListItem booking(String name, String month, Integer day, Integer year) {
+        return new BookingListItem(UUID.randomUUID(), null, null, null, null,
+                List.of(new BookingListItem.ClientName(null, name)), month, day, year, null, null, null);
     }
 
-    private List<String> orderOf(LocalDate today, BookingDetails... bookings) {
-        List<BookingDetails> list = new ArrayList<>(List.of(bookings));
+    private List<String> orderOf(LocalDate today, BookingListItem... bookings) {
+        List<BookingListItem> list = new ArrayList<>(List.of(bookings));
         list.sort(InspectionBookingsService.byInspectionDate(today));
-        return list.stream().map(b -> b.getClients().getFirst().getLastName()).toList();
+        return list.stream().map(b -> b.clients().getFirst().lastName()).toList();
     }
 
     @Test

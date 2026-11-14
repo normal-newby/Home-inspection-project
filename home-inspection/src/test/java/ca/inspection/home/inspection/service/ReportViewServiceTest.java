@@ -804,7 +804,7 @@ public class ReportViewServiceTest {
         when(imageAnnotationRepository.findByInspectionImageIdIn(anyList())).thenReturn(List.of(annotation));
         reportViewService.getOtherFields(report);
 
-        assertThat(image.getAnnotations()).containsExactly(annotation);
+        assertThat(image.getReportAnnotations()).containsExactly(annotation);
     }
 
     @Test
@@ -839,8 +839,8 @@ public class ReportViewServiceTest {
                 .thenReturn(List.of(annotation1, annotation2));
         reportViewService.getOtherFields(report);
 
-        assertThat(image1.getAnnotations()).containsExactly(annotation1);
-        assertThat(image2.getAnnotations()).containsExactly(annotation2);
+        assertThat(image1.getReportAnnotations()).containsExactly(annotation1);
+        assertThat(image2.getReportAnnotations()).containsExactly(annotation2);
     }
 
     @Test

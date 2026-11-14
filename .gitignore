@@ -25,3 +25,6 @@ database.snapshot-*/
 
 # docker backend logs (bind-mounted)
 logs/
+
+# local audit backlog for agents
+AUDIT.md

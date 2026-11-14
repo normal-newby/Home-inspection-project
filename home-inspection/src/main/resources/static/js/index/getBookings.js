@@ -5,6 +5,7 @@ const bookingsTable = document.querySelector(".bookings-table-wrap");
 const emptyMessage = document.querySelector(".bookings-empty");
 const filterButtons = [...document.querySelectorAll(".booking-filter")];
 const sortSelect = document.getElementById("booking-sort");
+const olderButton = document.querySelector(".bookings-older");
 
 const STATUS_LABELS = {
     SCHEDULED: "Scheduled",
@@ -275,15 +276,30 @@ filterButtons.forEach(button => {
     });
 });
 
+// The page opens on upcoming and recent bookings; older ones are fetched only when asked for.
+let showingOlder = false;
+
+function renderOlderButton(olderCount){
+    olderButton.hidden = olderCount === 0;
+    olderButton.textContent = `Show ${olderCount} older ${olderCount === 1 ? "booking" : "bookings"}`;
+}
+
+olderButton.addEventListener("click", async () => {
+    showingOlder = true;
+    olderButton.disabled = true;
+    await loadBookings();
+    olderButton.disabled = false;
+});
+
 async function loadBookings(){
     try {
-        const response = await fetch("/api/get/bookings");
+        const response = await fetch(`/api/get/bookings${showingOlder ? "?all=true" : ""}`);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         // The server returns them in inspection-date order: upcoming first, then past.
-        loadedBookings = await response.json();
+        const page = await response.json();
+        loadedBookings = page.bookings;
 
-        console.log(loadedBookings);
         bookingsContainer.innerHTML = "";
         rowsById.clear();
         loadedBookings.forEach(createBooking);
@@ -291,6 +307,7 @@ async function loadBookings(){
         applySort();
         renderCounts();
         applyFilter();
+        renderOlderButton(page.olderCount);
     } catch (error) {
         console.error("Error loading bookings:", error);
         notify("Could not load bookings.", { error: true });

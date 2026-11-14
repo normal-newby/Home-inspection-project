@@ -41,6 +41,10 @@ public class Client {
 
     @JsonIgnore
     public String getFullName(){
+        return fullName(firstName, lastName);
+    }
+
+    public static String fullName(String firstName, String lastName){
         String first = firstName == null ? "" : firstName.trim();
         String last = lastName == null ? "" : lastName.trim();
         String name = (first + " " + last).trim();

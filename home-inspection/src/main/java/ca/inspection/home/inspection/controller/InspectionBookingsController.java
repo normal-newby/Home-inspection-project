@@ -1,6 +1,7 @@
 package ca.inspection.home.inspection.controller;
 
 import ca.inspection.home.inspection.DTO.BookingDetails;
+import ca.inspection.home.inspection.DTO.BookingList;
 import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.service.InspectionBookingsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,8 +24,8 @@ public class InspectionBookingsController {
     }
 
     @GetMapping("/get/bookings")
-    public List<BookingDetails> getAllBookings(){
-        return inspectionBookingsService.findAll();
+    public BookingList getAllBookings(@RequestParam(defaultValue = "false") boolean all){
+        return inspectionBookingsService.findAll(all);
     }
 
     @GetMapping("/bookings/{id}")

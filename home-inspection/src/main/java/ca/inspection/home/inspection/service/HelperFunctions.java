@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -75,18 +76,22 @@ public class HelperFunctions {
 
     // "Ada Lovelace", "Ada Lovelace and Alan Turing", "Ada Lovelace, Alan Turing and Grace Hopper"
     public static String fullName(InspectionBookings booking){
-        List<String> names = clients(booking).stream()
-                .map(Client::getFullName)
-                .filter(HelperFunctions::notBlank)
-                .toList();
+        return joinNames(clients(booking).stream().map(Client::getFullName).toList());
+    }
+
+    public static String joinNames(List<String> fullNames){
+        List<String> names = fullNames.stream().filter(HelperFunctions::notBlank).toList();
         if (names.isEmpty()) return null;
         if (names.size() == 1) return names.getFirst();
         return String.join(", ", names.subList(0, names.size() - 1)) + " and " + names.getLast();
     }
 
     public static List<String> clientEmails(InspectionBookings booking){
-        return clients(booking).stream()
-                .map(Client::getEmail)
+        return distinctEmails(clients(booking).stream().map(Client::getEmail));
+    }
+
+    public static List<String> distinctEmails(Stream<String> emails){
+        return emails
                 .filter(HelperFunctions::notBlank)
                 .map(String::trim)
                 .distinct()
@@ -94,18 +99,20 @@ public class HelperFunctions {
     }
 
     public static String formatAddress(InspectionBookings booking){
+        return formatAddress(booking.getInspectionAddress(), booking.getSuite(), booking.getCity(),
+                booking.getProvince(), booking.getPostalCode());
+    }
+
+    public static String formatAddress(String street, String suite, String city, String region, String postal){
         List<String> parts = new ArrayList<>();
-        String street = booking.getInspectionAddress();
         if (notBlank(street)) {
-            parts.add(notBlank(booking.getSuite())
-                    ? street.trim() + " Unit " + booking.getSuite().trim()
+            parts.add(notBlank(suite)
+                    ? street.trim() + " Unit " + suite.trim()
                     : street.trim());
         }
-        if (notBlank(booking.getCity())) {
-            parts.add(booking.getCity().trim());
+        if (notBlank(city)) {
+            parts.add(city.trim());
         }
-        String region = booking.getProvince();
-        String postal = booking.getPostalCode();
         if (notBlank(region) && notBlank(postal)) {
             parts.add(region.trim() + " " + postal.trim());
         } else if (notBlank(region)) {

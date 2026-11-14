@@ -221,6 +221,29 @@
     display: none;
 }
 
+.bookings-older {
+    display: block;
+    margin: 1rem auto 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: var(--fs-label);
+    font-weight: 500;
+    color: var(--label);
+    cursor: pointer;
+}
+
+.bookings-older:hover {
+    border-color: var(--muted);
+    color: var(--ink);
+}
+
+.bookings-older[hidden] {
+    display: none;
+}
+
 .bookings-empty {
     padding: 2rem 0;
     text-align: center;

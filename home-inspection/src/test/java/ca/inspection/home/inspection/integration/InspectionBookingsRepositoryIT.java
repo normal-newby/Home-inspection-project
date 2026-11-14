@@ -1,6 +1,9 @@
 package ca.inspection.home.inspection.integration;
 
 import ca.inspection.home.inspection.DTO.BookingDetails;
+import ca.inspection.home.inspection.DTO.BookingListItem;
+import ca.inspection.home.inspection.DTO.BookingSummary;
+import ca.inspection.home.inspection.DTO.ClientRow;
 import ca.inspection.home.inspection.entity.Client;
 import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectionReport;
@@ -17,6 +20,7 @@ import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -61,56 +65,74 @@ public class InspectionBookingsRepositoryIT {
         return booking;
     }
 
-    @Test
-    void findBookingDetails_returnsProjectionWithInvoicesEagerlyFetched() {
-        persistBooking("100 Main St", new BigDecimal("400.00"), new BigDecimal("100.00"));
-        em.clear();
+    private static final LocalDate FIRST = LocalDate.of(1, 1, 1);
+    private static final LocalDate LAST = LocalDate.of(9999, 12, 31);
 
-        List<BookingDetails> result = bookingsRepository.findBookingDetailsByOrderByCreatedAtDesc();
-
-        assertThat(result).hasSize(1);
-        BookingDetails details = result.getFirst();
-        assertThat(details.getInspectionAddress()).isEqualTo("100 Main St");
-        assertThat(details.getClients()).extracting(Client::getFirstName).containsExactly("Jane");
-
-        assertThat(details.getInvoices()).hasSize(2);
-        assertThat(details.getInvoices().stream()
-                .map(Invoice::getFee)
-                .map(BigDecimal::doubleValue))
-                .containsExactlyInAnyOrder(400.0, 100.0);
+    private List<BookingSummary> summaries(LocalDate from, LocalDate to, boolean undated) {
+        return BookingSummary.assemble(
+                bookingsRepository.findRows(from, to, undated),
+                bookingsRepository.findClientRows(from, to, undated),
+                bookingsRepository.findInvoiceRows(from, to, undated));
     }
 
     @Test
-    void findBookingDetails_exposesTaxedPrice() {
-        InspectionBookings taxed = persistBooking("1 Taxed Rd", new BigDecimal("400.00"), new BigDecimal("100.00"));
+    void listQueries_returnEachBookingWithItsClientsAndInvoices() {
+        persistBooking("100 Main St", new BigDecimal("400.00"), new BigDecimal("100.00"));
+        persistBooking("200 Side St");
+        em.clear();
+
+        List<BookingSummary> result = summaries(FIRST, LAST, true);
+
+        assertThat(result).hasSize(2);
+        BookingSummary main = byAddress(result, "100 Main St");
+        assertThat(main.clients()).extracting(ClientRow::firstName).containsExactly("Jane");
+        assertThat(main.invoices()).extracting(invoice -> invoice.fee().doubleValue())
+                .containsExactlyInAnyOrder(400.0, 100.0);
+        assertThat(byAddress(result, "200 Side St").invoices()).isEmpty();
+    }
+
+    @Test
+    void listQueries_exposeTaxedPrice() {
+        persistBooking("1 Taxed Rd", new BigDecimal("400.00"), new BigDecimal("100.00"));
         InspectionBookings untaxed = persistBooking("2 Untaxed Rd", new BigDecimal("500.00"));
         untaxed.setRemoveTax(true);
         persistBooking("3 Unbilled Rd");
         em.flush();
         em.clear();
 
-        List<BookingDetails> result = bookingsRepository.findBookingDetailsByOrderByCreatedAtDesc();
+        List<BookingSummary> result = summaries(FIRST, LAST, true);
 
-        assertThat(byAddress(result, "1 Taxed Rd").getPrice()).isEqualByComparingTo("565.00");
-        assertThat(byAddress(result, "2 Untaxed Rd").getPrice()).isEqualByComparingTo("500.00");
-        assertThat(byAddress(result, "3 Unbilled Rd").getPrice()).isNull();
+        assertThat(BookingListItem.of(byAddress(result, "1 Taxed Rd")).price()).isEqualByComparingTo("565.00");
+        assertThat(BookingListItem.of(byAddress(result, "2 Untaxed Rd")).price()).isEqualByComparingTo("500.00");
+        assertThat(BookingListItem.of(byAddress(result, "3 Unbilled Rd")).price()).isNull();
     }
 
-    private static BookingDetails byAddress(List<BookingDetails> bookings, String address) {
-        return bookings.stream().filter(b -> address.equals(b.getInspectionAddress())).findFirst().orElseThrow();
+    private static BookingSummary byAddress(List<BookingSummary> bookings, String address) {
+        return bookings.stream().filter(b -> address.equals(b.booking().inspectionAddress())).findFirst().orElseThrow();
     }
 
     @Test
-    void findBookingDetailsByOrderByCreatedAtDesc_ordersByCreatedAtDesc() throws InterruptedException {
-        InspectionBookings older = persistBooking("1 Old Rd");
-        Thread.sleep(20); // CreationTimestamp uses ms precision
-        InspectionBookings newer = persistBooking("2 New Rd");
+    void listQueries_keepToTheDateRangeAndOnlyIncludeUndatedWhenAsked() {
+        InspectionBookings old = persistBooking("1 Old Rd", new BigDecimal("100.00"));
+        old.setInspectionDate(LocalDate.of(2025, 1, 10));
+        InspectionBookings recent = persistBooking("2 Recent Rd", new BigDecimal("200.00"));
+        recent.setInspectionDate(LocalDate.of(2026, 6, 1));
+        persistBooking("3 Undated Rd", new BigDecimal("300.00"));
+        em.flush();
+        em.clear();
 
-        List<BookingDetails> result = bookingsRepository.findBookingDetailsByOrderByCreatedAtDesc();
+        LocalDate from = LocalDate.of(2026, 1, 1);
 
-        assertThat(result)
-                .extracting(BookingDetails::getInspectionAddress)
-                .containsExactly("2 New Rd", "1 Old Rd");
+        assertThat(summaries(from, LAST, true))
+                .extracting(summary -> summary.booking().inspectionAddress())
+                .containsExactlyInAnyOrder("2 Recent Rd", "3 Undated Rd");
+        assertThat(summaries(from, LAST, false))
+                .extracting(summary -> summary.booking().inspectionAddress())
+                .containsExactly("2 Recent Rd");
+        // Clients and invoices follow the same range as the bookings.
+        assertThat(bookingsRepository.findInvoiceRows(from, LAST, false)).hasSize(1);
+        assertThat(bookingsRepository.findClientRows(from, LAST, false)).hasSize(1);
+        assertThat(bookingsRepository.countByInspectionDateBefore(from)).isEqualTo(1);
     }
 
     @Test

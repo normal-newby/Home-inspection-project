@@ -114,6 +114,17 @@ public class ReportRenderFailureIT {
         return annotation;
     }
 
+    // An upload also builds a print-size copy in the background, and the report reads that
+    // copy when it exists. The photo is only gone once both files are.
+    private void removeFromDisk(String fileName) throws Exception {
+        Path dir = Path.of("target/integration-test-uploads", "booking_" + inspectionNumber);
+        Path printCopy = dir.resolve("report_800").resolve(fileName);
+        for (int i = 0; i < 100 && !Files.exists(printCopy); i++) Thread.sleep(20);
+
+        Files.deleteIfExists(dir.resolve(fileName));
+        Files.deleteIfExists(printCopy);
+    }
+
     private List<InspectionField> render() {
         InspectionReport loaded = reportsRepository.findByInspectionBooking_Id(bookingId);
         reportViewService.getOtherFields(loaded);
@@ -134,8 +145,7 @@ public class ReportRenderFailureIT {
     @Test
     void photoMissingFromDisk_isDroppedAndTheReportStillRenders() throws Exception {
         InspectionImage image = uploadAndAttach(tinyJpeg(), "a.jpg", "image/jpeg");
-        Files.deleteIfExists(Path.of("target/integration-test-uploads",
-                "booking_" + inspectionNumber, image.getImageUrl()));
+        removeFromDisk(image.getImageUrl());
 
         assertThat(photosIn(render())).isEmpty();
     }
@@ -215,8 +225,7 @@ public class ReportRenderFailureIT {
         InspectionReport loaded = reportsRepository.findByInspectionBooking_Id(bookingId);
         InspectionImage cover = loaded.getCoverPageImage();
         assertThat(cover).isNotNull();
-        Files.deleteIfExists(Path.of("target/integration-test-uploads",
-                "booking_" + inspectionNumber, cover.getImageUrl()));
+        removeFromDisk(cover.getImageUrl());
 
         InspectionReport reloaded = reportsRepository.findByInspectionBooking_Id(bookingId);
         reportViewService.setCoverPageImageBase64(reloaded);

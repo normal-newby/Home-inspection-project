@@ -1,6 +1,9 @@
 package ca.inspection.home.inspection.service;
 
 import ca.inspection.home.inspection.DTO.BookingDetails;
+import ca.inspection.home.inspection.DTO.BookingList;
+import ca.inspection.home.inspection.DTO.BookingListItem;
+import ca.inspection.home.inspection.DTO.BookingSummary;
 import ca.inspection.home.inspection.DTO.InvoiceAmount;
 import ca.inspection.home.inspection.entity.BookingStatus;
 import ca.inspection.home.inspection.entity.Client;
@@ -17,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -95,18 +99,32 @@ public class InspectionBookingsService {
         }
     }
 
-    // Sorting
-    public List<BookingDetails> findAll(){
+    // The home page opens on upcoming bookings plus this many days back; the rest load on request.
+    static final int RECENT_DAYS = 90;
+    private static final LocalDate FIRST_DATE = LocalDate.of(1, 1, 1);
+    private static final LocalDate LAST_DATE = LocalDate.of(9999, 12, 31);
+
+    @Transactional(readOnly = true)
+    public BookingList findAll(boolean includeOlder){
         LocalDate today = LocalDate.now();
-        return inspectionBookingsRepository.findBookingDetailsByOrderByCreatedAtDesc().stream()
+        LocalDate from = includeOlder ? FIRST_DATE : today.minusDays(RECENT_DAYS);
+
+        List<BookingListItem> bookings = BookingSummary.assemble(
+                        inspectionBookingsRepository.findRows(from, LAST_DATE, true),
+                        inspectionBookingsRepository.findClientRows(from, LAST_DATE, true),
+                        inspectionBookingsRepository.findInvoiceRows(from, LAST_DATE, true)).stream()
+                .map(BookingListItem::of)
                 .sorted(byInspectionDate(today))
                 .toList();
+
+        long olderCount = includeOlder ? 0 : inspectionBookingsRepository.countByInspectionDateBefore(from);
+        return new BookingList(bookings, olderCount);
     }
 
-    static Comparator<BookingDetails> byInspectionDate(LocalDate today){
+    static Comparator<BookingListItem> byInspectionDate(LocalDate today){
         return Comparator
                 // 0 = upcoming, 1 = past, 2 = no date set
-                .comparingInt((BookingDetails booking) -> {
+                .comparingInt((BookingListItem booking) -> {
                     LocalDate date = inspectionDate(booking);
                     if (date == null) return 2;
                     return date.isBefore(today) ? 1 : 0;
@@ -120,17 +138,17 @@ public class InspectionBookingsService {
                 .thenComparing(InspectionBookingsService::primaryLastName);
     }
 
-    private static String primaryLastName(BookingDetails booking){
-        List<Client> clients = booking.getClients();
+    private static String primaryLastName(BookingListItem booking){
+        List<BookingListItem.ClientName> clients = booking.clients();
         if (clients == null || clients.isEmpty()) return "";
-        String last = clients.getFirst().getLastName();
+        String last = clients.getFirst().lastName();
         return last == null ? "" : last;
     }
 
-    static LocalDate inspectionDate(BookingDetails booking){
-        String rawMonth = booking.getMonth();
-        Integer day = booking.getDay();
-        Integer year = booking.getYear();
+    static LocalDate inspectionDate(BookingListItem booking){
+        String rawMonth = booking.month();
+        Integer day = booking.day();
+        Integer year = booking.year();
         if (rawMonth == null || rawMonth.isBlank() || day == null || year == null) return null;
 
         try {
