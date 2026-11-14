@@ -16,6 +16,11 @@ services:
       - ./logs:/app/logs
     depends_on:
       - pdf-service
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
 
   pdf-service:
     build: ./pdf-service
@@ -23,3 +28,8 @@ services:
       - "3001:3001"
     environment:
       - SPRING_BASE_URL=http://backend:8080
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"

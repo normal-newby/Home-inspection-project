@@ -72,7 +72,7 @@ If the file doesn't exist, compose fails, so create an empty one on a fresh clon
 | `GEMINI_API_KEY`         | *(blank → AI features off)*                           | from `.env`                    | Gemini API |
 | `GEMINI_MODEL`           | `gemini-3.6-flash`                                    | —                              | Gemini model id |
 | `REPORT_IMAGE_MAX_WIDTH` | `800`                                                 | —                              | Width photos are scaled to before being base64-inlined into the report |
-| `JPA_SHOW_SQL`           | `true`                                                | —                              | SQL echo in logs |
+| `JPA_SHOW_SQL`           | `false`                                               | —                              | SQL echo in logs |
 | `LOG_LEVEL_APP`          | `INFO`                                                | —                              | Log level for `ca.inspection.home` |
 | `LOG_FILE`               | `logs/home-inspection.log`                            | —                              | Rolling log file (10 MB × 14) |
 
