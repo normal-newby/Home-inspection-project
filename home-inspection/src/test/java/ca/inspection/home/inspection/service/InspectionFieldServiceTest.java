@@ -879,7 +879,7 @@ public class InspectionFieldServiceTest {
 
         InspectionRecommendationField saved = new InspectionRecommendationField();
 
-        when(inspectionFieldRepository.findById(fieldId)).thenReturn(Optional.of(field));
+        when(inspectionFieldRepository.findWithRecommendationAndValue(fieldId)).thenReturn(Optional.of(field));
         when(inspectionRecommendationFieldRepository.save(recommendationField)).thenReturn(saved);
 
         ResponseEntity<?> result = inspectionFieldService.addRecommendationField(fieldId, recommendationField, false);
@@ -913,7 +913,7 @@ public class InspectionFieldServiceTest {
         newField.setUpper_cost("500");
         newField.setImplication("implication");
 
-        when(inspectionFieldRepository.findById(fieldId)).thenReturn(Optional.of(field));
+        when(inspectionFieldRepository.findWithRecommendationAndValue(fieldId)).thenReturn(Optional.of(field));
         when(inspectionRecommendationFieldRepository.save(existing)).thenReturn(existing);
 
         ResponseEntity<?> result = inspectionFieldService.addRecommendationField(fieldId, newField, false);
@@ -943,7 +943,7 @@ public class InspectionFieldServiceTest {
         InspectionRecommendationField recommendationField = new InspectionRecommendationField();
         recommendationField.setImplication("implication");
 
-        when(inspectionFieldRepository.findById(fieldId)).thenReturn(Optional.of(field));
+        when(inspectionFieldRepository.findWithRecommendationAndValue(fieldId)).thenReturn(Optional.of(field));
         when(inspectionRecommendationFieldRepository.save(recommendationField)).thenReturn(recommendationField);
 
         inspectionFieldService.addRecommendationField(fieldId, recommendationField, true);
@@ -963,7 +963,7 @@ public class InspectionFieldServiceTest {
         InspectionRecommendationField recommendationField = new InspectionRecommendationField();
         recommendationField.setImplication("implication");
 
-        when(inspectionFieldRepository.findById(fieldId)).thenReturn(Optional.of(field));
+        when(inspectionFieldRepository.findWithRecommendationAndValue(fieldId)).thenReturn(Optional.of(field));
         when(inspectionRecommendationFieldRepository.save(recommendationField)).thenReturn(recommendationField);
 
         ResponseEntity<?> result = inspectionFieldService.addRecommendationField(fieldId, recommendationField, true);
@@ -985,7 +985,7 @@ public class InspectionFieldServiceTest {
         InspectionRecommendationField recommendationField = new InspectionRecommendationField();
         recommendationField.setImplication(null);
 
-        when(inspectionFieldRepository.findById(fieldId)).thenReturn(Optional.of(field));
+        when(inspectionFieldRepository.findWithRecommendationAndValue(fieldId)).thenReturn(Optional.of(field));
         when(inspectionRecommendationFieldRepository.save(recommendationField)).thenReturn(recommendationField);
 
         inspectionFieldService.addRecommendationField(fieldId, recommendationField, true);
@@ -1007,7 +1007,7 @@ public class InspectionFieldServiceTest {
         InspectionRecommendationField recommendationField = new InspectionRecommendationField();
         recommendationField.setImplication("implication");
 
-        when(inspectionFieldRepository.findById(fieldId)).thenReturn(Optional.of(field));
+        when(inspectionFieldRepository.findWithRecommendationAndValue(fieldId)).thenReturn(Optional.of(field));
         when(inspectionRecommendationFieldRepository.save(recommendationField)).thenReturn(recommendationField);
 
         inspectionFieldService.addRecommendationField(fieldId, recommendationField, false);
@@ -1021,7 +1021,7 @@ public class InspectionFieldServiceTest {
         UUID fieldId = UUID.randomUUID();
         InspectionRecommendationField recommendationField = new InspectionRecommendationField();
 
-        when(inspectionFieldRepository.findById(fieldId)).thenReturn(Optional.empty());
+        when(inspectionFieldRepository.findWithRecommendationAndValue(fieldId)).thenReturn(Optional.empty());
 
         ResponseEntity<?> result = inspectionFieldService.addRecommendationField(fieldId, recommendationField, false);
 

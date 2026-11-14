@@ -3,7 +3,6 @@ package ca.inspection.home.inspection.controller;
 import ca.inspection.home.inspection.DTO.InvoiceAmount;
 import ca.inspection.home.inspection.DTO.FieldGroup;
 import ca.inspection.home.inspection.entity.*;
-import ca.inspection.home.inspection.repository.InspectionReportsRepository;
 import ca.inspection.home.inspection.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +34,6 @@ public class ReportViewController {
     private InspectionReportsService inspectionReportsService;
 
     @Autowired
-    private InspectionReportsRepository inspectionReportsRepository;
-
-    @Autowired
     private SpringTemplateEngine templateEngine;
 
     @Autowired
@@ -48,11 +44,10 @@ public class ReportViewController {
 
     @GetMapping(value = "/{bookingId}", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<byte[]> getReport(@PathVariable UUID bookingId){
-        InspectionBookings booking = inspectionBookingsService.findById(bookingId);
-        InspectionReport report = inspectionReportsRepository.findByInspectionBooking_Id(bookingId);
-        Context context = buildReportContext(bookingId, booking, report);
+        ReportViewService.ReportData data = reportViewService.loadReportData(bookingId);
+        Context context = buildReportContext(data);
 
-        byte[] pdf = reportViewService.generatePdf("report", context, bookingId, report);
+        byte[] pdf = reportViewService.generatePdf("report", context, bookingId, data.report());
 
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
                 "inline; filename=report-" + bookingId + ".pdf")
@@ -63,7 +58,7 @@ public class ReportViewController {
     @GetMapping("/{bookingId}/email")
     @ResponseBody
     public Map<String, Object> emailRecipients(@PathVariable UUID bookingId){
-        InspectionBookings booking = inspectionBookingsService.findById(bookingId);
+        InspectionBookings booking = inspectionBookingsService.findWithClients(bookingId);
         List<String> emails = HelperFunctions.clientEmails(booking);
 
         Map<String, Object> recipients = new HashMap<>(Map.of("linked", googleEmailService.isLinked(), "to", emails));
@@ -83,7 +78,7 @@ public class ReportViewController {
     public ResponseEntity<?> emailReport(@PathVariable UUID bookingId,
                                          @RequestParam(defaultValue = "false") boolean ccAgent){
         try {
-            InspectionBookings booking = inspectionBookingsService.findById(bookingId);
+            InspectionBookings booking = inspectionBookingsService.findWithClients(bookingId);
             List<String> emails = HelperFunctions.clientEmails(booking);
 
             if (emails.isEmpty()) {
@@ -95,12 +90,12 @@ public class ReportViewController {
                         .body(Map.of("error", "Google is not linked. Link it on the Profile page to send emails."));
             }
 
-            InspectionReport report = inspectionReportsRepository.findByInspectionBooking_Id(bookingId);
-            Context context = buildReportContext(bookingId, booking, report);
+            ReportViewService.ReportData data = reportViewService.loadReportData(bookingId);
+            Context context = buildReportContext(data);
 
-            byte[] pdf = reportViewService.generatePdf("report", context, bookingId, report);
+            byte[] pdf = reportViewService.generatePdf("report", context, bookingId, data.report());
 
-            String cc = googleEmailService.sendReportEmail(emails, pdf, booking, report.getEmailBody(), ccAgent);
+            String cc = googleEmailService.sendReportEmail(emails, pdf, data.booking(), data.report().getEmailBody(), ccAgent);
 
             Map<String, Object> sent = new HashMap<>(Map.of("sent", true, "to", String.join(", ", emails)));
             if (cc != null) sent.put("cc", cc);
@@ -111,14 +106,16 @@ public class ReportViewController {
         }
     }
 
-    private Context buildReportContext(UUID bookingId, InspectionBookings booking, InspectionReport report){
+    // Works on data already loaded: only the photo files are read here.
+    private Context buildReportContext(ReportViewService.ReportData data){
+        InspectionBookings booking = data.booking();
+        InspectionReport report = data.report();
         Context context = new Context();
 
         InspectorProfile profile = inspectorProfileService.getProfile();
         InvoiceAmount amount = inspectionBookingsService.buildInvoiceAmount(
                 booking.getInvoices(), Boolean.TRUE.equals(booking.getRemoveTax()));
 
-        reportViewService.getOtherFields(report);
         reportViewService.setCoverPageImageBase64(report);
 
         List<InspectionField> fields = reportViewService.getSortedFields(report);

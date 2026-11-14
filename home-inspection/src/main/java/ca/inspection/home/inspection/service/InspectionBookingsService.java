@@ -17,6 +17,7 @@ import ca.inspection.home.inspection.repository.InspectionImagesRepository;
 import ca.inspection.home.inspection.repository.InspectionReportsRepository;
 import ca.inspection.home.inspection.repository.InvoiceRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -196,11 +197,21 @@ public class InspectionBookingsService {
         return inspectionBookingsRepository.findById(id).orElseThrow();
     }
 
+    // Clients load lazily, so they are read here while the session is still open.
+    @Transactional(readOnly = true)
+    public InspectionBookings findWithClients(UUID id){
+        InspectionBookings booking = findById(id);
+        Hibernate.initialize(booking.getClients());
+        return booking;
+    }
+
+    @Transactional(readOnly = true)
     public BookingDetails getBookingDetails(UUID id){
         BookingDetails details = inspectionBookingsRepository.getBookingDetails(id);
         if (details == null){
             throw new java.util.NoSuchElementException("Booking not found: " + id);
         }
+        Hibernate.initialize(details.getClients());
         return details;
     }
 

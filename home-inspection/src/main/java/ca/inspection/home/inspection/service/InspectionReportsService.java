@@ -1,5 +1,6 @@
 package ca.inspection.home.inspection.service;
 
+import ca.inspection.home.inspection.DTO.ReportSettings;
 import ca.inspection.home.inspection.entity.InspectionBookings;
 import ca.inspection.home.inspection.entity.InspectionImage;
 import ca.inspection.home.inspection.entity.InspectionReport;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -46,8 +48,12 @@ public class InspectionReportsService {
         return booking == null ? null : booking.getInspectionNumber();
     }
 
-    public InspectionReport getBooking(UUID bookingId){
-        return inspectionReportsRepository.findByInspectionBooking_Id(bookingId);
+    public ReportSettings getReportSettings(UUID bookingId){
+        InspectionReport report = inspectionReportsRepository.findByInspectionBooking_IdLite(bookingId);
+        if (report == null){
+            throw new NoSuchElementException("Report not found for booking: " + bookingId);
+        }
+        return ReportSettings.of(report);
     }
 
     public ResponseEntity<?> updateReportData(UUID bookingId, Map<String, String> body){
@@ -70,7 +76,7 @@ public class InspectionReportsService {
             }
 
             inspectionReportsRepository.save(report);
-            return ResponseEntity.ok(report);
+            return ResponseEntity.ok(ReportSettings.of(report));
         } catch (Exception e){
             log.error("Failed to update report data for booking {}", bookingId, e);
             return ResponseEntity.badRequest().build();
@@ -90,7 +96,7 @@ public class InspectionReportsService {
             inspectionReportsRepository.save(report);
 
             log.info("Uploaded appendix pdf for booking {}", bookingId);
-            return ResponseEntity.ok(report);
+            return ResponseEntity.ok(ReportSettings.of(report));
         } catch (Exception e){
             log.error("Failed to upload appendix pdf for booking {}", bookingId, e);
             return ResponseEntity.badRequest().build();

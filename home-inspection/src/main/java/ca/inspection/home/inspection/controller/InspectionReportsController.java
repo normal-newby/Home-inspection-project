@@ -1,6 +1,6 @@
 package ca.inspection.home.inspection.controller;
 
-import ca.inspection.home.inspection.entity.InspectionReport;
+import ca.inspection.home.inspection.DTO.ReportSettings;
 import ca.inspection.home.inspection.service.InspectionReportsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +18,8 @@ public class InspectionReportsController {
     private InspectionReportsService inspectionReportsService;
 
     @GetMapping("/reports/{bookingId}")
-    public InspectionReport getReport(@PathVariable UUID bookingId){
-        return inspectionReportsService.getBooking(bookingId);
+    public ReportSettings getReport(@PathVariable UUID bookingId){
+        return inspectionReportsService.getReportSettings(bookingId);
     }
 
     @PostMapping("/reports/{bookingId}")

@@ -338,7 +338,7 @@ public class InspectionFieldService {
     public ResponseEntity<?> addRecommendationField(UUID fieldId, InspectionRecommendationField recommendationField,
                                                     Boolean saveAsDefaultImplication){
         try {
-            InspectionField field = inspectionFieldRepository.findById(fieldId)
+            InspectionField field = inspectionFieldRepository.findWithRecommendationAndValue(fieldId)
                     .orElseThrow(() -> new RuntimeException("Field not found"));
             InspectionRecommendationField existing = field.getInspectionRecommendationField();
             InspectionFieldDefinitionValue definitionValue = field.getSelectedValue();

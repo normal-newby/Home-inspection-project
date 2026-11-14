@@ -6,17 +6,19 @@ import ca.inspection.home.inspection.DTO.NavSection;
 import ca.inspection.home.inspection.DTO.ReportDiagram;
 import ca.inspection.home.inspection.entity.*;
 import ca.inspection.home.inspection.repository.ImageAnnotationRepository;
+import ca.inspection.home.inspection.repository.InspectionBookingsRepository;
 import ca.inspection.home.inspection.repository.InspectionImagesRepository;
 import ca.inspection.home.inspection.repository.InspectionRecommendationFieldRepository;
 import ca.inspection.home.inspection.repository.InspectionFieldDefinitionValueRepository;
 import ca.inspection.home.inspection.repository.InspectionReportsRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.util.http.fileupload.ByteArrayOutputStream;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -69,6 +71,12 @@ public class ReportViewService {
     private InspectionImagesRepository inspectionImagesRepository;
 
     @Autowired
+    private InspectionBookingsRepository inspectionBookingsRepository;
+
+    @Autowired
+    private InspectionReportsRepository inspectionReportsRepository;
+
+    @Autowired
     private ImageAnnotationRepository imageAnnotationRepository;
 
     @Autowired
@@ -79,6 +87,21 @@ public class ReportViewService {
 
     @Autowired
     private InspectionFieldDefinitionValueRepository inspectionFieldDefinitionValueRepository;
+
+    public record ReportData(InspectionBookings booking, InspectionReport report) {}
+
+    // Everything the report reads from the database, in one short transaction. Encoding the
+    // photos and rendering the PDF come after it, so neither holds a connection.
+    @Transactional(readOnly = true)
+    public ReportData loadReportData(UUID bookingId){
+        InspectionBookings booking = inspectionBookingsRepository.findById(bookingId).orElseThrow();
+        Hibernate.initialize(booking.getClients());
+        Hibernate.initialize(booking.getInvoices());
+
+        InspectionReport report = inspectionReportsRepository.findByInspectionBooking_Id(bookingId);
+        getOtherFields(report);
+        return new ReportData(booking, report);
+    }
 
     public void getOtherFields(InspectionReport report){
         List<UUID> fieldIds = report.getFields().stream().map(InspectionField::getId).toList();
