@@ -19,6 +19,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.OrderBy;
@@ -28,7 +29,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "inspection_bookings")
+@Table(name = "inspection_bookings", indexes = {
+        @Index(name = "idx_booking_inspection_number", columnList = "inspectionNumber"),
+        @Index(name = "idx_booking_inspection_date", columnList = "inspectionDate")
+})
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

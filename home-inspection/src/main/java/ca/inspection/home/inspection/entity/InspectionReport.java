@@ -12,6 +12,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
@@ -24,7 +25,9 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name = "inspection_report")
+@Table(name = "inspection_report", indexes = {
+        @Index(name = "idx_report_cover_image", columnList = "cover_page_image_id")
+})
 @Getter
 @Setter
 @AllArgsConstructor

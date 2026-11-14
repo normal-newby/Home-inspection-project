@@ -16,7 +16,9 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "inspection_field_definition_value")
+@Table(name = "inspection_field_definition_value", indexes = {
+        @Index(name = "idx_definition_value_definition", columnList = "inspection_field_definition_id")
+})
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -48,7 +50,8 @@ public class InspectionFieldDefinitionValue {
     @JoinTable(
             name = "definition_value_diagram",
             joinColumns = @JoinColumn(name = "definition_value_id"),
-            inverseJoinColumns = @JoinColumn(name = "diagram_id")
+            inverseJoinColumns = @JoinColumn(name = "diagram_id"),
+            indexes = @Index(name = "idx_value_diagram_diagram", columnList = "diagram_id")
     )
     @OrderColumn(name = "position")
     private List<RecommendationDiagram> diagrams = new ArrayList<>();
