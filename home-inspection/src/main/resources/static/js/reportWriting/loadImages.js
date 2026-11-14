@@ -151,9 +151,12 @@ function renderImageCounts(images){
     remainingEl.classList.toggle("none-left", remaining === 0);
 }
 
-// The used/unused split moved, so both the pool slider and its tally are stale.
-export async function refreshImagePool(){
-    invalidateImageCache();
+// The used/unused split moved: flip it on the list already loaded and redraw, rather than refetching.
+export async function setImagesUsed(imageIds, used){
+    const ids = new Set(imageIds.map(String));
+    (await getImages()).forEach(image => {
+        if (ids.has(String(image.id))) image.used = used;
+    });
     await initialize();
 }
 
@@ -276,9 +279,11 @@ async function deleteImage(e, imageId){
     fetch(`/api/images/${imageId}`, {
         method: "DELETE"
     })
-    .then(res => {
+    .then(async res => {
         if (res.ok){
-            invalidateImageCache();
+            const images = await getImages();
+            const index = images.findIndex(image => String(image.id) === String(imageId));
+            if (index !== -1) images.splice(index, 1);
             initialize();
         } else console.log("failed");
     });

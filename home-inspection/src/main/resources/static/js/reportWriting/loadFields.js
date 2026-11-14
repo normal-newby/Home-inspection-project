@@ -1,8 +1,8 @@
 import { bookingId } from "./getReport.js";
-import { initImagesGrid, refreshImagePool } from "./loadImages.js";
+import { initImagesGrid, setImagesUsed } from "./loadImages.js";
 import { addAnnotationCanvas } from "./imageAnnotation.js";
 import { setUpRecommendationsPanel, setUpDiagramsButton, saveRecommendationsIfOpen } from "./recommendations.js";
-import { fetchExisting, saveFunction, saveNote } from "../fetchExisting.js";
+import { saveFunction, saveNote } from "../fetchExisting.js";
 import { confirmDialog, askToSave, notify, isOverlayClick } from "../ui/dialog.js";
 import { holdClickAway } from "../ui/unsaved.js";
 import { makeResizable } from "../ui/resizablePanel.js";
@@ -50,6 +50,12 @@ let curField = null;
 // Definition id -> that field's show(), so a search result can open it.
 const fieldShowers = new Map();
 
+// "place/type" -> that tab's definitions. They only change through this page, which updates them here.
+const definitionsByTab = new Map();
+
+// Item id -> the item as loaded, kept in step with saves so opening one needs no request.
+const itemsById = new Map();
+
 // Typed but unsaved edits in the open item; leaving the item asks whether to save them.
 let noteEditFieldId = null;
 let conditionNameEdited = false;
@@ -74,7 +80,7 @@ async function confirmFieldEdits(){
     }
 
     const saves = [];
-    if (noteEditFieldId) saves.push(saveNote(noteEditFieldId, noteTextArea.value));
+    if (noteEditFieldId) saves.push(saveItemNote(noteEditFieldId, noteTextArea.value));
     // Only the explicit button adds a permanent value; that one asks for confirmation first.
     if (conditionNameEdited && openBlankItem) saves.push(saveConditionName(openBlankItem, conditionNameInput.value.trim(), false));
     if (!(await Promise.all(saves)).every(Boolean)) return false; // stay, so the failed edit is not lost
@@ -88,12 +94,23 @@ holdClickAway(target => hasFieldEdits()
     && (!selectImageDiv.contains(target) || recommendationsButton.contains(target) || diagramsButton.contains(target)),
     confirmFieldEdits);
 
-async function loadInspectionFieldDefinitions(){
-    console.log(`Loading fields for place: ${place}, type: ${type}`);
-    const response = await fetch(`/api/fields/definition/${encodeURIComponent(place)}/${encodeURIComponent(type)}`);
-    const fields = await response.json();
+async function fetchDefinitions(){
+    const tab = `${place}/${type}`;
+    if (!definitionsByTab.has(tab)){
+        const response = await fetch(`/api/fields/definition/${encodeURIComponent(place)}/${encodeURIComponent(type)}`);
+        definitionsByTab.set(tab, await response.json());
+    }
+    return definitionsByTab.get(tab);
+}
 
-    const existingFieldsCombined = await fetchExistingFieldsCombined();
+async function saveItemNote(fieldId, content){
+    const saved = await saveNote(fieldId, content);
+    if (saved && itemsById.has(fieldId)) itemsById.get(fieldId).note = content;
+    return saved;
+}
+
+async function loadInspectionFieldDefinitions(){
+    const [fields, existingFieldsCombined] = await Promise.all([fetchDefinitions(), fetchExistingFieldsCombined()]);
 
     const fieldsWithExisting = await Promise.all(fields.map(async field => {
         const existingFields = existingFieldsCombined[field.id] || [];
@@ -113,6 +130,7 @@ async function loadInspectionFieldDefinitions(){
 
     contentFields.innerHTML = "";
     fieldShowers.clear();
+    itemsById.clear();
     fieldsWithExisting.forEach(({ field, existingFields, existingCount, pinned }) => {
         field.isShowing = existingCount > 0 || pinned; // Show if there are existing fields or if pinned
         createField(field, existingFields);
@@ -159,7 +177,6 @@ function createField(field, existingFields = []){
     fieldDiv.appendChild(valuesDiv);
     contentFields.appendChild(fieldDiv);
     valuesDiv.hidden = !field.isShowing;
-    console.log(valuesDiv.hidden);
 
     let loaded = false;
 
@@ -229,7 +246,7 @@ async function renderFields(valuesDiv, field, existingFields = null){
 
     //Create buttons
     field.possibleValues.forEach(value => {
-        createButton(valuesDiv, value, field.id); // For possible values to choose from
+        createButton(valuesDiv, value, field); // For possible values to choose from
     });
 }
 
@@ -245,11 +262,11 @@ async function fetchExistingFieldsCombined(){
     }
 }
 
-function createButton(parent, value, fieldId){ //Creates buttons for possible values in each field
+function createButton(parent, value, definition){ //Creates buttons for possible values in each field
     const button = document.createElement("button");
     button.classList.add("value-button");
     button.textContent = value.value;
-    button.addEventListener("click", () => saveNewInspectionField(value.value, fieldId));
+    button.addEventListener("click", () => saveNewInspectionField(value.value, definition, parent));
     parent.appendChild(button);
 }
 
@@ -258,6 +275,7 @@ function createExistingField(parent, field, definition){ // Creates buttons for 
     button.classList.add("value-button");
     button.classList.add("selected-button");
     button.dataset.id = field.id;
+    itemsById.set(String(field.id), field);
     renderFieldButton(button, field);
     markInSummary(button, field.includeInSummary);
 
@@ -271,7 +289,7 @@ function createExistingField(parent, field, definition){ // Creates buttons for 
         );
         if (!confirmed) return;
 
-        if (!await deleteInspectionField(button.dataset.id)){
+        if (!await deleteInspectionField(button.dataset.id, field.inspectionImages ?? [])){
             notify("Could not delete that item.", { error: true });
             return;
         }
@@ -282,7 +300,8 @@ function createExistingField(parent, field, definition){ // Creates buttons for 
             curField = null;
         }
 
-        await loadInspectionFieldDefinitions();
+        itemsById.delete(button.dataset.id);
+        button.remove();
     });
 
     button.addEventListener("dblclick", async (e) => { // Double click to change image
@@ -294,8 +313,6 @@ function createExistingField(parent, field, definition){ // Creates buttons for 
 
         curField = button.dataset.id;
 
-        console.log(field); 
-
         showExistingImage(field.inspectionImages, button.dataset.id);
         selectImageDiv.hidden = false;
 
@@ -303,7 +320,7 @@ function createExistingField(parent, field, definition){ // Creates buttons for 
 
         addExistingImages(bookingId, selectImageDiv, button.dataset.id, field.inspectionImages); // Add images to select from
 
-        fetchExisting(`/api/fields/${button.dataset.id}/note`, noteTextArea); // Fetch existing note for the field
+        noteTextArea.value = field.note ?? "";
 
         if (type === "recommendations"){ // If field = recommendation, show button
             recommendationsButton.hidden = false;
@@ -312,10 +329,11 @@ function createExistingField(parent, field, definition){ // Creates buttons for 
             setUpDiagramsButton(button.dataset.id);
 
             includeInSummaryRow.hidden = false;
-            fetchInSummary(button.dataset.id) // Fetch in summary for field
+            includeInSummaryBox.checked = Boolean(field.includeInSummary);
         }
     }); 
-    parent.appendChild(button);
+    // Chosen items sit ahead of the values still on offer.
+    parent.insertBefore(button, parent.querySelector(".value-button:not(.selected-button)"));
 }
 
 /** What a selected field's button reads: the typed condition name, or the picked value. */
@@ -416,8 +434,11 @@ async function saveConditionName(item, name, permanent){
 
         if (result.savedPermanently){
             // Show the new option immediately instead of waiting for the next page load.
-            if (definition && valuesDiv) createButton(valuesDiv, { value: name }, definition.id);
-            if (definition) addSearchValue(definition.id, name);
+            if (definition && valuesDiv) createButton(valuesDiv, { value: name }, definition);
+            if (definition){
+                definition.possibleValues.push({ value: name });
+                addSearchValue(definition.id, name);
+            }
             setConditionMessage("Saved, and added as a permanent value.");
         } else if (result.alreadyExisted){
             setConditionMessage("Saved. That value was already on the list.");
@@ -596,8 +617,8 @@ function showExistingImage(images, fieldId){
 
 // Endpoints for fields and images
 
-function saveNewInspectionField(value, fieldDefinitionId){
-    const url = `/api/fields/${bookingId}/${fieldDefinitionId}`;
+function saveNewInspectionField(value, definition, valuesDiv){
+    const url = `/api/fields/${bookingId}/${definition.id}`;
     fetch(url, {
         method: "POST",
         headers: { "Content-Type": "text/plain" },
@@ -609,8 +630,8 @@ function saveNewInspectionField(value, fieldDefinitionId){
         }
         return response.json();
     })
-    .then(() => {
-        loadInspectionFieldDefinitions(); // Reload fields to show new input
+    .then(saved => {
+        createExistingField(valuesDiv, saved, definition); // The response is the new item; the rest of the tab is unchanged
     })
     .catch(error => {
         console.error("Error saving inspection field:", error);
@@ -618,13 +639,13 @@ function saveNewInspectionField(value, fieldDefinitionId){
     });
 }
 
-async function deleteInspectionField(id){
+async function deleteInspectionField(id, images){
     try {
         const response = await fetch(`/api/fields/${id}`, { method: "DELETE" });
         if (!response.ok) return false;
 
         // Deleting a field hands its images back to the pool.
-        await refreshImagePool();
+        await setImagesUsed(images.map(image => image.id), false);
         return true;
     } catch (error){
         console.error("Error deleting inspection field:", error);
@@ -646,7 +667,7 @@ async function selectImageFunction(bookingId, selectImageDiv, imageId, fieldId, 
     images.push({ id: imageId });
     updateImageCount(fieldId, images.length);
     // Drops the freshly used image out of the "not yet used" galleries.
-    await refreshImagePool();
+    await setImagesUsed([imageId], true);
     addExistingImages(bookingId, selectImageDiv, fieldId, images); // Refresh gallery
     showExistingImage(images, fieldId); // Refresh existing images
 }
@@ -666,7 +687,7 @@ async function deleteImageFromField(image, fieldId, images){
     if (index !== -1) images.splice(index, 1);
     updateImageCount(fieldId, images.length);
 
-    await refreshImagePool(); // The image is back in the pool.
+    await setImagesUsed([image.id], false); // The image is back in the pool.
     addExistingImages(bookingId, selectImageDiv, fieldId, images);
     showExistingImage(images, fieldId);
 }
@@ -682,25 +703,13 @@ async function updateInSummary() {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const button = contentFields.querySelector(`.value-button[data-id="${curField}"]`);
         if (button) markInSummary(button, includeBool);
+        if (itemsById.has(curField)) itemsById.get(curField).includeInSummary = includeBool;
     } catch (error){
         console.error("Error updating summary flag:", error);
         // Put the tick back, so the box never disagrees with what the report will print.
         includeInSummaryBox.checked = !includeBool;
         notify("Could not change whether this item is in the summary.", { error: true });
     }
-}
-
-function fetchInSummary(fieldId){
-    fetch(`/api/fields/${fieldId}/summary`)
-    .then(response => response.ok ? response.json() : null)
-    .then(inSummary => {
-        if (inSummary) {
-            includeInSummaryBox.checked = true;
-        } else {
-            includeInSummaryBox.checked = false;
-        }
-    })
-    .catch(error => console.log(error));
 }
 
 //Buttons
@@ -801,9 +810,11 @@ window.addEventListener("popstate", async () => {
     loadInspectionFieldDefinitions();
 });
 
-saveNoteButton.addEventListener("click", (e) => {
+saveNoteButton.addEventListener("click", async (e) => {
     noteEditFieldId = null;
-    saveFunction(e, noteTextArea);
+    const fieldId = curField;
+    const content = noteTextArea.value;
+    if (await saveFunction(e, noteTextArea) && itemsById.has(fieldId)) itemsById.get(fieldId).note = content;
 });
 
 recommendationsButton.addEventListener("click", () => {
