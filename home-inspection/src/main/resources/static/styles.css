@@ -71,28 +71,26 @@ body {
     color: var(--muted);
 }
 
+/* Running elements are laid out again on every page, and flex is the slow way to do it,
+   so the header and footer use plain blocks and a table instead. */
 #page-header-left {
     position: running(running-header-left);
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
     line-height: 1.4;
 }
 
 #page-header-right {
     position: running(running-header-right);
     text-align: right;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
     line-height: 1.4;
+}
+
+#page-header-left > div + div,
+#page-header-right > div + div {
+    margin-top: 2px;
 }
 
 #page-footer {
     position: running(running-footer);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     border-top: 1px solid var(--border);
     padding-top: 4px;
     font-size: 8pt;
@@ -116,15 +114,16 @@ body {
 }
 
 .report-header-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    display: table;
+    width: 100%;
     padding-bottom: 4px;
     font-size: 8pt;
     color: var(--muted);
 }
 
 .report-header-row > div {
+    display: table-cell;
+    vertical-align: top;
     line-height: 1.4;
 }
 
