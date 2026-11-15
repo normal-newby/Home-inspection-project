@@ -28,6 +28,8 @@ import tools.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -370,6 +372,31 @@ public class ReportViewService {
 
     // PDF generation
 
+    static final int KEPT_RENDERS = 3;
+
+    private record RenderedPdf(String inputHash, byte[] pdf) {}
+
+    // The last few rendered reports by booking, so emailing right after a preview does not
+    // render again. One is reused only while the HTML and appendix it came from are unchanged.
+    private final Map<UUID, RenderedPdf> renderedPdfs = Collections.synchronizedMap(
+            new LinkedHashMap<>(8, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<UUID, RenderedPdf> eldest) {
+                    return size() > KEPT_RENDERS;
+                }
+            });
+
+    private static String hashOf(String html, byte[] appendixBytes){
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            digest.update(html.getBytes(StandardCharsets.UTF_8));
+            if (appendixBytes != null) digest.update(appendixBytes);
+            return HexFormat.of().formatHex(digest.digest());
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     public byte[] generatePdf(String templateName, Context context, UUID bookingId, byte[] appendixBytes){
         // try-with-resources: an unclosed stream keeps a handle on the file, which on Windows
         // blocks the next build from overwriting target/classes/static/styles.css.
@@ -385,6 +412,13 @@ public class ReportViewService {
         }
 
         String html = templateEngine.process(templateName, context);
+
+        String inputHash = hashOf(html, appendixBytes);
+        RenderedPdf earlier = renderedPdfs.get(bookingId);
+        if (earlier != null && earlier.inputHash().equals(inputHash)){
+            log.debug("Report for booking {} is unchanged; reusing its last render", bookingId);
+            return earlier.pdf();
+        }
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -406,6 +440,8 @@ public class ReportViewService {
                 byte[].class
         );
 
-        return response.getBody();
+        byte[] pdf = response.getBody();
+        if (pdf != null) renderedPdfs.put(bookingId, new RenderedPdf(inputHash, pdf));
+        return pdf;
     }
 }
