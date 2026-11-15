@@ -9,7 +9,6 @@ services:
       - PDF_SERVICE_URL=http://pdf-service:3001
       - DATASOURCE_URL=jdbc:sqlite:/app/data/database.db
       - UPLOAD_DIR=/app/uploads
-      - 'SPRING_APPLICATION_JSON={"spring":{"datasource":{"hikari":{"data-source-properties":{"journal_mode":"DELETE"}}}}}'
     volumes:
       - ./data:/app/data
       - ./uploads:/app/uploads
@@ -26,8 +25,6 @@ services:
     build: ./pdf-service
     ports:
       - "3001:3001"
-    environment:
-      - SPRING_BASE_URL=http://backend:8080
     logging:
       driver: json-file
       options:

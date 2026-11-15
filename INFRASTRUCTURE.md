@@ -76,9 +76,6 @@ If the file doesn't exist, compose fails, so create an empty one on a fresh clon
 | `LOG_LEVEL_APP`          | `INFO`                                                | —                              | Log level for `ca.inspection.home` |
 | `LOG_FILE`               | `logs/home-inspection.log`                            | —                              | Rolling log file (10 MB × 14) |
 
-Compose also sets `SPRING_APPLICATION_JSON` to force SQLite `journal_mode=DELETE`. This repeats the value
-already in `application.properties`. It sets `SPRING_BASE_URL` on `pdf-service` too, but `server.py` never reads it.
-
 ### Other fixed settings
 
 - Upload limits: 500 MB per file, 1000 MB per request (`spring.servlet.multipart.*`).
