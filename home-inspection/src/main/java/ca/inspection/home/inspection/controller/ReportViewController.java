@@ -44,10 +44,7 @@ public class ReportViewController {
 
     @GetMapping(value = "/{bookingId}", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<byte[]> getReport(@PathVariable UUID bookingId){
-        ReportViewService.ReportData data = reportViewService.loadReportData(bookingId);
-        Context context = buildReportContext(data);
-
-        byte[] pdf = reportViewService.generatePdf("report", context, bookingId, data.report());
+        byte[] pdf = renderPdf(bookingId, reportViewService.loadReportData(bookingId));
 
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
                 "inline; filename=report-" + bookingId + ".pdf")
@@ -91,9 +88,7 @@ public class ReportViewController {
             }
 
             ReportViewService.ReportData data = reportViewService.loadReportData(bookingId);
-            Context context = buildReportContext(data);
-
-            byte[] pdf = reportViewService.generatePdf("report", context, bookingId, data.report());
+            byte[] pdf = renderPdf(bookingId, data);
 
             String cc = googleEmailService.sendReportEmail(emails, pdf, data.booking(), data.report().getEmailBody(), ccAgent);
 
@@ -106,8 +101,15 @@ public class ReportViewController {
         }
     }
 
+    private byte[] renderPdf(UUID bookingId, ReportViewService.ReportData data){
+        // Read once: the template needs to know it exists, the pdf service needs its bytes.
+        byte[] appendix = inspectionReportsService.readAppendixPdfBytes(data.report());
+        Context context = buildReportContext(data, appendix != null);
+        return reportViewService.generatePdf("report", context, bookingId, appendix);
+    }
+
     // Works on data already loaded: only the photo files are read here.
-    private Context buildReportContext(ReportViewService.ReportData data){
+    private Context buildReportContext(ReportViewService.ReportData data, boolean hasAppendix){
         InspectionBookings booking = data.booking();
         InspectionReport report = data.report();
         Context context = new Context();
@@ -122,8 +124,6 @@ public class ReportViewController {
         Map<String, Map<String, List<FieldGroup>>> allFields = reportViewService.getAllFields(fields);
         reportViewService.numberFigures(allFields);
         Map<String, List<InspectionField>> summaryFields = reportViewService.getSummaryFields(fields);
-
-        boolean hasAppendix = inspectionReportsService.readAppendixPdfBytes(report) != null;
 
         context.setVariable("booking", booking);
         context.setVariable("clientNames", Objects.requireNonNullElse(HelperFunctions.fullName(booking), ""));

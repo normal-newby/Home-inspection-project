@@ -2,6 +2,7 @@ package ca.inspection.home.inspection.integration;
 
 import ca.inspection.home.inspection.entity.*;
 import ca.inspection.home.inspection.repository.*;
+import ca.inspection.home.inspection.service.InspectionReportsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.client.RestTemplate;
 
@@ -36,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -71,6 +74,7 @@ public class RequestConnectionIT {
     @Autowired private InspectorProfileRepository profileRepository;
 
     @MockitoBean private RestTemplate restTemplate;
+    @MockitoSpyBean private InspectionReportsService inspectionReportsService;
 
     private UUID bookingId;
     private InspectionReport report;
@@ -214,6 +218,15 @@ public class RequestConnectionIT {
                 .contains("Careful Inspections")
                 .contains("Reseal the joints")
                 .contains("data:image/jpeg;base64,");
+    }
+
+    @Test
+    void pdfRender_readsTheAppendixFileOnce() throws Exception {
+        pdfServiceAnswers("pdf".getBytes());
+
+        mockMvc.perform(get("/report/{id}", bookingId)).andExpect(status().isOk());
+
+        verify(inspectionReportsService, times(1)).readAppendixPdfBytes(any());
     }
 
     @Test

@@ -59,9 +59,6 @@ public class ReportViewService {
     private InspectionImagesService inspectionImagesService;
 
     @Autowired
-    private InspectionReportsService inspectionReportsService;
-
-    @Autowired
     private ObjectMapper objectMapper;
 
     @Value("${pdf.service.url}")
@@ -373,7 +370,7 @@ public class ReportViewService {
 
     // PDF generation
 
-    public byte[] generatePdf(String templateName, Context context, UUID bookingId, InspectionReport report){
+    public byte[] generatePdf(String templateName, Context context, UUID bookingId, byte[] appendixBytes){
         // try-with-resources: an unclosed stream keeps a handle on the file, which on Windows
         // blocks the next build from overwriting target/classes/static/styles.css.
         try (InputStream stylesheet = getClass().getClassLoader().getResourceAsStream("static/styles.css")) {
@@ -396,7 +393,6 @@ public class ReportViewService {
         body.put("html", html);
         body.put("bookingId", bookingId);
 
-        byte[] appendixBytes = inspectionReportsService.readAppendixPdfBytes(report);
         if (appendixBytes != null){
             body.put("appendixBase64", Base64.getEncoder().encodeToString(appendixBytes));
         }
