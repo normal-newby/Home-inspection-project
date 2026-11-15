@@ -123,8 +123,7 @@ public class InspectionFieldServiceTest {
         String place = "roofing";
         String type = "description";
 
-        when(inspectionBookingsService.getReportFromBooking(bookingId)).thenReturn(report);
-        when(inspectionFieldRepository.getExistingFieldsForPlaceAndType(reportId, "exterior", type))
+        when(inspectionFieldRepository.getExistingFieldsForPlaceAndType(bookingId, "exterior", type))
                 .thenReturn(List.of());
 
         Map<UUID, List<InspectionField>> result = inspectionFieldService.getAlreadyExistingFieldsCombined(
@@ -156,8 +155,7 @@ public class InspectionFieldServiceTest {
         String place = "roofing";
         String type = "description";
 
-        when(inspectionBookingsService.getReportFromBooking(bookingId)).thenReturn(report);
-        when(inspectionFieldRepository.getExistingFieldsForPlaceAndType(reportId, place, type))
+        when(inspectionFieldRepository.getExistingFieldsForPlaceAndType(bookingId, place, type))
                 .thenReturn(List.of(field1, field2));
 
         Map<UUID, List<InspectionField>> result = inspectionFieldService.getAlreadyExistingFieldsCombined(bookingId, place, type);
@@ -186,8 +184,7 @@ public class InspectionFieldServiceTest {
         String place = "roofing";
         String type = "description";
 
-        when(inspectionBookingsService.getReportFromBooking(bookingId)).thenReturn(report);
-        when(inspectionFieldRepository.getExistingFieldsForPlaceAndType(reportId, place, type))
+        when(inspectionFieldRepository.getExistingFieldsForPlaceAndType(bookingId, place, type))
                 .thenReturn(List.of(field1, field2));
 
         Map<UUID, List<InspectionField>> result = inspectionFieldService.getAlreadyExistingFieldsCombined(bookingId, place, type);

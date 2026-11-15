@@ -97,7 +97,7 @@ public class InspectionFieldRepositoryIT {
         em.clear();
 
         List<InspectionField> fields = inspectionFieldRepository
-                .getExistingFieldsForPlaceAndType(report.getId(), PLACE, TYPE);
+                .getExistingFieldsForPlaceAndType(report.getInspectionBooking().getId(), PLACE, TYPE);
 
         assertThat(fields).hasSize(1);
         assertThat(fields.get(0).getInspectionImages())
@@ -116,7 +116,7 @@ public class InspectionFieldRepositoryIT {
         em.clear();
 
         List<InspectionField> fields = inspectionFieldRepository
-                .getExistingFieldsForPlaceAndType(report.getId(), PLACE, TYPE);
+                .getExistingFieldsForPlaceAndType(report.getInspectionBooking().getId(), PLACE, TYPE);
 
         assertThat(fields).hasSize(1);
         assertThat(fields.get(0).getInspectionImages()).hasSize(3);

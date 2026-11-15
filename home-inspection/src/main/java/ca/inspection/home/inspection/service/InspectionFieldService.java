@@ -73,9 +73,8 @@ public class InspectionFieldService {
             UUID bookingId, String place, String type
     ){
         try {
-            InspectionReport report = inspectionBookingsService.getReportFromBooking(bookingId);
             List<InspectionField> fields = inspectionFieldRepository
-                    .getExistingFieldsForPlaceAndType(report.getId(), place, type);
+                    .getExistingFieldsForPlaceAndType(bookingId, place, type);
             return fields.stream()
                     .collect(Collectors.groupingBy(field -> field.getInspectionFieldDefinition().getId()));
         } catch (Exception e){

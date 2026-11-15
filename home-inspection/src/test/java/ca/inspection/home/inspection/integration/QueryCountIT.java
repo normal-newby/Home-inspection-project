@@ -156,7 +156,7 @@ public class QueryCountIT {
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$.*[0].inspectionImages[0].id").isNotEmpty()));
 
-        assertThat(statements).isLessThanOrEqualTo(6);
+        assertThat(statements).isEqualTo(1);
     }
 
     @Test

@@ -19,12 +19,12 @@ public interface InspectionFieldRepository extends JpaRepository<InspectionField
             LEFT JOIN FETCH f.selectedValue
             LEFT JOIN FETCH f.inspectionImages img
             LEFT JOIN FETCH f.inspectionRecommendationField
-            WHERE f.inspectionReport.id = :reportId
+            WHERE f.inspectionReport.inspectionBooking.id = :bookingId
             AND d.fieldPlace = :place
             AND d.fieldType = :type
             """)
     List<InspectionField> getExistingFieldsForPlaceAndType(
-            @Param("reportId") UUID reportId,
+            @Param("bookingId") UUID bookingId,
             @Param("place") String place,
             @Param("type") String type
     );
